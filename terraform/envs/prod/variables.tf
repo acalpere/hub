@@ -16,3 +16,9 @@ variable "use_custom_domain" {
   type        = bool
   default     = false
 }
+
+variable "neon_project_id" {
+  description = "Projecte de Neon creat des de la consola (acalpere)"
+  type        = string
+  default     = "square-bread-74586163"
+}

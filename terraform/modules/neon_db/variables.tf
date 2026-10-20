@@ -1,7 +1,12 @@
 variable "env" { type = string }
 
-variable "neon_region" {
-  description = "Regió de Neon propera a la Lambda (eu-west-1): Londres és la més pròxima"
+variable "neon_project_id" {
+  description = "Projecte de Neon (consola: acalpere)"
   type        = string
-  default     = "aws-eu-west-2"
+}
+
+variable "create_branch" {
+  description = "true: crea una branca pròpia per a l'entorn (dev). false: fa servir la branca per defecte (prod)."
+  type        = bool
+  default     = false
 }

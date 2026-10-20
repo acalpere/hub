@@ -30,8 +30,10 @@ provider "aws" {
 }
 
 module "database" {
-  source = "../../modules/neon_db"
-  env    = "prod"
+  source          = "../../modules/neon_db"
+  env             = "prod"
+  neon_project_id = var.neon_project_id
+  create_branch   = false
 }
 
 module "api" {
