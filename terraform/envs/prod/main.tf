@@ -42,6 +42,7 @@ module "api" {
   package_path           = var.package_path
   database_url_ssm_param = module.database.database_url_ssm_param
   database_url_ssm_arn   = module.database.database_url_ssm_arn
+  rp_id                  = var.use_custom_domain ? "acalpere.cat" : ""
 }
 
 module "site" {

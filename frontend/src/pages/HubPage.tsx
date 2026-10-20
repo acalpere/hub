@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api, type Agent, type Site } from "../api";
+import { useAuth } from "../auth";
 
 const STATUSES = ["active", "paused", "archived"];
 
 export function HubPage() {
+  const { user } = useAuth();
+  const admin = user?.role === "admin";
   const [sites, setSites] = useState<Site[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [error, setError] = useState("");
@@ -58,7 +61,7 @@ export function HubPage() {
 
   return (
     <section>
-      <h1>Webs i agents</h1>
+      <h1>Hub</h1>
       {error && <p role="alert" className="error">{error}</p>}
 
       <h2>Webs</h2>
@@ -66,41 +69,53 @@ export function HubPage() {
         {sites.map((s) => (
           <li key={s.id}>
             <a href={s.url} target="_blank" rel="noreferrer">{s.name}</a>
-            <select value={s.status} onChange={(e) => void run(() => api.updateSite(s.id, { status: e.target.value }))}>
-              {STATUSES.map((st) => <option key={st}>{st}</option>)}
-            </select>
-            <button className="link danger" onClick={() => confirm(`Eliminar ${s.name}?`) && void run(() => api.deleteSite(s.id))}>
-              Eliminar
-            </button>
+            {admin ? (
+              <>
+                <select value={s.status} onChange={(e) => void run(() => api.updateSite(s.id, { status: e.target.value }))}>
+                  {STATUSES.map((st) => <option key={st}>{st}</option>)}
+                </select>
+                <button className="link danger" onClick={() => confirm(`Eliminar ${s.name}?`) && void run(() => api.deleteSite(s.id))}>
+                  Eliminar
+                </button>
+              </>
+            ) : (
+              <span className="muted">{s.status}</span>
+            )}
           </li>
         ))}
-        {sites.length === 0 && <li className="muted">Cap web encara.</li>}
+        {sites.length === 0 && <li className="muted">{admin ? "Cap web encara." : "No tens cap web assignada."}</li>}
       </ul>
-      <form className="inline" onSubmit={addSite}>
+      {admin && <form className="inline" onSubmit={addSite}>
         <input name="name" placeholder="Nom" required />
         <input name="url" placeholder="https://…" type="url" required />
         <button type="submit">Afegir web</button>
-      </form>
+      </form>}
 
       <h2>Agents</h2>
       <ul className="rows">
         {agents.map((a) => (
           <li key={a.id}>
             <span>
-              {a.name} <span className="muted">({a.kind}{a.site_id ? ` · ${sites.find((s) => s.id === a.site_id)?.name ?? "?"}` : ""})</span>
+              {a.name} <span className="muted">({a.kind}{a.site_id ? ` · ${sites.find((s) => s.id === a.site_id)?.name ?? "—"}` : ""})</span>
             </span>
-            <label className="check">
-              <input type="checkbox" checked={a.enabled} onChange={(e) => void run(() => api.updateAgent(a.id, { enabled: e.target.checked }))} />
-              actiu
-            </label>
-            <button className="link danger" onClick={() => confirm(`Eliminar ${a.name}?`) && void run(() => api.deleteAgent(a.id))}>
-              Eliminar
-            </button>
+            {admin ? (
+              <>
+                <label className="check">
+                  <input type="checkbox" checked={a.enabled} onChange={(e) => void run(() => api.updateAgent(a.id, { enabled: e.target.checked }))} />
+                  actiu
+                </label>
+                <button className="link danger" onClick={() => confirm(`Eliminar ${a.name}?`) && void run(() => api.deleteAgent(a.id))}>
+                  Eliminar
+                </button>
+              </>
+            ) : (
+              <span className="muted">{a.enabled ? "actiu" : "aturat"}</span>
+            )}
           </li>
         ))}
-        {agents.length === 0 && <li className="muted">Cap agent encara.</li>}
+        {agents.length === 0 && <li className="muted">{admin ? "Cap agent encara." : "No tens cap agent assignat."}</li>}
       </ul>
-      <form className="inline" onSubmit={addAgent}>
+      {admin && <form className="inline" onSubmit={addAgent}>
         <input name="name" placeholder="Nom" required />
         <input name="kind" placeholder="Tipus (marketing…)" required />
         <select name="site_id" defaultValue="">
@@ -108,7 +123,7 @@ export function HubPage() {
           {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <button type="submit">Afegir agent</button>
-      </form>
+      </form>}
     </section>
   );
 }

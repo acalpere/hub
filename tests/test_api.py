@@ -1,5 +1,7 @@
 import bcrypt
-from conftest import login
+from conftest import TOTP_SECRET, login
+
+from acalpere.security import Totp
 
 PHP_HASH = (
     bcrypt.hashpw(b"altra", bcrypt.gensalt(4)).decode().replace("$2b$", "$2y$", 1)
@@ -43,10 +45,14 @@ def test_mutations_need_the_csrf_header(client):
 
 
 def test_menu_depends_on_role(admin, client):
-    assert [x["name"] for x in client.get("/api/v1/menu").json()] == ["Calendari", "Hub"]
+    assert [x["name"] for x in client.get("/api/v1/menu").json()] == [
+        "Calendari",
+        "Herència",
+        "Hub",
+    ]
     client.post("/api/v1/auth/logout")
     login(client, "Jordi", "altra-clau-prova")
-    assert [x["name"] for x in client.get("/api/v1/menu").json()] == ["Calendari"]
+    assert [x["name"] for x in client.get("/api/v1/menu").json()] == ["Calendari", "Herència"]
 
 
 def test_calendar_flow(germa, client):
@@ -172,8 +178,38 @@ def test_herencia_comments_and_chat(germa, client):
     assert client.post("/api/v1/herencia/xat", json={"autor": "", "text": "x"}).status_code == 400
 
 
-def test_hub_is_admin_only(germa, client):
-    assert client.get("/api/v1/hub/sites").status_code == 403
+def test_hub_management_is_admin_only(germa, client):
+    assert client.get("/api/v1/hub/sites").json() == []  # sense autoritzacions no veu res
+    body = {"name": "x", "url": "https://x.cat"}
+    assert client.post("/api/v1/hub/sites", json=body).status_code == 403
+    assert client.get("/api/v1/users").status_code == 403
+    assert client.get("/api/v1/users/1/access").status_code == 403
+    assert client.put("/api/v1/users/1/access", json={}).status_code == 403
+
+
+def test_users_only_see_the_sites_and_agents_they_are_granted(client, container):
+    login(client)
+    s1 = client.post("/api/v1/hub/sites", json={"name": "A", "url": "https://a.cat"}).json()["id"]
+    s2 = client.post("/api/v1/hub/sites", json={"name": "B", "url": "https://b.cat"}).json()["id"]
+    a1 = client.post("/api/v1/hub/agents", json={"name": "Ag1", "kind": "k"}).json()["id"]
+    client.post("/api/v1/hub/agents", json={"name": "Ag2", "kind": "k"})
+    assert len(client.get("/api/v1/hub/sites").json()) == 2 + 6  # ho veu tot (6 de projectes)
+    jordi = next(u["id"] for u in client.get("/api/v1/users").json() if u["username"] == "Jordi")
+    r = client.put(f"/api/v1/users/{jordi}/access", json={"site_ids": [s1], "agent_ids": [a1]})
+    assert r.json() == {
+        "site_ids": [s1],
+        "agent_ids": [a1],
+        "work_agent_ids": [],
+        "content_ids": [],
+    }
+    assert client.put(f"/api/v1/users/{jordi}/access", json={"site_ids": [999]}).status_code == 400
+    assert client.put("/api/v1/users/999/access", json={}).status_code == 404
+    client.post("/api/v1/auth/logout")
+
+    login(client, "Jordi", "altra-clau-prova")
+    assert [s["id"] for s in client.get("/api/v1/hub/sites").json()] == [s1]
+    assert [a["id"] for a in client.get("/api/v1/hub/agents").json()] == [a1]
+    assert s2 not in [s["id"] for s in client.get("/api/v1/hub/sites").json()]
 
 
 def test_hub_sites_and_agents(admin, client):
@@ -250,13 +286,13 @@ def test_change_password(admin, client):
     login(client, "Pere", "una-clau-nova-1")
 
 
-def test_set_role_removes_hub_access(container, client):
+def test_set_role_removes_admin_access(container, client):
     login(client, "Jordi", "altra-clau-prova")
-    assert client.get("/api/v1/hub/sites").status_code == 403
+    assert client.get("/api/v1/users").status_code == 403
     container.auth.set_role("jordi", "admin")
-    assert client.get("/api/v1/hub/sites").status_code == 200
+    assert client.get("/api/v1/users").status_code == 200
     container.auth.set_role("Jordi", "germa")
-    assert client.get("/api/v1/hub/sites").status_code == 403
+    assert client.get("/api/v1/users").status_code == 403
 
 
 def test_admin_password_reset(container, client):
@@ -268,3 +304,100 @@ def test_admin_password_reset(container, client):
         == 401
     )
     login(client, "Jordi", "una-clau-nova-2")
+
+
+def test_password_alone_does_not_open_a_session(client):
+    r = client.post("/api/v1/auth/login", json={"usuari": "Pere", "clau": "clau-de-prova"})
+    assert r.json() == {"status": "mfa_required"}
+    assert client.get("/api/v1/auth/me").status_code == 401
+    assert client.post("/api/v1/auth/mfa", json={"code": "000000"}).status_code == 401
+    assert client.get("/api/v1/auth/me").status_code == 401
+
+
+def test_mfa_without_password_is_rejected(client):
+    assert client.post("/api/v1/auth/mfa", json={"code": "123456"}).status_code == 401
+
+
+def test_mfa_attempts_are_limited(client):
+    client.post("/api/v1/auth/login", json={"usuari": "Pere", "clau": "clau-de-prova"})
+    for _ in range(5):
+        client.post("/api/v1/auth/mfa", json={"code": "000000"})
+    good = Totp().code(TOTP_SECRET)
+    assert client.post("/api/v1/auth/mfa", json={"code": good}).status_code == 401
+
+
+def test_user_without_totp_must_enroll_before_getting_in(container, client):
+    user = container.auth.create("Nova", "clau-nova-1234", "germa")
+    r = client.post("/api/v1/auth/login", json={"usuari": "Nova", "clau": "clau-nova-1234"})
+    assert r.json() == {"status": "mfa_setup"}
+    assert client.get("/api/v1/auth/me").status_code == 401
+    secret = client.post("/api/v1/auth/mfa/setup").json()["secret"]
+    assert client.post("/api/v1/auth/mfa/enable", json={"code": "000000"}).status_code == 401
+    r = client.post("/api/v1/auth/mfa/enable", json={"code": Totp().code(secret)})
+    assert r.status_code == 200 and r.json()["id"] == user.id
+    assert client.get("/api/v1/auth/me").status_code == 200
+
+
+def test_totp_matches_rfc6238_vector():
+    # RFC 6238, SHA-1, T=59 s: 94287082 (8 xifres) -> els 6 últims: 287082
+    assert Totp().code("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", at=59) == "287082"
+
+
+def test_passkey_login_needs_a_known_origin_and_challenge(client):
+    assert client.post("/api/v1/auth/passkey/options").status_code == 401  # sense Origin
+    r = client.post("/api/v1/auth/passkey/options", headers={"Origin": "https://acalpere.cat"})
+    assert r.status_code == 200 and r.json()["rpId"] == "acalpere.cat"
+    bad = client.post(
+        "/api/v1/auth/passkey/login",
+        json={"credential": {"id": "desconeguda"}},
+        headers={"Origin": "https://acalpere.cat"},
+    )
+    assert bad.status_code == 401
+    assert client.get("/api/v1/auth/me").status_code == 401
+
+
+def test_passkey_management_requires_login(client):
+    assert client.get("/api/v1/auth/passkeys").status_code == 401
+    assert client.post("/api/v1/auth/passkeys/options").status_code == 401
+
+
+def test_new_user_role_sees_only_what_is_granted(client, container):
+    container.auth.create("Visita", "clau-visita-1234", "usuari")
+    from conftest import TOTP_SECRET
+
+    container.mfa._users.set_totp_secret(container.auth.list_users()[-1].id, TOTP_SECRET)
+    login(client)
+    uid = next(u["id"] for u in client.get("/api/v1/users").json() if u["username"] == "Visita")
+    cal = next(c["id"] for c in client.get("/api/v1/contents").json() if c["name"] == "Calendari")
+    ag = client.post("/api/v1/hub/agents", json={"name": "Ag", "kind": "k"}).json()["id"]
+    client.post("/api/v1/auth/logout")
+
+    login(client, "Visita", "clau-visita-1234")
+    assert client.get("/api/v1/menu").json() == []
+    assert client.get("/api/v1/calendar").status_code == 403
+    client.post("/api/v1/auth/logout")
+
+    login(client)
+    body = {"content_ids": [cal], "work_agent_ids": [ag]}
+    assert client.put(f"/api/v1/users/{uid}/access", json=body).json()["agent_ids"] == [ag]
+    client.post("/api/v1/auth/logout")
+
+    login(client, "Visita", "clau-visita-1234")
+    assert [c["name"] for c in client.get("/api/v1/menu").json()] == ["Calendari"]
+    assert client.get("/api/v1/calendar").status_code == 200
+    r = client.put(f"/api/v1/hub/agents/{ag}/enabled", json={"enabled": False})
+    assert r.status_code == 200 and r.json()["enabled"] is False
+    assert client.patch(f"/api/v1/hub/agents/{ag}", json={"name": "x"}).status_code == 403
+
+
+def test_viewing_an_agent_does_not_allow_working_with_it(client, container):
+    login(client)
+    ag = client.post("/api/v1/hub/agents", json={"name": "Ag", "kind": "k"}).json()["id"]
+    jordi = next(u["id"] for u in client.get("/api/v1/users").json() if u["username"] == "Jordi")
+    client.put(f"/api/v1/users/{jordi}/access", json={"agent_ids": [ag]})
+    client.post("/api/v1/auth/logout")
+    login(client, "Jordi", "altra-clau-prova")
+    assert len(client.get("/api/v1/hub/agents").json()) == 1
+    assert (
+        client.put(f"/api/v1/hub/agents/{ag}/enabled", json={"enabled": False}).status_code == 403
+    )

@@ -6,8 +6,10 @@ from acalpere.adapters.persistence.engine import make_session_factory
 from acalpere.adapters.web.app import create_app
 from acalpere.bootstrap import build_container
 from acalpere.config import Settings
+from acalpere.security import Totp
 
 CSRF = {"X-Requested-With": "acalpere"}
+TOTP_SECRET = "JBSWY3DPEHPK3PXP"
 
 
 @pytest.fixture
@@ -39,11 +41,18 @@ def container(settings):
                 m.ContentRow(
                     name="Calendari", url="/apps/calendari/", roles="admin,germa", position=1
                 ),
-                m.ContentRow(name="Hub", url="/hub", roles="admin", position=2),
+                m.ContentRow(
+                    name="Herència", url="/apps/herencia/", roles="admin,germa", position=2
+                ),
+                m.ContentRow(name="Hub", url="/hub", roles="admin", position=3),
             ]
         )
-    c.auth.create("Pere", "clau-de-prova", "admin")
-    c.auth.create("Jordi", "altra-clau-prova", "germa")
+    for name, password, role in (
+        ("Pere", "clau-de-prova", "admin"),
+        ("Jordi", "altra-clau-prova", "germa"),
+    ):
+        user = c.auth.create(name, password, role)
+        c.mfa._users.set_totp_secret(user.id, TOTP_SECRET)  # segon factor ja enrolat
     return c
 
 
@@ -54,6 +63,8 @@ def client(settings, container):
 
 def login(client, user="Pere", password="clau-de-prova"):
     r = client.post("/api/v1/auth/login", json={"usuari": user, "clau": password})
+    assert r.status_code == 200, r.text
+    r = client.post("/api/v1/auth/mfa", json={"code": Totp().code(TOTP_SECRET)})
     assert r.status_code == 200, r.text
     return client
 

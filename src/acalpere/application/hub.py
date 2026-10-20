@@ -4,15 +4,87 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from ..domain.errors import InvalidInput, NotFound
-from ..domain.hub import SITE_STATUSES, Agent, Site
-from ..domain.ports import AgentRepository, SiteRepository
+from ..domain.errors import Forbidden, InvalidInput, NotFound
+from ..domain.hub import SITE_STATUSES, Access, Agent, Site
+from ..domain.identity import User
+from ..domain.ports import (
+    AccessRepository,
+    AgentRepository,
+    ContentRepository,
+    SiteRepository,
+    UserRepository,
+)
 
 
 class HubService:
-    def __init__(self, sites: SiteRepository, agents: AgentRepository):
+    def __init__(
+        self,
+        sites: SiteRepository,
+        agents: AgentRepository,
+        access: AccessRepository,
+        users: UserRepository,
+        contents: ContentRepository,
+    ):
+        self._contents = contents
         self._sites = sites
         self._agents = agents
+        self._access = access
+        self._users = users
+
+    # autoritzacions: l'administrador ho veu tot; la resta, només el que se li ha assignat
+    def visible_sites(self, user: User) -> list[Site]:
+        if user.is_admin:
+            return self._sites.list()
+        allowed = self._access.get(user.id).site_ids
+        return [s for s in self._sites.list() if s.id in allowed]
+
+    def visible_agents(self, user: User) -> list[Agent]:
+        if user.is_admin:
+            return self._agents.list()
+        allowed = self._access.get(user.id).agent_ids
+        return [a for a in self._agents.list() if a.id in allowed]
+
+    def can_work_with(self, user: User, agent_id: int) -> bool:
+        return user.is_admin or agent_id in self._access.get(user.id).work_agent_ids
+
+    def access_of(self, user_id: int) -> Access:
+        if self._users.get(user_id) is None:
+            raise NotFound("Usuari no trobat")
+        return self._access.get(user_id)
+
+    def set_access(
+        self,
+        user_id: int,
+        site_ids: list[int],
+        agent_ids: list[int],
+        work_agent_ids: list[int],
+        content_ids: list[int],
+    ) -> Access:
+        self.access_of(user_id)
+        sites = {s.id for s in self._sites.list()}
+        agents = {a.id for a in self._agents.list()}
+        contents = {c.id for c in self._contents.list()}
+        if (
+            not set(site_ids) <= sites
+            or not set(agent_ids) | set(work_agent_ids) <= agents
+            or not set(content_ids) <= contents
+        ):
+            raise InvalidInput("Hi ha elements que no existeixen")
+        # Poder treballar amb un agent implica poder-lo veure.
+        access = Access(
+            frozenset(site_ids),
+            frozenset(agent_ids) | frozenset(work_agent_ids),
+            frozenset(work_agent_ids),
+            frozenset(content_ids),
+        )
+        self._access.set(user_id, access)
+        return access
+
+    def set_agent_enabled(self, user: User, agent_id: int, enabled: bool) -> Agent:
+        """Engegar o aturar un agent: l'administrador o qui hi té permís per treballar-hi."""
+        if not user.is_admin and agent_id not in self._access.get(user.id).work_agent_ids:
+            raise Forbidden("No pots treballar amb aquest agent")
+        return self.update_agent(agent_id, enabled=enabled)
 
     # webs
     def sites(self) -> list[Site]:

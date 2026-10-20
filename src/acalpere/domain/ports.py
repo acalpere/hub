@@ -6,8 +6,8 @@ from datetime import date
 from typing import Protocol
 
 from .calendar import Assignacio, Germa, HistoryEntry, LastModification, Modalitat
-from .hub import Agent, Site
-from .identity import Content, User
+from .hub import Access, Agent, Site
+from .identity import Content, Passkey, PasskeyCredential, User
 from .inheritance import Fill, Finca, Missatge, Parametres, Pis
 
 
@@ -29,6 +29,48 @@ class UserRepository(Protocol):
     def set_password(self, user_id: int, password_hash: str) -> None: ...
 
     def set_role(self, user_id: int, role: str) -> None: ...
+
+    def set_totp_secret(self, user_id: int, secret: str | None) -> None: ...
+
+
+class TotpAuthenticator(Protocol):
+    def new_secret(self) -> str: ...
+
+    def verify(self, secret: str, code: str) -> bool: ...
+
+    def uri(self, secret: str, username: str) -> str: ...
+
+
+class PasskeyRepository(Protocol):
+    def for_user(self, user_id: int) -> list[Passkey]: ...
+
+    def by_credential_id(self, credential_id: str) -> Passkey | None: ...
+
+    def add(self, passkey: Passkey) -> Passkey: ...
+
+    def set_sign_count(self, passkey_id: int, sign_count: int) -> None: ...
+
+    def delete(self, user_id: int, passkey_id: int) -> bool: ...
+
+
+class PasskeyVerifier(Protocol):
+    """WebAuthn: genera les opcions i verifica les respostes del navegador."""
+
+    def registration_options(
+        self, rp_id: str, user_id: int, username: str, existing: list[str]
+    ) -> tuple[dict, bytes]: ...
+
+    def verify_registration(
+        self, response: dict, challenge: bytes, rp_id: str, origin: str
+    ) -> PasskeyCredential: ...
+
+    def authentication_options(self, rp_id: str) -> tuple[dict, bytes]: ...
+
+    def credential_id(self, response: dict) -> str: ...
+
+    def verify_authentication(
+        self, response: dict, challenge: bytes, rp_id: str, origin: str, passkey: Passkey
+    ) -> int: ...
 
 
 class ContentRepository(Protocol):
@@ -99,3 +141,9 @@ class AgentRepository(Protocol):
     def save(self, agent: Agent) -> Agent: ...
 
     def delete(self, agent_id: int) -> bool: ...
+
+
+class AccessRepository(Protocol):
+    def get(self, user_id: int) -> Access: ...
+
+    def set(self, user_id: int, access: Access) -> None: ...

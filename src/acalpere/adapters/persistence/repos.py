@@ -15,8 +15,8 @@ from ...domain.calendar import (
     LastModification,
     Modalitat,
 )
-from ...domain.hub import Agent, Site
-from ...domain.identity import Content, User
+from ...domain.hub import Access, Agent, Site
+from ...domain.identity import Content, Passkey, User
 from ...domain.inheritance import Fill, Finca, Missatge, Parametres, Pis
 from . import models as m
 
@@ -75,6 +75,58 @@ class SqlUserRepository:
             row = s.get(m.UserRow, user_id)
             if row:
                 row.role = role
+
+    def set_totp_secret(self, user_id: int, secret: str | None) -> None:
+        with self._sf.begin() as s:
+            row = s.get(m.UserRow, user_id)
+            if row:
+                row.totp_secret = secret
+
+
+class SqlPasskeyRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def for_user(self, user_id: int) -> list[Passkey]:
+        with self._sf() as s:
+            rows = s.scalars(
+                select(m.PasskeyRow)
+                .where(m.PasskeyRow.user_id == user_id)
+                .order_by(m.PasskeyRow.id)
+            )
+            return [_to(Passkey, r) for r in rows]
+
+    def by_credential_id(self, credential_id: str) -> Passkey | None:
+        with self._sf() as s:
+            row = s.scalar(select(m.PasskeyRow).where(m.PasskeyRow.credential_id == credential_id))
+            return _to(Passkey, row) if row else None
+
+    def add(self, passkey: Passkey) -> Passkey:
+        with self._sf.begin() as s:
+            row = m.PasskeyRow(
+                user_id=passkey.user_id,
+                credential_id=passkey.credential_id,
+                public_key=passkey.public_key,
+                sign_count=passkey.sign_count,
+                label=passkey.label,
+            )
+            s.add(row)
+            s.flush()
+            return _to(Passkey, row)
+
+    def set_sign_count(self, passkey_id: int, sign_count: int) -> None:
+        with self._sf.begin() as s:
+            row = s.get(m.PasskeyRow, passkey_id)
+            if row:
+                row.sign_count = sign_count
+
+    def delete(self, user_id: int, passkey_id: int) -> bool:
+        with self._sf.begin() as s:
+            row = s.get(m.PasskeyRow, passkey_id)
+            if row is None or row.user_id != user_id:
+                return False
+            s.delete(row)
+            return True
 
 
 class SqlContentRepository:
@@ -352,3 +404,37 @@ class SqlAgentRepository:
                 return False
             s.delete(row)
             return True
+
+
+class SqlAccessRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def get(self, user_id: int) -> Access:
+        with self._sf() as s:
+            sites = s.scalars(select(m.UserSiteRow.site_id).where(m.UserSiteRow.user_id == user_id))
+            agents = s.execute(
+                select(m.UserAgentRow.agent_id, m.UserAgentRow.can_work).where(
+                    m.UserAgentRow.user_id == user_id
+                )
+            ).all()
+            contents = s.scalars(
+                select(m.UserContentRow.content_id).where(m.UserContentRow.user_id == user_id)
+            )
+            return Access(
+                frozenset(sites),
+                frozenset(a for a, _ in agents),
+                frozenset(a for a, work in agents if work),
+                frozenset(contents),
+            )
+
+    def set(self, user_id: int, access: Access) -> None:
+        with self._sf.begin() as s:
+            for row in (m.UserSiteRow, m.UserAgentRow, m.UserContentRow):
+                s.execute(delete(row).where(row.user_id == user_id))
+            s.add_all(m.UserSiteRow(user_id=user_id, site_id=i) for i in access.site_ids)
+            s.add_all(
+                m.UserAgentRow(user_id=user_id, agent_id=i, can_work=i in access.work_agent_ids)
+                for i in access.agent_ids
+            )
+            s.add_all(m.UserContentRow(user_id=user_id, content_id=i) for i in access.content_ids)

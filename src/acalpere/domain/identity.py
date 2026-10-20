@@ -7,7 +7,8 @@ from datetime import datetime
 
 ADMIN = "admin"
 GERMA = "germa"
-ROLES = (ADMIN, GERMA)
+USUARI = "usuari"  # sense res per defecte: només el que l'administrador li autoritzi
+ROLES = (ADMIN, GERMA, USUARI)
 
 
 @dataclass(frozen=True)
@@ -17,10 +18,33 @@ class User:
     password_hash: str
     role: str
     created_at: datetime | None = None
+    totp_secret: str | None = None  # secret base32 de l'aplicació d'autenticació (MFA)
 
     @property
     def is_admin(self) -> bool:
         return self.role == ADMIN
+
+
+@dataclass(frozen=True)
+class Passkey:
+    """Clau d'accés (WebAuthn) d'un usuari: p. ex. la petjada digital del mòbil."""
+
+    id: int | None
+    user_id: int
+    credential_id: str  # base64url
+    public_key: str  # base64url del COSE
+    sign_count: int = 0
+    label: str = ""
+    created_at: datetime | None = None
+
+
+@dataclass(frozen=True)
+class PasskeyCredential:
+    """Resultat de verificar un registre de clau d'accés."""
+
+    credential_id: str
+    public_key: str
+    sign_count: int
 
 
 @dataclass(frozen=True)

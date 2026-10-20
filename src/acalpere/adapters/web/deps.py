@@ -25,3 +25,14 @@ def admin_user(user: User = Depends(current_user)) -> User:
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Cal ser administrador")
     return user
+
+
+def app_access(url: str):
+    """Dependència: l'usuari ha de tenir aquesta app autoritzada (rol o autorització expressa)."""
+
+    def check(user: User = Depends(current_user), c: Container = Depends(container)) -> User:
+        if not c.menu.can_open(user, url):
+            raise HTTPException(status_code=403, detail="No tens accés a aquesta aplicació")
+        return user
+
+    return check

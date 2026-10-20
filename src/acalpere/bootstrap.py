@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .adapters.passkeys import WebAuthnVerifier
 from .adapters.persistence.engine import make_session_factory
 from .adapters.persistence.repos import (
+    SqlAccessRepository,
     SqlAgentRepository,
     SqlCalendarRepository,
     SqlContentRepository,
     SqlInheritanceRepository,
+    SqlPasskeyRepository,
     SqlSiteRepository,
     SqlUserRepository,
 )
@@ -18,14 +21,16 @@ from .application.calendar import CalendarService
 from .application.hub import HubService
 from .application.inheritance import InheritanceService
 from .application.menu import MenuService
+from .application.mfa import MfaService
 from .config import Settings
-from .security import BcryptHasher
+from .security import BcryptHasher, Totp
 
 
 @dataclass
 class Container:
     settings: Settings
     auth: AuthService
+    mfa: MfaService
     menu: MenuService
     calendar: CalendarService
     inheritance: InheritanceService
@@ -63,11 +68,15 @@ def build_container(settings: Settings) -> Container:
         upgrade(settings.database_url_unpooled or url)
     sf = make_session_factory(url)
     sites = SqlSiteRepository(sf)
+    users = SqlUserRepository(sf)
+    access = SqlAccessRepository(sf)
+    contents = SqlContentRepository(sf)
     return Container(
         settings=settings,
-        auth=AuthService(SqlUserRepository(sf), BcryptHasher()),
-        menu=MenuService(SqlContentRepository(sf)),
+        auth=AuthService(users, BcryptHasher()),
+        mfa=MfaService(users, Totp(), SqlPasskeyRepository(sf), WebAuthnVerifier()),
+        menu=MenuService(contents, access),
         calendar=CalendarService(SqlCalendarRepository(sf)),
         inheritance=InheritanceService(SqlInheritanceRepository(sf)),
-        hub=HubService(sites, SqlAgentRepository(sf)),
+        hub=HubService(sites, SqlAgentRepository(sf), access, users, contents),
     )

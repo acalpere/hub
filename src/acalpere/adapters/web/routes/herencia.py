@@ -6,9 +6,11 @@ from pydantic import BaseModel, Field
 from ....bootstrap import Container
 from ....domain.inheritance import Parametres
 from .. import shapes
-from ..deps import container, current_user
+from ..deps import app_access, container
 
-router = APIRouter(prefix="/herencia", tags=["herència"], dependencies=[Depends(current_user)])
+router = APIRouter(
+    prefix="/herencia", tags=["herència"], dependencies=[Depends(app_access("/apps/herencia/"))]
+)
 
 
 class ReassignIn(BaseModel):

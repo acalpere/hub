@@ -10,9 +10,9 @@ from pydantic import BaseModel
 from ....bootstrap import Container
 from ....domain.errors import InvalidInput
 from .. import shapes
-from ..deps import container, current_user
+from ..deps import app_access, container
 
-router = APIRouter(tags=["calendari"], dependencies=[Depends(current_user)])
+router = APIRouter(tags=["calendari"], dependencies=[Depends(app_access("/apps/calendari/"))])
 
 
 class AssignmentIn(BaseModel):

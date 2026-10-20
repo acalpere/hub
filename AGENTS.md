@@ -20,4 +20,4 @@
 - **Calendari**: a casa de la mare només hi pot haver una persona al dia i llavors ningú més; al poble n'hi pot haver diverses,
   però no a casa si hi ha gent al poble. Un mateix germà no pot repetir-se el mateix dia al poble.
 - **Herència**: només es poden escriure els camps `propostapere`, `propostajordi` i `propostarosamaria`.
-- Tots els usuaris han d'iniciar sessió; `admin` veu a més «Webs i agents».
+- Tots els usuaris han d'iniciar sessió. Rols: `admin`, `germa` i `usuari` (aquest no veu res si no se li autoritza). A l'inici cadascú veu les apps, webs i agents que té assignats (poder veure un agent o també treballar-hi); Hub i Usuaris només els veu i gestiona `admin`.

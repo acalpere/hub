@@ -1,27 +1,45 @@
-import { Link, Outlet, useNavigate } from "react-router";
+import { Link, NavLink, Outlet, useNavigate } from "react-router";
 import { useAuth } from "./auth";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   return (
-    <>
+    <div className="shell">
       <header className="top">
         <Link to="/" className="brand">
-          <img src="/logo.png" alt="" width={36} height={36} />
-          <span>acalpere</span>
+          <img src="/logo.svg" alt="" width={40} height={40} />
+          <span>acalpere<span className="tld">.cat</span></span>
         </Link>
         {user && (
           <nav>
+            <NavLink to="/" end className="navlink">Inici</NavLink>
+            {user.role === "admin" && (
+              <>
+                <NavLink to="/hub" className="navlink">Hub</NavLink>
+                <NavLink to="/usuaris" className="navlink">Usuaris</NavLink>
+              </>
+            )}
             <span className="who">{user.username}</span>
+            <Link to="/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </Link>
             <button
-              className="link"
+              className="icon-btn"
+              aria-label="Sortir"
+              title="Sortir"
               onClick={async () => {
                 await logout();
                 navigate("/login");
               }}
             >
-              Sortir
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
+                <path d="M16 8l4 4-4 4M20 12H9" />
+              </svg>
             </button>
           </nav>
         )}
@@ -29,6 +47,10 @@ export function Layout() {
       <main>
         <Outlet />
       </main>
-    </>
+      <footer className="foot">
+        <img src="/logo.svg" alt="" width={28} height={28} />
+        <p>© {new Date().getFullYear()} acalpere.cat · Llibres, dades i família.</p>
+      </footer>
+    </div>
   );
 }

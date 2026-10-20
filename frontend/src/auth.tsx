@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError, type User } from "./api";
+import { api, ApiError, type LoginStep, type User } from "./api";
 
 interface AuthState {
   user: User | null;
   loading: boolean;
-  login: (usuari: string, clau: string) => Promise<void>;
+  login: (usuari: string, clau: string) => Promise<LoginStep>;
+  completeLogin: (user: User) => void;
   logout: () => Promise<void>;
 }
 
@@ -23,13 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (usuari: string, clau: string) => setUser(await api.login(usuari, clau)), []);
+  const login = useCallback(async (usuari: string, clau: string) => (await api.login(usuari, clau)).status, []);
+  const completeLogin = useCallback((u: User) => setUser(u), []);
   const logout = useCallback(async () => {
     await api.logout();
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
+  const value = useMemo(() => ({ user, loading, login, completeLogin, logout }), [user, loading, login, completeLogin, logout]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

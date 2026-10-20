@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     aws_region: str = "eu-west-1"
     # Origens permesos per CORS (frontend de Vite en local). A AWS tot va pel mateix domini.
     cors_origins: str = ""
+    # Domini de les claus d'accés (WebAuthn). Sense valor, es dedueix de l'origen de la petició.
+    rp_id: str | None = None
     # Mostra el frontend antic (calendari i herència) tal com era, sobre l'API nova.
     serve_legacy_ui: bool = True
 

@@ -28,6 +28,8 @@ def main() -> None:
     rol.add_argument("role", choices=["admin", "germa"])
     pwd = sub.add_parser("set-password", help="Restableix la contrasenya d'un usuari")
     pwd.add_argument("username")
+    mfa = sub.add_parser("reset-mfa", help="Esborra el segon factor (TOTP) d'un usuari")
+    mfa.add_argument("username")
     sub.add_parser("seed-menu", help="Crea les entrades per defecte del menú (si no n'hi ha)")
     imp = sub.add_parser("import-legacy", help="Importa les dades de la web antiga (data/legacy)")
     imp.add_argument("--dir", default="data/legacy")
@@ -54,6 +56,11 @@ def main() -> None:
             args.username, getpass.getpass("Contrasenya: "), args.role
         )
         print(f"Usuari {user.username} creat amb rol {user.role}.")
+    elif args.cmd == "reset-mfa":
+        from .bootstrap import build_container
+
+        build_container(settings).mfa.reset_totp(args.username)
+        print(f"Segon factor de {args.username} esborrat.")
     elif args.cmd == "set-password":
         from .bootstrap import build_container
 

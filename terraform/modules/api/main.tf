@@ -75,6 +75,7 @@ resource "aws_lambda_function" "api" {
       ACALPERE_AWS_REGION             = data.aws_region.current.region
       ACALPERE_DATABASE_URL_SSM_PARAM = var.database_url_ssm_param
       ACALPERE_SECRET_KEY_SSM_PARAM   = aws_ssm_parameter.secret_key.name
+      ACALPERE_RP_ID                  = var.rp_id
       # Les migracions les aplica el desplegament (abans de canviar el codi), no cada arrencada.
       ACALPERE_AUTO_MIGRATE = "false"
     }
