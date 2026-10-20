@@ -56,6 +56,16 @@ class AuthService:
         self._users.set_role(user.id, role)
         return replace(user, role=role)
 
+    def reset_password(self, username: str, new: str) -> User:
+        """Restabliment d'administrador (des de la CLI): no demana la clau actual."""
+        user = self._users.by_username(username.strip())
+        if user is None:
+            raise NotFound("Usuari no trobat")
+        if len(new) < MIN_PASSWORD:
+            raise InvalidInput(f"La clau ha de tenir almenys {MIN_PASSWORD} caràcters")
+        self._users.set_password(user.id, self._hasher.hash(new))
+        return user
+
     def change_password(self, user_id: int, current: str, new: str) -> None:
         user = self._users.get(user_id)
         if not user or not self._hasher.verify(current, user.password_hash):

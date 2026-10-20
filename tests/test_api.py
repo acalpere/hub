@@ -257,3 +257,14 @@ def test_set_role_removes_hub_access(container, client):
     assert client.get("/api/v1/hub/sites").status_code == 200
     container.auth.set_role("Jordi", "germa")
     assert client.get("/api/v1/hub/sites").status_code == 403
+
+
+def test_admin_password_reset(container, client):
+    container.auth.reset_password("jordi", "una-clau-nova-2")
+    assert (
+        client.post(
+            "/api/v1/auth/login", json={"usuari": "Jordi", "clau": "altra-clau-prova"}
+        ).status_code
+        == 401
+    )
+    login(client, "Jordi", "una-clau-nova-2")

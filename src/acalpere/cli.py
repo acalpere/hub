@@ -26,6 +26,8 @@ def main() -> None:
     rol = sub.add_parser("set-role", help="Canvia el rol d'un usuari")
     rol.add_argument("username")
     rol.add_argument("role", choices=["admin", "germa"])
+    pwd = sub.add_parser("set-password", help="Restableix la contrasenya d'un usuari")
+    pwd.add_argument("username")
     sub.add_parser("seed-menu", help="Crea les entrades per defecte del menú (si no n'hi ha)")
     imp = sub.add_parser("import-legacy", help="Importa les dades de la web antiga (data/legacy)")
     imp.add_argument("--dir", default="data/legacy")
@@ -52,6 +54,14 @@ def main() -> None:
             args.username, getpass.getpass("Contrasenya: "), args.role
         )
         print(f"Usuari {user.username} creat amb rol {user.role}.")
+    elif args.cmd == "set-password":
+        from .bootstrap import build_container
+
+        new = getpass.getpass("Contrasenya nova: ")
+        if new != getpass.getpass("Repeteix-la: "):
+            raise SystemExit("No coincideixen.")
+        user = build_container(settings).auth.reset_password(args.username, new)
+        print(f"Contrasenya de {user.username} restablerta.")
     elif args.cmd == "set-role":
         from .bootstrap import build_container
 
