@@ -1,5 +1,6 @@
 # L'API (FastAPI + Mangum) en una Lambda darrere d'un API Gateway HTTP API. API Gateway aporta
-# limitació de peticions (throttling) i registre d'accés; CloudFront (mòdul site) hi arriba per
+# limitació de peticions (throttling); el registre d'accés d'API Gateway no s'activa perquè exigeix un
+# rol de CloudWatch a nivell de compte (els registres de la Lambda ja ho cobreixen); CloudFront (mòdul site) hi arriba per
 # /api/*, de manera que el navegador veu un sol origen i les galetes de sessió funcionen.
 
 terraform {
@@ -100,11 +101,6 @@ resource "aws_apigatewayv2_route" "default" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
-resource "aws_cloudwatch_log_group" "access" {
-  name              = "/aws/apigateway/acalpere-${var.env}"
-  retention_in_days = 14
-}
-
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.api.id
   name        = "$default"
@@ -116,14 +112,6 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_rate_limit  = 20
   }
 
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.access.arn
-    format = jsonencode({
-      requestId = "$context.requestId", ip = "$context.identity.sourceIp",
-      method    = "$context.httpMethod", path = "$context.path", status = "$context.status",
-      latency   = "$context.responseLatency"
-    })
-  }
 }
 
 resource "aws_lambda_permission" "apigw" {
