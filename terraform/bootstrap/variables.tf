@@ -10,13 +10,13 @@ variable "github_repo" {
 }
 
 variable "github_owner_id" {
-  description = "ID numèric del propietari a GitHub (gh api users/<usuari> --jq .id). Opcional."
+  description = "ID numèric del propietari a GitHub (gh api users/<usuari> --jq .id)"
   type        = string
-  default     = ""
+  default     = "85281506"
 }
 
 variable "github_repo_id" {
-  description = "ID numèric del repositori a GitHub (gh api repos/<propietari>/<repo> --jq .id). Opcional."
+  description = "ID numèric del repositori a GitHub (gh api repos/<propietari>/<repo> --jq .id)"
   type        = string
-  default     = ""
+  default     = "1427122086"
 }
