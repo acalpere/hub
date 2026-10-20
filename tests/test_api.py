@@ -401,3 +401,77 @@ def test_viewing_an_agent_does_not_allow_working_with_it(client, container):
     assert (
         client.put(f"/api/v1/hub/agents/{ag}/enabled", json={"enabled": False}).status_code == 403
     )
+
+
+def test_edit_user_profile_and_keep_one_admin(client):
+    login(client)
+    users = {u["username"]: u["id"] for u in client.get("/api/v1/users").json()}
+    body = {
+        "username": "Jordi V",
+        "role": "germa",
+        "first_name": "Jordi",
+        "last_name": "Vilarasau",
+        "email": "jordi@example.com",
+        "phone": "+34 600 111 222",
+    }
+    r = client.put(f"/api/v1/users/{users['Jordi']}", json=body)
+    assert r.status_code == 200 and r.json()["last_name"] == "Vilarasau"
+    assert client.get("/api/v1/users").json()[1]["email"] == "jordi@example.com"
+    assert (
+        client.put(f"/api/v1/users/{users['Jordi']}", json={**body, "email": "no"}).status_code
+        == 400
+    )
+    assert (
+        client.put(f"/api/v1/users/{users['Jordi']}", json={**body, "phone": "abc"}).status_code
+        == 400
+    )
+    assert (
+        client.put(f"/api/v1/users/{users['Jordi']}", json={**body, "username": "pere"}).status_code
+        == 409
+    )
+    assert client.put("/api/v1/users/999", json=body).status_code == 404
+    # l'únic administrador no es pot degradar
+    assert (
+        client.put(f"/api/v1/users/{users['Pere']}", json={**body, "username": "Pere"}).status_code
+        == 400
+    )
+    # només administradors
+    client.post("/api/v1/auth/logout")
+    login(client, "Jordi V", "altra-clau-prova")
+    assert client.put(f"/api/v1/users/{users['Jordi']}", json=body).status_code == 403
+
+
+def test_create_user_with_profile(admin, client):
+    r = client.post(
+        "/api/v1/users",
+        json={
+            "username": "Laia",
+            "password": "una-clau-llarga",
+            "role": "usuari",
+            "first_name": "Laia",
+            "last_name": "Puig",
+            "email": "laia@example.com",
+            "phone": "600123123",
+        },
+    )
+    assert r.status_code == 201 and r.json()["first_name"] == "Laia"
+
+
+def test_old_sessions_without_mfa_are_not_valid(client):
+    import base64
+    import json
+
+    from itsdangerous import TimestampSigner
+
+    login(client)
+    assert client.get("/api/v1/auth/me").status_code == 200
+    # una galeta antiga: només `uid`, sense la versió de sessió
+    signer = TimestampSigner("test")
+    data = base64.b64encode(json.dumps({"uid": 1}).encode())
+    client.cookies.set("acalpere_session", signer.sign(data).decode())
+    assert client.get("/api/v1/auth/me").status_code == 401
+
+
+def test_passkeys_are_admin_only(germa, client):
+    assert client.get("/api/v1/auth/passkeys").status_code == 403
+    assert client.post("/api/v1/auth/passkeys/options").status_code == 403

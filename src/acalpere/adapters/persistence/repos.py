@@ -16,7 +16,7 @@ from ...domain.calendar import (
     Modalitat,
 )
 from ...domain.hub import Access, Agent, Site
-from ...domain.identity import Content, Passkey, User
+from ...domain.identity import Content, Passkey, Profile, User
 from ...domain.inheritance import Fill, Finca, Missatge, Parametres, Pis
 from . import models as m
 
@@ -57,12 +57,33 @@ class SqlUserRepository:
         with self._sf() as s:
             return [self._user(r) for r in s.scalars(select(m.UserRow).order_by(m.UserRow.id))]
 
-    def add(self, username: str, password_hash: str, role: str) -> User:
+    def add(
+        self, username: str, password_hash: str, role: str, profile: Profile | None = None
+    ) -> User:
+        p = profile or Profile()
         with self._sf.begin() as s:
-            row = m.UserRow(username=username, password_hash=password_hash, role=role)
+            row = m.UserRow(
+                username=username,
+                password_hash=password_hash,
+                role=role,
+                first_name=p.first_name or None,
+                last_name=p.last_name or None,
+                email=p.email or None,
+                phone=p.phone or None,
+            )
             s.add(row)
             s.flush()
             return self._user(row)
+
+    def update(self, user_id: int, username: str, role: str, profile: Profile) -> None:
+        with self._sf.begin() as s:
+            row = s.get(m.UserRow, user_id)
+            if row:
+                row.username, row.role = username, role
+                row.first_name = profile.first_name or None
+                row.last_name = profile.last_name or None
+                row.email = profile.email or None
+                row.phone = profile.phone or None
 
     def set_password(self, user_id: int, password_hash: str) -> None:
         with self._sf.begin() as s:

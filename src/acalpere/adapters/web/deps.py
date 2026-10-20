@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import time
+
 from fastapi import Depends, HTTPException, Request
 
 from ...bootstrap import Container
 from ...domain.identity import User
+
+SESSION_VERSION = 2  # les sessions anteriors (sense segon factor) deixen de valdre
 
 
 def container(request: Request) -> Container:
@@ -13,7 +17,12 @@ def container(request: Request) -> Container:
 
 
 def current_user(request: Request, c: Container = Depends(container)) -> User:
-    uid = request.session.get("uid")
+    session = request.session
+    fresh = (
+        session.get("v") == SESSION_VERSION
+        and time.time() - session.get("at", 0) < c.settings.session_hours * 3600
+    )
+    uid = session.get("uid") if fresh else None
     user = c.auth.get(uid) if uid else None
     if user is None:
         request.session.pop("uid", None)  # compte eliminat des que es va iniciar la sessió

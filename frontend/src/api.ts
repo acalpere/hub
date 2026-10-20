@@ -1,5 +1,6 @@
 export type Role = "admin" | "germa" | "usuari";
-export interface User { id: number; username: string; role: Role }
+export interface Profile { first_name: string; last_name: string; email: string; phone: string }
+export interface User extends Profile { id: number; username: string; role: Role }
 export type LoginStep = "mfa_required" | "mfa_setup";
 export interface Passkey { id: number; label: string; created_at: string | null }
 export interface MenuItem { id: number; name: string; url: string }
@@ -26,6 +27,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     // La capçalera personalitzada fa de protecció CSRF: el backend la exigeix a les escriptures.
     headers: { "X-Requested-With": "acalpere", ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
+  }).catch(() => {
+    throw new ApiError(0, "No s'ha pogut connectar amb el servidor.");
   });
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
@@ -53,7 +56,8 @@ export const api = {
   me: () => request<User>("GET", "/auth/me"),
   menu: () => request<MenuItem[]>("GET", "/menu"),
   users: () => request<User[]>("GET", "/users"),
-  createUser: (u: { username: string; password: string; role: Role }) => request<User>("POST", "/users", u),
+  createUser: (u: Profile & { username: string; password: string; role: Role }) => request<User>("POST", "/users", u),
+  updateUser: (id: number, u: Profile & { username: string; role: Role }) => request<User>("PUT", `/users/${id}`, u),
   userAccess: (id: number) => request<Access>("GET", `/users/${id}/access`),
   setUserAccess: (id: number, a: Access) => request<Access>("PUT", `/users/${id}/access`, a),
   contents: () => request<Content[]>("GET", "/contents"),

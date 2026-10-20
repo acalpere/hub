@@ -19,10 +19,24 @@ class User:
     role: str
     created_at: datetime | None = None
     totp_secret: str | None = None  # secret base32 de l'aplicació d'autenticació (MFA)
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    phone: str | None = None
 
     @property
     def is_admin(self) -> bool:
         return self.role == ADMIN
+
+
+@dataclass(frozen=True)
+class Profile:
+    """Dades personals d'un usuari (a més del nom d'usuari amb què entra)."""
+
+    first_name: str = ""
+    last_name: str = ""
+    email: str = ""
+    phone: str = ""
 
 
 @dataclass(frozen=True)

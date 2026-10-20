@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Request
@@ -10,7 +11,7 @@ from ....bootstrap import Container
 from ....domain.errors import AuthError
 from ....domain.identity import ROLES, User
 from .. import shapes
-from ..deps import admin_user, container, current_user
+from ..deps import SESSION_VERSION, admin_user, container, current_user
 
 router = APIRouter(tags=["auth"])
 
@@ -27,15 +28,33 @@ class PasswordIn(BaseModel):
     nova: str = Field(max_length=200)
 
 
+_ROLE = "^(" + "|".join(ROLES) + ")$"
+
+
 class UserIn(BaseModel):
     username: str = Field(max_length=50)
     password: str = Field(max_length=200)
-    role: str = Field(pattern="^(" + "|".join(ROLES) + ")$")
+    role: str = Field(pattern=_ROLE)
+    first_name: str = Field(default="", max_length=100)
+    last_name: str = Field(default="", max_length=150)
+    email: str = Field(default="", max_length=200)
+    phone: str = Field(default="", max_length=30)
+
+
+class UserPatch(BaseModel):
+    username: str = Field(max_length=50)
+    role: str = Field(pattern=_ROLE)
+    first_name: str = Field(default="", max_length=100)
+    last_name: str = Field(default="", max_length=150)
+    email: str = Field(default="", max_length=200)
+    phone: str = Field(default="", max_length=30)
 
 
 def _finish_login(request: Request, user: User) -> dict:
     request.session.clear()  # evita la fixació de sessió
     request.session["uid"] = user.id
+    request.session["at"] = int(time.time())
+    request.session["v"] = SESSION_VERSION
     return shapes.user(user)
 
 
@@ -124,6 +143,8 @@ def passkey_login(body: CredentialIn, request: Request, c: Container = Depends(c
     if not challenge:
         raise AuthError("Torna-ho a provar.")
     user = c.mfa.login_with_passkey(body.credential, base64url_to_bytes(challenge), rp_id, origin)
+    if not user.is_admin:
+        raise AuthError("L'entrada amb petjada digital és només per a administradors.")
     return _finish_login(request, user)
 
 
@@ -133,7 +154,7 @@ class CredentialIn(BaseModel):
 
 
 @router.get("/auth/passkeys")
-def passkeys(user: User = Depends(current_user), c: Container = Depends(container)):
+def passkeys(user: User = Depends(admin_user), c: Container = Depends(container)):
     return [
         {"id": p.id, "label": p.label, "created_at": shapes._dt(p.created_at)}
         for p in c.mfa.passkeys(user)
@@ -142,7 +163,7 @@ def passkeys(user: User = Depends(current_user), c: Container = Depends(containe
 
 @router.post("/auth/passkeys/options")
 def passkey_register_options(
-    request: Request, user: User = Depends(current_user), c: Container = Depends(container)
+    request: Request, user: User = Depends(admin_user), c: Container = Depends(container)
 ):
     rp_id, _ = _origin(request, c)
     options, challenge = c.mfa.registration_options(user, rp_id)
@@ -154,7 +175,7 @@ def passkey_register_options(
 def passkey_register(
     body: CredentialIn,
     request: Request,
-    user: User = Depends(current_user),
+    user: User = Depends(admin_user),
     c: Container = Depends(container),
 ):
     rp_id, origin = _origin(request, c)
@@ -169,7 +190,7 @@ def passkey_register(
 
 @router.delete("/auth/passkeys/{passkey_id}", status_code=204)
 def passkey_delete(
-    passkey_id: int, user: User = Depends(current_user), c: Container = Depends(container)
+    passkey_id: int, user: User = Depends(admin_user), c: Container = Depends(container)
 ):
     c.mfa.delete_passkey(user, passkey_id)
 
@@ -205,7 +226,32 @@ def users(c: Container = Depends(container)):
 
 @router.post("/users", status_code=201, dependencies=[Depends(admin_user)])
 def create_user(body: UserIn, c: Container = Depends(container)):
-    return shapes.user(c.auth.create(body.username, body.password, body.role))
+    return shapes.user(
+        c.auth.create(
+            body.username,
+            body.password,
+            body.role,
+            body.first_name,
+            body.last_name,
+            body.email,
+            body.phone,
+        )
+    )
+
+
+@router.put("/users/{user_id}", dependencies=[Depends(admin_user)])
+def update_user(user_id: int, body: UserPatch, c: Container = Depends(container)):
+    return shapes.user(
+        c.auth.update_user(
+            user_id,
+            body.username,
+            body.role,
+            body.first_name,
+            body.last_name,
+            body.email,
+            body.phone,
+        )
+    )
 
 
 class AccessIn(BaseModel):

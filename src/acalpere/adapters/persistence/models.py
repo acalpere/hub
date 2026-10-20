@@ -46,6 +46,10 @@ class UserRow(Base):
         DateTime(timezone=True), nullable=False, default=_now, server_default=func.now()
     )
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
 
 class PasskeyRow(Base):

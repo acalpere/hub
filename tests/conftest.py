@@ -52,6 +52,9 @@ def container(settings):
         ("Jordi", "altra-clau-prova", "germa"),
     ):
         user = c.auth.create(name, password, role)
+        if role != "admin":  # el menú és per autoritzacions expresses
+            ids = [x.id for x in c.menu.all() if role in x.roles]
+            c.hub.set_access(user.id, [], [], [], ids)
         c.mfa._users.set_totp_secret(user.id, TOTP_SECRET)  # segon factor ja enrolat
     return c
 

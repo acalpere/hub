@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router";
 import { useAuth } from "./auth";
 import { Layout } from "./Layout";
 import { HomePage } from "./pages/HomePage";
+import { GestioPage } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SecurityPage } from "./pages/SecurityPage";
@@ -23,9 +24,10 @@ export function App() {
       <Route element={<Layout />}>
         <Route element={<RequireAuth />}>
           <Route index element={<HomePage />} />
-          <Route path="seguretat" element={<SecurityPage />} />
         </Route>
         <Route element={<RequireAuth admin />}>
+          <Route path="seguretat" element={<SecurityPage />} />
+          <Route path="gestio" element={<GestioPage />} />
           <Route path="hub" element={<HubPage />} />
           <Route path="usuaris" element={<UsersPage />} />
         </Route>

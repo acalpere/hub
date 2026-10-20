@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { Navigate, useSearchParams } from "react-router";
-import { api, ApiError, type LoginStep } from "../api";
+import { api, type LoginStep } from "../api";
+import { ErrorMessage } from "../components/ErrorMessage";
+import { validate } from "../forms";
 import { useAuth } from "../auth";
-import { getPasskey, isTouchDevice, passkeysSupported } from "../passkeys";
+import { getPasskey, hasRememberedPasskey, isTouchDevice, passkeysSupported, rememberPasskey } from "../passkeys";
 
 // Només es redirigeix a camins interns (evita redireccions obertes a altres webs).
 export function safeNext(next: string | null): string {
@@ -11,7 +13,7 @@ export function safeNext(next: string | null): string {
 }
 
 function message(err: unknown): string {
-  return err instanceof ApiError ? err.message : "No s'ha pogut connectar amb el servidor.";
+  return err instanceof Error ? err.message : "Error inesperat.";
 }
 
 export function LoginPage() {
@@ -32,6 +34,12 @@ export function LoginPage() {
       .catch((e) => setError(message(e)));
   }, [step]);
 
+  // Al mòbil on ja hi ha una clau d'accés, es demana la petjada d'entrada, sense tocar res.
+  useEffect(() => {
+    if (!user && step === null && mobile && passkeys && hasRememberedPasskey()) passkeyLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (user) return <Navigate to={next} replace />;
 
   async function run(action: () => Promise<void>) {
@@ -48,12 +56,16 @@ export function LoginPage() {
 
   function submitPassword(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const problem = validate(e.currentTarget);
+    if (problem) return setError(problem);
     const form = new FormData(e.currentTarget);
     void run(async () => setStep(await login(String(form.get("usuari")), String(form.get("clau")))));
   }
 
   function submitCode(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const problem = validate(e.currentTarget);
+    if (problem) return setError(problem);
     const code = String(new FormData(e.currentTarget).get("code"));
     void run(async () => completeLogin(await (step === "mfa_setup" ? api.mfaEnable(code) : api.mfa(code))));
   }
@@ -62,6 +74,7 @@ export function LoginPage() {
     void run(async () => {
       try {
         completeLogin(await api.passkeyLogin(await getPasskey(await api.passkeyLoginOptions())));
+        rememberPasskey();
       } catch (err) {
         if (err instanceof DOMException) throw new Error("Operació cancel·lada");
         throw err;
@@ -76,7 +89,7 @@ export function LoginPage() {
   );
 
   const passwordForm = (
-    <form className="stack" onSubmit={submitPassword}>
+    <form className="stack" noValidate onSubmit={submitPassword}>
       <label>
         Usuari
         <input name="usuari" autoComplete="username webauthn" required />
@@ -110,7 +123,7 @@ export function LoginPage() {
         )}
 
         {step === "mfa_setup" && (
-          <form className="stack" onSubmit={submitCode}>
+          <form className="stack" noValidate onSubmit={submitCode}>
             <p className="muted">
               Cal un segon factor. Escaneja el QR amb una aplicació d'autenticació (Google Authenticator, Aegis, 2FAS…)
               i escriu el codi de 6 xifres.
@@ -127,14 +140,14 @@ export function LoginPage() {
         )}
 
         {step === "mfa_required" && (
-          <form className="stack" onSubmit={submitCode}>
+          <form className="stack" noValidate onSubmit={submitCode}>
             <p className="muted">Escriu el codi de l'aplicació d'autenticació.</p>
             <CodeField />
             <button type="submit" disabled={busy}>Entrar</button>
           </form>
         )}
 
-        {error && <p role="alert" className="error">{error}</p>}
+        <ErrorMessage message={error} />
       </div>
     </div>
   );

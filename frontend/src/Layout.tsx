@@ -1,9 +1,11 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuth } from "./auth";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const inGestio = ["/gestio", "/hub", "/usuaris"].some((p) => pathname.startsWith(p));
   return (
     <div className="shell">
       <header className="top">
@@ -15,18 +17,17 @@ export function Layout() {
           <nav>
             <NavLink to="/" end className="navlink">Inici</NavLink>
             {user.role === "admin" && (
-              <>
-                <NavLink to="/hub" className="navlink">Hub</NavLink>
-                <NavLink to="/usuaris" className="navlink">Usuaris</NavLink>
-              </>
+              <NavLink to="/gestio" className={`navlink gestio${inGestio ? " active" : ""}`}>Gestió</NavLink>
             )}
             <span className="who">{user.username}</span>
-            <Link to="/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
-            </Link>
+            {user.role === "admin" && (
+              <Link to="/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              </Link>
+            )}
             <button
               className="icon-btn"
               aria-label="Sortir"

@@ -7,7 +7,7 @@ from typing import Protocol
 
 from .calendar import Assignacio, Germa, HistoryEntry, LastModification, Modalitat
 from .hub import Access, Agent, Site
-from .identity import Content, Passkey, PasskeyCredential, User
+from .identity import Content, Passkey, PasskeyCredential, Profile, User
 from .inheritance import Fill, Finca, Missatge, Parametres, Pis
 
 
@@ -24,7 +24,11 @@ class UserRepository(Protocol):
 
     def list(self) -> list[User]: ...
 
-    def add(self, username: str, password_hash: str, role: str) -> User: ...
+    def add(
+        self, username: str, password_hash: str, role: str, profile: Profile | None = None
+    ) -> User: ...
+
+    def update(self, user_id: int, username: str, role: str, profile: Profile) -> None: ...
 
     def set_password(self, user_id: int, password_hash: str) -> None: ...
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type Passkey } from "../api";
-import { createPasskey, passkeysSupported } from "../passkeys";
+import { createPasskey, passkeysSupported, rememberPasskey } from "../passkeys";
 
 export function SecurityPage() {
   const [keys, setKeys] = useState<Passkey[]>([]);
@@ -16,6 +17,7 @@ export function SecurityPage() {
     try {
       const credential = await createPasskey(await api.passkeyRegisterOptions());
       await api.passkeyRegister(credential, navigator.platform || "Aquest dispositiu");
+      rememberPasskey();
       await load();
     } catch (e) {
       setError(e instanceof DOMException ? "Operació cancel·lada" : (e as Error).message);
@@ -31,7 +33,7 @@ export function SecurityPage() {
         Amb una clau d'accés pots entrar des del mòbil només amb la petjada digital. Des d'altres dispositius, l'accés
         sempre demana usuari, clau i codi de l'aplicació d'autenticació.
       </p>
-      {error && <p role="alert" className="error">{error}</p>}
+      <ErrorMessage message={error} />
       <h2>Claus d'accés</h2>
       <ul className="rows">
         {keys.map((k) => (

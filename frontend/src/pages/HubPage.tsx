@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type Agent, type Site } from "../api";
 import { useAuth } from "../auth";
+import { validate } from "../forms";
 
 const STATUSES = ["active", "paused", "archived"];
 
@@ -35,6 +37,8 @@ export function HubPage() {
   function addSite(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
+    const problem = validate(form);
+    if (problem) return setError(problem);
     const f = new FormData(form);
     void run(async () => {
       await api.createSite({ name: String(f.get("name")), url: String(f.get("url")), status: "active", notes: "" });
@@ -45,6 +49,8 @@ export function HubPage() {
   function addAgent(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
+    const problem = validate(form);
+    if (problem) return setError(problem);
     const f = new FormData(form);
     const siteId = String(f.get("site_id"));
     void run(async () => {
@@ -62,7 +68,7 @@ export function HubPage() {
   return (
     <section>
       <h1>Hub</h1>
-      {error && <p role="alert" className="error">{error}</p>}
+      <ErrorMessage message={error} />
 
       <h2>Webs</h2>
       <ul className="rows">
@@ -85,7 +91,7 @@ export function HubPage() {
         ))}
         {sites.length === 0 && <li className="muted">{admin ? "Cap web encara." : "No tens cap web assignada."}</li>}
       </ul>
-      {admin && <form className="inline" onSubmit={addSite}>
+      {admin && <form className="inline" noValidate onSubmit={addSite}>
         <input name="name" placeholder="Nom" required />
         <input name="url" placeholder="https://…" type="url" required />
         <button type="submit">Afegir web</button>
@@ -115,7 +121,7 @@ export function HubPage() {
         ))}
         {agents.length === 0 && <li className="muted">{admin ? "Cap agent encara." : "No tens cap agent assignat."}</li>}
       </ul>
-      {admin && <form className="inline" onSubmit={addAgent}>
+      {admin && <form className="inline" noValidate onSubmit={addAgent}>
         <input name="name" placeholder="Nom" required />
         <input name="kind" placeholder="Tipus (marketing…)" required />
         <select name="site_id" defaultValue="">

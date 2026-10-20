@@ -29,3 +29,12 @@ export async function getPasskey(options: unknown): Promise<unknown> {
   if (!credential) throw new Error("Operació cancel·lada");
   return toJSON(credential);
 }
+
+// Marca d'aquest dispositiu: ja té una clau d'accés, així que a l'entrada es demana la petjada directament.
+const KEY = "acalpere.passkey";
+export function rememberPasskey(): void {
+  try { localStorage.setItem(KEY, "1"); } catch { /* sense emmagatzematge: no passa res */ }
+}
+export function hasRememberedPasskey(): boolean {
+  try { return localStorage.getItem(KEY) === "1"; } catch { return false; }
+}

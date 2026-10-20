@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
+import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type Agent, type MenuItem, type Site } from "../api";
 import { useAuth } from "../auth";
 
@@ -46,7 +47,7 @@ export function HomePage() {
     <section>
       <h1>Hola, {user?.username}</h1>
       <p className="lead">Tot el que tens a acalpere, en un sol lloc.</p>
-      {error && <p role="alert" className="error">{error}</p>}
+      <ErrorMessage message={error} />
       {apps === null && !error && <p className="status">Carregant…</p>}
       {empty && <p className="status">Encara no tens res assignat. Demana-ho a l'administrador.</p>}
 

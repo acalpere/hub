@@ -24,7 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (usuari: string, clau: string) => (await api.login(usuari, clau)).status, []);
+  const login = useCallback(async (usuari: string, clau: string) => {
+    const { status } = await api.login(usuari, clau);
+    // Un servidor antic (sense MFA) respon amb l'usuari i no amb un estat.
+    if (!status) throw new Error("El servidor no està actualitzat. Reinicia'l i torna-ho a provar.");
+    return status;
+  }, []);
   const completeLogin = useCallback((u: User) => setUser(u), []);
   const logout = useCallback(async () => {
     await api.logout();

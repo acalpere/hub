@@ -55,7 +55,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
         session_cookie="acalpere_session",
         same_site="lax",
         https_only=settings.secure_cookies,
-        max_age=settings.session_hours * 3600,
+        max_age=None,  # galeta de sessió: en tancar el navegador cal tornar a entrar
     )
     if settings.cors_origin_list:
         app.add_middleware(

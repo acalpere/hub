@@ -25,7 +25,11 @@ def _stamp(value: datetime | None) -> str | None:
 
 
 def user(u: User) -> dict:
-    return {"id": u.id, "username": u.username, "role": u.role, "created_at": _dt(u.created_at)}
+    return {
+        "id": u.id, "username": u.username, "role": u.role, "created_at": _dt(u.created_at),
+        "first_name": u.first_name or "", "last_name": u.last_name or "",
+        "email": u.email or "", "phone": u.phone or "",
+    }  # fmt: skip
 
 
 def content(c: Content) -> dict:
