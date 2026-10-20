@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <script src="../common.js"></script>
+  <meta charset="UTF-8">
+  <title>Simulador d'Herència</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
+  <!--<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>-->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 20px;
+    background: #f9f9fb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { color: #2c3e50; }
+  h2 { color: #34495e; margin-top: 40px; }
+  h3 { color: #2980b9; margin-bottom: 10px; }
+  .grafica { margin-bottom: 40px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 20px; }
+  .grafic { margin-bottom: 10px; }
+  .dropzone {
+    border: 2px dashed #aaa;
+    /*padding: 8px;*/
+    min-height: 80px;
+    margin: 10px;
+    display: inline-block;
+    /*width: 300px;*/
+    vertical-align: top;
+    background: #f4f8fb;
+    border-radius: 8px;
+  }
+  .pis {
+    background: #e0e0e0;
+    margin: 5px;
+    padding: 5px;
+    cursor: move;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px #0002;
+  }
+  .grafic-container {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+    /* Elimina max-width i flex aquí */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+  .grafica {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .main-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  max-width: 100vw;
+  box-sizing: border-box;
+  justify-content: center;
+  width: 100%;
+  }
+/*
+#contenedorFills {  
+  min-width: 320px;
+  max-width: 340px;
+  flex: 0 0 340px;  
+}
+*/
+
+.grafica {
+  flex: 1 1 0;
+  min-width: 0;
+  /*max-width: 340px;*/
+  padding: 10px;
+  margin-bottom: 0;
+}
+
+.grafic {
+  margin-bottom: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.pis {
+  background: #e0e0e0;
+  margin: 5px;
+  padding: 5px;
+  cursor: move;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px #0002;
+  text-align: center; /* Centra tot el contingut */
+}
+.pis.sombrejat {
+  opacity: 0.4;
+  filter: grayscale(70%);
+  pointer-events: none;
+}
+.pis.exclosa {
+  background: #ffdddd !important;
+  color: #a00 !important;
+  border: 1.5px solid #a00 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: none;
+}
+.pis-nom {
+  color: #228B22;
+  text-align: center;
+  font-weight: bold;
+  margin: 2px 0 2px 0;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+@media (max-width: 1200px) {
+  .grafic-container { max-width: 900px; }
+  .grafica { max-width: 260px; }
+  #contenedorFills { max-width: 220px; min-width: 180px; }
+}
+@media (max-width: 900px) {
+  .main-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .grafic-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 16px;
+  }
+  .grafica {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 16px;
+  }
+}
+.header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 18px;
+  gap: 16px;
+}
+
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 1em;
+}
+.header-controls-top {
+  font-size: 0.98em;
+  margin-bottom: 2px;
+}
+.header-controls-bottom {
+  display: flex;
+  gap: 18px;
+}
+.header-controls-bottom label {
+  margin: 0;
+  font-weight: 400;
+}
+.header-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /*width: 100%;*/
+}
+.header-title h1 {
+  margin: 0;
+  font-size: 2.3em;
+  color: #2266aa;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px #0001;
+  text-align: center;
+}
+.main-title {
+  display: inline-block;
+  background: linear-gradient(90deg, #eaf6ff 60%, #dbeafe 100%);
+  padding: 8px 18px 8px 0;
+  border-radius: 0 18px 18px 0;
+  box-shadow: 0 2px 8px #0001;
+}
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-size: 1em;
+}
+.header-controls-top {
+  font-size: 1em;
+  margin-bottom: 2px;
+}
+.header-controls-bottom {
+  display: flex;
+  gap: 18px;
+}
+.header-controls-bottom label {
+  margin: 0;
+  font-weight: 400;
+}
+#xat-llista {
+  max-height: 260px;
+  overflow-y: auto;
+  background: #f7faff;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 1.08em;
+}
+.xat-missatge {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: #eaf1fb;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px #0001;
+}
+.xat-missatge .autor {
+  color: #2266aa;
+  font-weight: bold;
+  margin-right: 8px;
+}
+.xat-missatge .hora {
+  color: #888;
+  font-size: 0.92em;
+  margin-left: 6px;
+}
+#xat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#xat-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#xat-text {
+  flex: 1 1 0;
+  min-height: 38px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #b5c6e0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.08em;
+  background: #f7faff;
+  transition: border 0.2s;
+  overflow-y: auto;
+  max-height: 180px;
+}
+#xat-text:focus {
+  border: 1.5px solid #2266aa;
+  outline: none;
+  background: #fff;
+}
+#xat-enviar {
+  padding: 8px 22px;
+  background: linear-gradient(90deg, #2266aa 60%, #3fa6e8 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1.08em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0001;
+  transition: background 0.2s;
+}
+#xat-enviar:hover {
+  background: linear-gradient(90deg, #3fa6e8 60%, #2266aa 100%);
+}
+@media (max-width: 700px) {
+  .header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .header-controls {
+    align-items: flex-start;
+  }
+  .header-controls-bottom {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    margin: 4px;
+  }
+  h1 {
+    font-size: 1.2em;
+  }
+  .grafica {
+    padding: 6px;
+  }
+  .dropzone {
+    min-width: 0;
+    width: 100% !important;
+    font-size: 0.95em;
+    padding: 4px;
+  }
+  .formula-grafica {
+    font-size: 0.85em;
+    color: #555;
+    font-weight: 400;
+    margin-left: 8px;
+    font-style: italic;
+    white-space: nowrap;
+  }
+}
+/* Tooltip personalitzat per a radios */
+.tooltip-radio {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+.tooltip-radio .tooltiptext {
+  visibility: hidden;
+  width: 260px;
+  background-color: #2266aa;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.98em;
+  box-shadow: 0 2px 8px #0003;
+}
+.tooltip-radio:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+  <div id="login-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.97);z-index:10000;display:flex;align-items:center;justify-content:center;">
+  <form id="login-form" style="background:#fff;border-radius:12px;box-shadow:0 2px 16px #0002;padding:32px 28px;display:flex;flex-direction:column;gap:18px;align-items:center;">
+  <h2 style="margin:0 0 8px 0;color:#2266aa;">Qui ets?</h2>
+  <select id="login-fill" style="padding:8px 14px;font-size:1.1em;border-radius:6px;border:1px solid #bbb;">
+    <option value="">Triar germà</option>
+    <option value="pere">Pere</option>
+    <option value="jordi">Jordi</option>
+    <option value="rosamaria">Rosa Maria</option>
+  </select>
+  <button type="submit" style="padding:6px 24px;background:#2266aa;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Entrar</button>
+  <div id="login-error" style="color:#c0392b;display:none;">Tria un germà</div>
+</form>
+</div>
+<div class="header-flex">
+  <div class="header-title">
+    <h1 style="margin-bottom: 0.2em;">
+      Simulador de distribució
+    </h1>
+  <div style="color:red;font-size:medium;margin-top:-10px;margin-bottom:8px;text-align:center;">
+    (Despeses de comunitat prorratejades i restades als rendiments)
+  </div>
+ 
+<div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px;">
+  <label class="tooltip-radio">
+    <input type="radio" name="taxacio" value="1" id="taxacio1" checked>
+    Taxació pro (1)
+    <span class="tooltiptext">Taxació segons la valoració professional i rendiment 2.024</span>
+  </label>
+  <label class="tooltip-radio">
+    <input type="radio" name="taxacio" value="2" id="taxacio2">
+    Miquel i Ferran (2)
+    <span class="tooltiptext">Taxació segons Miquel i Ferran i rendiment mitjana 22-24</span>
+  </label>
+  <label class="tooltip-radio">
+    <input type="radio" name="taxacio" value="3" id="taxacio3">
+    Tax-1 i Rend-2
+    <span class="tooltiptext">Taxació professional, rendiment mitjana 22-24</span>
+  </label>
+</div>
+  <div style="display:flex;align-items:center;gap:6px;margin:10px 0 0 0;">
+    <select id="selectVeureProposta" style="padding:2px 8px;border-radius:5px;">
+      <option value="">Triar germà</option>
+      <option value="pere">Pere</option>
+      <option value="jordi">Jordi</option>
+      <option value="rosamaria">Rosa Maria</option>
+    </select>
+    <button id="btnVeureProposta" type="button" style="padding:4px 14px;font-weight:600;background:#2266aa;color:white;border:none;border-radius:6px;box-shadow:0 2px 8px #0001;cursor:pointer;">
+      Veure proposta
+    </button>
+  </div>
+  <!--<button id="btnXat" type="button" style="padding:4px 14px;font-weight:600;background:#2266aa;color:white;border:none;border-radius:6px;box-shadow:0 2px 8px #0001;cursor:pointer;">
+  Xat-->
+</button>
+<!-- Modal del xat -->
+<div id="xat-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:20001;background:rgba(0,0,0,0.25);align-items:center;justify-content:center;">
+  <div style="background:white;padding:48px 44px;border-radius:22px;min-width:700px;max-width:98vw;max-height:90vh;box-shadow:0 4px 48px #0005;position:relative;display:flex;flex-direction:column;">
+    <button id="xat-modal-close" style="position:absolute;top:18px;right:28px;font-size:2em;background:none;border:none;cursor:pointer;">&times;</button>
+    <h2 style="margin-top:0;color:#2266aa;font-size:2em;">Xat entre germans</h2>
+    <div id="xat-container" style="border:1.5px solid #b5c6e0;padding:18px;max-width:900px;min-width:600px;">
+      <div id="xat-llista" style="max-height:420px;overflow-y:auto;margin-bottom:16px;"></div>
+      <form id="xat-form" onsubmit="return false;">
+        <!--<input id="xat-text" placeholder="Escriu un missatge..." autocomplete="off">-->
+        <textarea id="xat-text" placeholder="Escriu un missatge..." rows="2" style="resize:vertical;width:100%;"></textarea>
+        <button id="xat-enviar" type="submit">Envia</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+  </div>
+<div class="header-taxacions" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 18px;">
+
+<div style="display:flex;align-items:center;gap:6px;margin:6px 0;">
+  <button id="btnGuardarProposta" type="button" style="padding:4px 14px;font-weight:600;background:#27ae60;color:white;border:none;border-radius:6px;box-shadow:0 2px 8px #0001;cursor:pointer;">
+    Guardar proposta al meu nom
+  </button>
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin:6px 0;">
+  <button id="btnComentari" type="button" style="padding:4px 14px;font-weight:600;background:#f39c12;color:white;border:none;border-radius:6px;box-shadow:0 2px 8px #0001;cursor:pointer;">
+    Comentaris dels germans
+  </button>
+</div>
+
+</div>
+<div class="header-controls">
+<div style="display: flex; align-items: center; gap: 50px; margin-bottom: 4px; justify-content: flex-start;">
+    <button id="btnAra" type="button" style="padding:4px 18px;font-weight:600;background:rgb(155, 12, 12);color:white;border:none;border-radius:6px;box-shadow:0 2px 8px #0001;cursor:pointer;">
+      Distribució ara mateix al notari
+    </button>
+    <div id="nom-usuari" style="color:#2266aa;font-weight:700;font-size:1.1em;"></div>
+  </div>
+  <div class="header-controls-top">
+    <i><span style="color:green;">Pisos en vermell <span style="color:rgba(255, 0, 0, 0.582);"><b>NO</b></span> inclosos a les gràfiques</span></i>
+  </div>
+  <div class="header-controls-bottom">
+    <label>
+      <input type="checkbox" id="chkLlivia" checked>
+      Inclou Llívia
+    </label>
+    <span style="display: flex; align-items: center; gap: 6px;">
+      <input type="checkbox" id="chkPisVol" checked>
+      <label for="chkPisVol" style="margin:0;">Inclou vol</label>
+      <select id="selectValorVol" style="padding:2px 6px;font-size:0.98em;">
+        <option value="470748">470.748 €</option>
+        <option value="200000">200.000 €</option>
+      </select>
+    </span>
+  </div>
+</div>
+</div>
+
+<div class="main-layout">
+  <div id="contenedorFills"></div>
+  <div>
+    <div class="grafic-container">
+      <div class="grafica">
+        <h3>Patrimoni total</h3>
+        <div id="graficPatrimoni" class="grafic"></div>
+      </div>
+      <div class="grafica">
+        <h3>Rendiment anual</h3>
+        <div id="graficRendiment" class="grafic"></div>
+      </div>
+    </div>
+<div class="grafic-container">
+  <div class="grafica" style="max-width:280px;">
+    <h3>
+      Rendibilitat bruta anual
+      <span class="formula-grafica">
+        \( \frac{\text{rendiment}}{\text{patrimoni}} \times 100 \)
+      </span>
+    </h3>
+    <div id="graficTotals" class="grafic"></div>
+  </div>
+  <div class="grafica" style="max-width:280px;">
+    <h3>
+      Període de retorn
+      <span class="formula-grafica">
+        \( \frac{\text{patrimoni}}{\text{rendiment}} \)
+      </span>
+    </h3>
+    <div id="graficPeriode" class="grafic"></div>
+  </div>
+</div>
+  </div>
+</div>
+
+<script>
+  let fillsMap = {};
+  let fillsNoms = {};
+  let fillsMapLoaded = false;
+  let valorVol = 470748;
+  
+document.addEventListener("DOMContentLoaded", function() {
+  fetch("/api/v1/herencia/fills").then(r => r.json()).then(fills => {
+    fills.forEach(f => {
+      fillsMap[f.nom.toLowerCase().replace(/\s/g, '')] = f.codi;
+      fillsNoms[f.codi] = f.nom; // <-- Mapa codi -> nom
+    });
+    fillsMapLoaded = true;
+  });
+  const overlay = document.getElementById("login-overlay");
+  const form = document.getElementById("login-form");
+  const error = document.getElementById("login-error");
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    const selectedFill = document.getElementById("login-fill").value;
+    // L'accés ja el controla l'inici de sessió d'acalpere; aquí només es tria el germà.
+    if (selectedFill !== "") {
+    overlay.style.display = "none";
+    error.style.display = "none";
+    window.selectedFill = selectedFill;
+
+// Mostra el nom del fill loguejat (nom complet)
+const fill = selectedFill;
+const codi_fill = fillsMap[fill.toLowerCase().replace(/\s/g, '')];
+$("#nom-usuari").text(fillsNoms[codi_fill] || fill.charAt(0).toUpperCase() + fill.slice(1));
+$("#xat-autor").val(fillsNoms[codi_fill] || fill.charAt(0).toUpperCase() + fill.slice(1));
+// Recupera i aplica els paràmetres guardats
+if (codi_fill) {
+  $("#spinner").show();
+  fetch("/api/v1/herencia/parametres/" + codi_fill)
+    .then(r => r.json())
+    .then(params => {
+      if (!params || Object.keys(params).length === 0) {
+        // Si no existeix registre, carrega els paràmetres del notari (codi_fill=0)
+        fetch("/api/v1/herencia/parametres/0")
+          .then(r => r.json())
+          .then(paramsNotari => {
+            if (paramsNotari) {
+              $("#chkLlivia").prop("checked", paramsNotari.llivia == 1);
+              $("#chkPisVol").prop("checked", paramsNotari.vol == 1);
+              if (paramsNotari.taxacio == 2) {
+                $("#taxacio2").prop("checked", true);
+              } else {
+                $("#taxacio1").prop("checked", true);
+              }
+              if (paramsNotari.valorVol) {
+                const valorVolStr = String(paramsNotari.valorVol);
+                // Si no existeix l'opció, afegeix-la
+                if ($("#selectValorVol option[value='" + valorVolStr + "']").length === 0) {
+                  $("#selectValorVol").append(
+                    $("<option>").val(valorVolStr).text(Number(valorVolStr).toLocaleString("ca-ES") + " €")
+                  );
+                }
+                $("#selectValorVol").val(valorVolStr);
+                valorVol = Number(paramsNotari.valorVol);
+              } else {
+                $("#selectValorVol").val("470748");
+                valorVol = 470748;
+              }
+            }
+            carregarDades();
+            requestAnimationFrame(() => { $("#spinner").hide(); });
+          });
+      } else {
+        // Si existeix registre, carrega els paràmetres de l'usuari
+        $("#chkLlivia").prop("checked", params.llivia == 1);
+        $("#chkPisVol").prop("checked", params.vol == 1);
+        if (params.taxacio == 2) {
+          $("#taxacio2").prop("checked", true);
+        } else {
+          $("#taxacio1").prop("checked", true);
+        }
+        if (params.valorVol) {
+          $("#selectValorVol").val(params.valorVol);
+          valorVol = Number(params.valorVol);
+        } else {
+          $("#selectValorVol").val("470748");
+          valorVol = 470748;
+        }
+        carregarDades();
+        requestAnimationFrame(() => { $("#spinner").hide(); });
+      }
+    });
+} else {
+  carregarDades();
+}
+      // Mostra el nom del fill loguejat
+  //const fillsMap = { pere: "Pere", jordi: "Jordi", rosamaria: "Rosa Maria" };
+// Després d'iniciar sessió, carrega la proposta o l'actual
+$("#spinner").show();
+//const fill = selectedFill;
+const campProposta = "proposta" + fill;
+Promise.all([
+  fetch("/api/v1/herencia/fills").then(r => r.json()),
+  fetch("/api/v1/herencia/pisos").then(r => r.json())
+]).then(([fills, pisos]) => {
+  // Comprova si la columna proposta està buida (tots 0 o null)
+  const totZero = pisos.every(pis => !pis[campProposta] || pis[campProposta] === 0 || pis[campProposta] === "0");
+  if (totZero) {
+    // Assigna segons el camp actual
+    pisos.forEach(pis => {
+      if (pis.actual) pis.Fills_codi = pis.actual;
+    });
+  } else {
+    // Assigna segons la proposta guardada
+    pisos.forEach(pis => {
+      if (pis[campProposta]) pis.Fills_codi = pis[campProposta];
+    });
+  }
+  const inclouLlivia = $("#chkLlivia").prop("checked");
+  const inclouPisVol = $("#chkPisVol").prop("checked");
+  const taxacioSel = Number($("input[name='taxacio']:checked").val() || 1);
+  mostrarDragDrop(fills, pisos, inclouLlivia, inclouPisVol, taxacioSel);
+
+  // També recalcula gràfiques amb la nova assignació
+  const pisosFiltrats = pisos.filter(pis => {
+    if (
+      !inclouLlivia &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("llivia")
+    ) return false;
+    if (
+      !inclouPisVol &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("vol")
+    ) return false;
+    return true;
+  });
+  const repartimentFiltrat = calculaRepartiment(fills, pisosFiltrats, taxacioSel);
+  mostrarBarres("#graficPatrimoni", repartimentFiltrat, "patrimoni", "");
+  mostrarBarres("#graficRendiment", repartimentFiltrat, "rendiment", "");
+  mostrarRendibilitat("#graficTotals", repartimentFiltrat);
+  mostrarPeriodeRetorn("#graficPeriode", repartimentFiltrat);
+
+  requestAnimationFrame(() => { $("#spinner").hide(); });
+});
+    } else {
+      error.style.display = "block";
+    }
+  };
+});
+  $(function() {
+  $("#chkLlivia, #chkPisVol").on("change", carregarDades);
+});
+$("#chkPisVol, #selectValorVol").on("change", function() {
+  valorVol = $("#chkPisVol").prop("checked") ? Number($("#selectValorVol").val()) : 0;
+  carregarDades();
+});
+async function carregarDades() {
+  $("#spinner").show();
+
+  const inclouLlivia = $("#chkLlivia").prop("checked");
+  const inclouPisVol = $("#chkPisVol").prop("checked");
+  const taxacioSel = Number($("input[name='taxacio']:checked").val() || 1);
+  valorVol = inclouPisVol ? Number($("#selectValorVol").val()) : 0;
+
+  // Carrega només la llista de pisos i fills (no la proposta)
+  const [fills, pisos] = await Promise.all([
+    fetch("/api/v1/herencia/fills").then(r => r.json()),
+    fetch("/api/v1/herencia/pisos").then(r => r.json())
+  ]);
+
+  // Assigna Fills_codi segons l'estat actual del drag&drop
+  $(".dropzone").each(function() {
+    const fillId = $(this).data("fill-id");
+    $(this).find(".pis").each(function() {
+      const pisId = $(this).data("pis-id");
+      const pis = pisos.find(p => p.codi == pisId);
+      if (pis) pis.Fills_codi = fillId;
+    });
+  });
+
+  // >>> AFEGEIX-HO AQUÍ <<<
+  pisos.forEach(pis => {
+    if (pis.nom && pis.nom.toLowerCase().includes("vol")) {
+      pis.taxacio = valorVol;
+      pis.taxacio2 = valorVol; // Si vols que també afecti la taxació2
+    }
+  });
+
+  // Filtra segons checkboxes
+  const pisosFiltrats = pisos.filter(pis => {
+    if (
+      !inclouLlivia &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("llivia")
+    ) return false;
+    if (
+      !inclouPisVol &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("vol")
+    ) return false;
+    return true;
+  });
+
+  const repartimentFiltrat = calculaRepartiment(fills, pisosFiltrats, taxacioSel);
+
+  mostrarBarres("#graficPatrimoni", repartimentFiltrat, "patrimoni", "");
+  mostrarBarres("#graficRendiment", repartimentFiltrat, "rendiment", "");
+  mostrarRendibilitat("#graficTotals", repartimentFiltrat);
+  mostrarPeriodeRetorn("#graficPeriode", repartimentFiltrat);
+  mostrarDragDrop(fills, pisos, inclouLlivia, inclouPisVol, taxacioSel);
+
+  requestAnimationFrame(() => { $("#spinner").hide(); });
+}
+$("#btnAra").on("click", function() {
+  // Marca visualment els paràmetres
+  $("#taxacio1").prop("checked", true);
+  $("#chkLlivia").prop("checked", true);
+  $("#chkPisVol").prop("checked", true);
+
+  $("#spinner").show();
+  Promise.all([
+    fetch("/api/v1/herencia/fills").then(r => r.json()),
+    fetch("/api/v1/herencia/pisos").then(r => r.json())
+  ]).then(([fills, pisos]) => {
+    // Assigna segons la columna actual
+    pisos.forEach(pis => {
+      if (pis.actual) pis.Fills_codi = pis.actual;
+    });
+
+    // Calcula amb taxacio 1, inclou llivia i vol
+    const inclouLlivia = true;
+    const inclouPisVol = true;
+    const taxacioSel = 1;
+
+    const pisosFiltrats = pisos.filter(pis => true); // No cal filtrar, tot inclòs
+
+    const repartimentFiltrat = calculaRepartiment(fills, pisosFiltrats, taxacioSel);
+    mostrarBarres("#graficPatrimoni", repartimentFiltrat, "patrimoni", "");
+    mostrarBarres("#graficRendiment", repartimentFiltrat, "rendiment", "");
+    mostrarRendibilitat("#graficTotals", repartimentFiltrat);
+    mostrarPeriodeRetorn("#graficPeriode", repartimentFiltrat);
+    mostrarDragDrop(fills, pisos, inclouLlivia, inclouPisVol, taxacioSel);
+
+   requestAnimationFrame(() => { $("#spinner").hide(); });
+  });
+});
+function calculaRepartiment(fills, pisos, taxacioSel = 1) {
+  const repartiment = {};
+  fills.forEach(fill => {
+    repartiment[fill.codi] = {
+      nom: fill.nom,
+      patrimoni: 0,
+      rendiment: 0
+    };
+  });
+  pisos.forEach(pis => {
+    let taxacio, rendiment;
+    if (taxacioSel === 2) {
+      taxacio = pis.taxacio2;
+      rendiment = (pis.rendiment2 || 0) - (pis.prorrateig2 || 0);
+    } else if (taxacioSel === 3) {
+      taxacio = pis.taxacio;
+      rendiment = (pis.rendiment2 || 0) - (pis.prorrateig2 || 0);
+    } else {
+      taxacio = pis.taxacio;
+      rendiment = (pis.rendiment || 0) - (pis.prorrateig || 0);
+    }
+    if (repartiment[pis.Fills_codi]) {
+      repartiment[pis.Fills_codi].patrimoni += taxacio || 0;
+      repartiment[pis.Fills_codi].rendiment += rendiment || 0;
+    }
+  });
+  return repartiment;
+}
+function mostrarBarres(selector, dades, clau, titol) {
+  d3.select(selector).html(""); // Neteja
+  const ample = 280, alt = 300;
+  const svg = d3.select(selector)
+                .append("svg")
+                .attr("width", ample)
+                .attr("height", alt);
+
+  const fills = Object.keys(dades);
+  const valors = fills.map(f => dades[f][clau]);
+  const total = d3.sum(valors);
+  const escalaY = d3.scaleLinear()
+    .domain([0, d3.max(valors)])
+    .range([alt - 20, 30]); // més espai a dalt
+  const escalaX = d3.scaleBand()
+                    .domain(fills)
+                    .range([0, ample])
+                    .padding(0.1);
+
+  // Paleta de colors
+  const colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Barres
+  svg.selectAll("rect")
+    .data(fills)
+    .enter()
+    .append("rect")
+    .attr("x", d => escalaX(d))
+    .attr("y", d => escalaY(dades[d][clau]))
+    .attr("width", escalaX.bandwidth())
+    .attr("height", d => alt - 20 - escalaY(dades[d][clau]))
+    .attr("fill", (d, i) => colors(i));
+
+  // Percentatge al centre de la barra
+  svg.selectAll("text.percent")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("class", "percent")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", d => escalaY(dades[d][clau]) + (alt - 20 - escalaY(dades[d][clau])) / 2)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#fff")
+    .attr("font-weight", "bold")
+    .attr("font-size", "14px")
+    .text(d => {
+      const percent = total > 0 ? (100 * dades[d][clau] / total) : 0;
+      return percent.toLocaleString("ca-ES", {maximumFractionDigits: 1}) + " %";
+    });
+
+  // Nom del fill sota la barra
+  svg.selectAll("label")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", alt - 5)
+    .attr("text-anchor", "middle")
+    .text(d => dades[d].nom);
+
+  // Valor a sobre la barra
+  svg.selectAll("text.value")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("class", "value")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", d => escalaY(dades[d][clau]) - 5)
+    .attr("text-anchor", "middle")
+    .text(d => Number(dades[d][clau]).toLocaleString("ca-ES") + " €");
+}
+function mostrarRendibilitat(selector, dades) {
+  d3.select(selector).html("");
+  const ample = 280, alt = 300;
+  const svg = d3.select(selector)
+    .append("svg")
+    .attr("width", ample)
+    .attr("height", alt);
+
+  const fills = Object.keys(dades);
+  // Calculem la rendibilitat bruta anual per fill
+  const rendibilitats = fills.map(f => {
+    const patrimoni = dades[f].patrimoni;
+    const rendiment = dades[f].rendiment;
+    return patrimoni > 0 ? (rendiment / patrimoni) * 100 : 0;
+  });
+
+  const escalaY = d3.scaleLinear()
+    .domain([0, d3.max(rendibilitats)])
+    .range([alt - 20, 30]);
+  const escalaX = d3.scaleBand()
+    .domain(fills)
+    .range([0, ample])
+    .padding(0.1);
+
+  const colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Barres
+  svg.selectAll("rect")
+    .data(fills)
+    .enter()
+    .append("rect")
+    .attr("x", d => escalaX(d))
+    .attr("y", (d, i) => escalaY(rendibilitats[i]))
+    .attr("width", escalaX.bandwidth())
+    .attr("height", (d, i) => alt - 20 - escalaY(rendibilitats[i]))
+    .attr("fill", (d, i) => colors(i));
+
+  // Valor a sobre la barra
+  svg.selectAll("text.value")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("class", "value")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", (d, i) => escalaY(rendibilitats[i]) - 5)
+    .attr("text-anchor", "middle")
+    .text((d, i) => rendibilitats[i].toLocaleString("ca-ES", {maximumFractionDigits: 2}) + " %");
+
+  // Nom del fill sota la barra
+  svg.selectAll("label")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", alt - 5)
+    .attr("text-anchor", "middle")
+    .text(d => dades[d].nom);
+}
+function mostrarPeriodeRetorn(selector, dades) {
+  d3.select(selector).html("");
+  const ample = 280, alt = 300;
+  const svg = d3.select(selector)
+    .append("svg")
+    .attr("width", ample)
+    .attr("height", alt);
+
+  const fills = Object.keys(dades);
+  // Calculem el període de retorn per fill
+  const periodes = fills.map(f => {
+    const patrimoni = dades[f].patrimoni;
+    const rendiment = dades[f].rendiment;
+    return rendiment > 0 ? patrimoni / rendiment : 0;
+  });
+
+  const escalaY = d3.scaleLinear()
+    .domain([0, d3.max(periodes)])
+    .range([alt - 20, 30]);
+  const escalaX = d3.scaleBand()
+    .domain(fills)
+    .range([0, ample])
+    .padding(0.1);
+
+  const colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Barres
+  svg.selectAll("rect")
+    .data(fills)
+    .enter()
+    .append("rect")
+    .attr("x", d => escalaX(d))
+    .attr("y", (d, i) => escalaY(periodes[i]))
+    .attr("width", escalaX.bandwidth())
+    .attr("height", (d, i) => alt - 20 - escalaY(periodes[i]))
+    .attr("fill", (d, i) => colors(i));
+
+  // Valor a sobre la barra
+  svg.selectAll("text.value")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("class", "value")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", (d, i) => escalaY(periodes[i]) - 5)
+    .attr("text-anchor", "middle")
+    .text((d, i) => periodes[i] ? periodes[i].toLocaleString("ca-ES", {maximumFractionDigits: 2}) + " anys" : "—");
+
+  // Nom del fill sota la barra
+  svg.selectAll("label")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", alt - 5)
+    .attr("text-anchor", "middle")
+    .text(d => dades[d].nom);
+}
+function mostrarTotals(selector, dades) {
+  d3.select(selector).html("");
+  const ample = 280, alt = 300;
+  const svg = d3.select(selector)
+    .append("svg")
+    .attr("width", ample)
+    .attr("height", alt);
+
+  const fills = Object.keys(dades);
+  const noms = fills.map(f => dades[f].nom);
+  const patrimonis = fills.map(f => dades[f].patrimoni);
+  const rendiments = fills.map(f => dades[f].rendiment);
+
+  const escalaY = d3.scaleLinear()
+    .domain([0, d3.max(fills.map(f => dades[f].patrimoni + dades[f].rendiment))])
+    .range([alt - 30, 30]); // més espai a dalt
+
+  const escalaX = d3.scaleBand()
+    .domain(fills)
+    .range([0, ample])
+    .padding(0.1);
+
+  // Colors
+  const colors = d3.scaleOrdinal().domain(["patrimoni", "rendiment"]).range(["#3498db", "#e67e22"]);
+
+  // Patrimoni
+  svg.selectAll(".total-value")
+  .data(fills)
+  .enter()
+  .append("text")
+  .attr("class", "total-value")
+  .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+  .attr("y", d => escalaY(dades[d].patrimoni + dades[d].rendiment) - 8)
+  .attr("text-anchor", "middle")
+  .attr("font-weight", "bold")
+  .attr("fill", "#222")
+  .text(d => (dades[d].patrimoni + dades[d].rendiment).toLocaleString("ca-ES") + " €");
+
+  // Rendiment (apilat sobre patrimoni)
+  svg.selectAll(".bar-rendiment")
+    .data(fills)
+    .enter()
+    .append("rect")
+    .attr("class", "bar-rendiment")
+    .attr("x", d => escalaX(d))
+    .attr("y", d => escalaY(dades[d].patrimoni + dades[d].rendiment))
+    .attr("width", escalaX.bandwidth())
+    .attr("height", d => alt - 30 - escalaY(dades[d].rendiment))
+    .attr("fill", colors("rendiment"));
+
+  // Noms sota la barra
+  svg.selectAll(".label")
+    .data(fills)
+    .enter()
+    .append("text")
+    .attr("x", d => escalaX(d) + escalaX.bandwidth() / 2)
+    .attr("y", alt - 5)
+    .attr("text-anchor", "middle")
+    .text(d => dades[d].nom);
+
+  // Llegenda
+  svg.append("rect").attr("x", 10).attr("y", 10).attr("width", 18).attr("height", 18).attr("fill", colors("patrimoni"));
+  svg.append("text").attr("x", 35).attr("y", 24).text("Patrimoni").attr("font-size", "14px");
+  svg.append("rect").attr("x", 120).attr("y", 10).attr("width", 18).attr("height", 18).attr("fill", colors("rendiment"));
+  svg.append("text").attr("x", 145).attr("y", 24).text("Rendiment").attr("font-size", "14px");
+}
+function mostrarDragDrop(fills, pisos, inclouLlivia, inclouPisVol, taxacioSel) {
+  const cont = $("#contenedorFills");
+  cont.html(""); // Neteja
+
+  fills.forEach(fill => {
+    const zona = $(`
+      <div class="dropzone" data-fill-id="${fill.codi}">
+        <h3><center>${fill.nom}</center></h3>
+        <div class="pisos"></div>
+      </div>
+    `);
+    cont.append(zona);
+  });
+
+pisos.forEach(pis => {
+  //console.log(pis.pis); // Mira què surt aquí!
+  let exclosa = false;
+  if (
+    (!inclouLlivia &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("llivia")) ||
+    (!inclouPisVol &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("vol"))
+  ) {
+    exclosa = true;
+  }
+let taxacio, rendimentOriginal, prorrateig;
+if (taxacioSel === 2) {
+  taxacio = pis.taxacio2;
+  rendimentOriginal = pis.rendiment2;
+  prorrateig = pis.prorrateig2 || 0;
+} else if (taxacioSel === 3) {
+  taxacio = pis.taxacio;
+  rendimentOriginal = pis.rendiment2;
+  prorrateig = pis.prorrateig2 || 0;
+} else {
+  taxacio = pis.taxacio;
+  rendimentOriginal = pis.rendiment;
+  prorrateig = pis.prorrateig || 0;
+}
+const rendimentNet = (rendimentOriginal || 0) - prorrateig;
+const bloc = $(`
+  <div class="pis${exclosa ? " exclosa" : ""}" data-pis-id="${pis.codi}">
+    Pis ${pis.pis ? pis.pis : ""}${pis.porta ? "-" + pis.porta : ""} (${pis.nom_finca || ""})<br>
+    ${pis.nom ? `<div class="pis-nom">${pis.nom}</div>` : ""}
+    ${(taxacio || 0).toLocaleString("ca-ES")} € / 
+    <span title="Rendiment menys prorrateig">
+      ${(rendimentNet).toLocaleString("ca-ES")} €
+    </span>
+  </div>
+`);
+  cont.find(`.dropzone[data-fill-id="${pis.Fills_codi}"] .pisos`).append(bloc);
+});
+
+  $(".pis").draggable({
+    revert: "invalid",
+    helper: "clone",
+    zIndex: 100
+  });
+
+$(".dropzone").droppable({
+  accept: ".pis",
+  drop: function(event, ui) {
+    $("#spinner").show(); // <-- Mostra l’spinner immediatament!
+
+    const nouFill = $(this).data("fill-id");
+    const pis = ui.draggable;
+    const pisId = pis.data("pis-id");
+
+    // Visualment mou el pis
+    $(this).find(".pisos").append(pis);
+
+    // Envia actualització al backend
+    fetch("/api/v1/herencia/reassignar_pis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pis_id: pisId, nou_fill_id: nouFill })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        carregarDades();
+      } else {
+        alert("Error reassignant pis.");
+        requestAnimationFrame(() => { $("#spinner").hide(); });
+      }
+    })
+    .catch(() => { requestAnimationFrame(() => { $("#spinner").hide(); }); });
+  }
+});
+}
+$("#btnGuardarProposta").on("click", function() {
+  $("#spinner").show();
+
+  const fill = window.selectedFill;
+  if (!fill) {
+    alert("No s'ha detectat cap germà. Torna a iniciar sessió.");
+    requestAnimationFrame(() => { $("#spinner").hide(); });
+    return;
+  }
+  const codi_fill = fillsMap[fill.toLowerCase().replace(/\s/g, '')]; // <--- Aquí!
+  const campProposta = "proposta" + fill;
+
+  const llivia = $("#chkLlivia").prop("checked") ? 1 : 0;
+  const vol = $("#chkPisVol").prop("checked") ? 1 : 0;
+
+  const resultats = [];
+  $(".dropzone").each(function() {
+    const fillId = $(this).data("fill-id");
+    $(this).find(".pis").each(function() {
+      const pisId = $(this).data("pis-id");
+      resultats.push({ pis_id: pisId, fill_id: fillId });
+    });
+  });
+
+  // Envia els paràmetres només en la primera petició
+const taxacio = $("input[name='taxacio']:checked").val() === "2" ? 2 : 1;
+const valorVolGuardar = $("#chkPisVol").prop("checked") ? Number($("#selectValorVol").val()) : 0;
+const peticions = resultats.map((r, idx) =>
+  fetch("/api/v1/herencia/guardar_proposta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      pis_id: r.pis_id,
+      camp: campProposta,
+      fill_id: r.fill_id,
+      ...(idx === 0 ? {
+        codi_fill: codi_fill,
+        llivia: llivia,
+        vol: vol,
+        taxacio: taxacio,
+        valorVol: valorVolGuardar // <-- Aquí!
+      } : {})
+    })
+  })
+);
+
+  Promise.all(peticions).then(() => {
+    requestAnimationFrame(() => { $("#spinner").hide(); });
+    alert("Proposta guardada!");
+  }).catch(() => {
+    requestAnimationFrame(() => { $("#spinner").hide(); });
+    alert("Error en guardar la proposta.");
+  });
+});
+$("#btnVeureProposta").on("click", async function() {
+  const fill = $("#selectVeureProposta").val();
+  if (!fill) {
+    alert("Has de triar un germà.");
+    return;
+  }
+  const codi_fill = fillsMap[fill.toLowerCase().replace(/\s/g, '')];
+  if (!codi_fill) {
+    alert("No s'ha trobat el codi del germà.");
+    return;
+  }
+  $("#spinner").show();
+
+  // 1. Recupera els paràmetres de la taula
+  const params = await fetch("/api/v1/herencia/parametres/" + codi_fill).then(r => r.json());
+
+  // 3. Carrega la proposta guardada i mostra-la
+  const campProposta = "proposta" + fill;
+  const [fills, pisos] = await Promise.all([
+    fetch("/api/v1/herencia/fills").then(r => r.json()),
+    fetch("/api/v1/herencia/pisos").then(r => r.json())
+  ]);
+
+  // Comprova si el fill té proposta
+  const teProposta = pisos.some(pis => pis[campProposta] && pis[campProposta] !== 0 && pis[campProposta] !== "0");
+  if (!teProposta) {
+    requestAnimationFrame(() => { $("#spinner").hide(); });
+    alert("Aquest germà no té cap proposta guardada.");
+    return;
+  }
+
+  // Si té proposta, segueix com fins ara:
+  if (params) {
+    $("#chkLlivia").prop("checked", params.llivia == 1);
+    $("#chkPisVol").prop("checked", params.vol == 1);
+    if (params.taxacio == 2) {
+      $("#taxacio2").prop("checked", true);
+    } else {
+      $("#taxacio1").prop("checked", true);
+    }
+    if (params.valorVol) {
+      $("#selectValorVol").val(params.valorVol);
+      valorVol = Number(params.valorVol);
+    } else {
+      $("#selectValorVol").val("470748");
+      valorVol = 470748;
+    }
+  }
+
+  pisos.forEach(pis => {
+    if (pis[campProposta]) pis.Fills_codi = pis[campProposta];
+    if (pis.nom && pis.nom.toLowerCase().includes("vol")) {
+      pis.taxacio = valorVol;
+      pis.taxacio2 = valorVol;
+    }
+  });
+
+  const inclouLlivia = $("#chkLlivia").prop("checked");
+  const inclouPisVol = $("#chkPisVol").prop("checked");
+  const taxacioSel = Number($("input[name='taxacio']:checked").val() || 1);
+  mostrarDragDrop(fills, pisos, inclouLlivia, inclouPisVol, taxacioSel);
+
+  // També recalcula gràfiques amb la nova assignació
+  const pisosFiltrats = pisos.filter(pis => {
+    if (
+      !inclouLlivia &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("llivia")
+    ) return false;
+    if (
+      !inclouPisVol &&
+      pis.nom &&
+      typeof pis.nom === "string" &&
+      pis.nom.toLowerCase().includes("vol")
+    ) return false;
+    return true;
+  });
+  const repartimentFiltrat = calculaRepartiment(fills, pisosFiltrats, taxacioSel);
+  mostrarBarres("#graficPatrimoni", repartimentFiltrat, "patrimoni", "");
+  mostrarBarres("#graficRendiment", repartimentFiltrat, "rendiment", "");
+  mostrarRendibilitat("#graficTotals", repartimentFiltrat);
+  mostrarPeriodeRetorn("#graficPeriode", repartimentFiltrat);
+
+  requestAnimationFrame(() => { $("#spinner").hide(); });
+});
+carregarDades();
+$("input[name='taxacio']").on("change", carregarDades);
+$(function() {
+  // Obrir el modal
+$("#btnComentari").on("click", function() {
+  $("#xat-modal").css("display", "flex");
+  carregarXat().then(function() {
+    $("#xat-llista").scrollTop($("#xat-llista")[0].scrollHeight);
+  });
+});
+
+  // Tancar el modal
+  $("#comentari-modal-close").on("click", function() {
+    $("#comentari-modal").hide();
+  });
+
+  // Pestanyes
+  $("#tab-editar").on("click", function() {
+    $(".tab-btn").css("background", "#eee");
+    $(this).css("background", "#dbeafe");
+    $("#comentari-editar").show();
+    $("#comentari-veure").hide();
+  });
+  $("#tab-veure").on("click", async function() {
+    $(".tab-btn").css("background", "#eee");
+    $(this).css("background", "#dbeafe");
+    $("#comentari-editar").hide();
+    $("#comentari-veure").show();
+    // Carrega comentaris dels tres fills
+    const fills = await fetch("/api/v1/herencia/fills").then(r => r.json());
+    let html = "";
+    fills.forEach(f => {
+      let dataCat = "";
+      if (f.diaIHora) {
+        //console.log("DATA:", f.diaIHora);
+        dataCat = formatDataCat(f.diaIHora + "");
+      }
+      html += `<div style="margin-bottom:12px;"><b>${f.nom}:</b><br>
+        <span style="white-space:pre-line">${(f.comentari || "<span style='color:#aaa'>— sense comentari —</span>")}</span>
+        ${dataCat ? `<div style="color:#888;font-size:0.9em;">${dataCat}</div>` : ""}
+      </div>`;
+    });
+    $("#comentaris-llista").html(html);
+  });
+
+  // Guardar comentari
+$("#comentari-guardar").on("click", async function() {
+    const fill = window.selectedFill;
+    if (!fill) {
+        alert("No s'ha seleccionat cap germà!");
+        return;
+    }
+    const codi_fill = fillsMap[fill.toLowerCase().replace(/\s/g, '')];
+    const comentari = $("#comentari-text").val();
+    const resposta = await fetch("/api/v1/herencia/fills/" + codi_fill + "/comentari", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comentari })
+    });
+    if (resposta.ok) {
+      $("#comentari-guardat")
+        .css("visibility", "visible")
+        .delay(1200)
+        .queue(function(next) {
+          $(this).css("visibility", "hidden");
+          next();
+        });
+    } else {
+      alert("Error en guardar el comentari.");
+    }
+});
+});
+async function carregarXat() {
+  const missatges = await fetch("/api/v1/herencia/xat").then(r => r.json());
+  let html = "";
+  missatges.forEach(m => {
+  html += `<div class="xat-missatge">
+  <span class="autor">${m.autor}</span>
+  <span class="hora">${m.diaIHora}</span><br>
+  <span style="white-space:pre-line;">${m.text.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>")}</span>
+</div>`;
+});
+$("#xat-llista").html(html);
+//$("#xat-llista").scrollTop($("#xat-llista")[0].scrollHeight);
+}
+$("#xat-form").on("submit", async function(e) {
+  e.preventDefault();
+  const autor = $("#nom-usuari").text().trim();
+  const text = $("#xat-text").val().trim();
+  if (!autor || !text) return;
+  await fetch("/api/v1/herencia/xat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ autor, text })
+  });
+  $("#xat-text").val("");
+  $("#xat-text").css("height", "38px"); // Torna a la mida inicial
+  await carregarXat();
+  // Scroll automàtic només després d'enviar
+  $("#xat-llista").scrollTop($("#xat-llista")[0].scrollHeight);
+});
+
+$("#xat-text").on("keydown", function(e) {
+  if (e.key === "Enter" && !e.ctrlKey) {
+    // Només fa salt de línia
+    return;
+  }
+  if (e.key === "Enter" && e.ctrlKey) {
+    e.preventDefault();
+    $("#xat-form").submit();
+  }
+});
+/*
+$("#btnXat").on("click", function() {
+  $("#xat-modal").css("display", "flex");
+  carregarXat().then(function() {
+    $("#xat-llista").scrollTop($("#xat-llista")[0].scrollHeight);
+  });
+});
+*/
+$("#xat-modal-close").on("click", function() {
+  $("#xat-modal").hide();
+});
+function formatDataCat(dataStr) {
+  // Primer intenta el format YYYY-MM-DD HH:MM:SS
+  let parts = dataStr.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+  if (parts) {
+    const any = parts[1].slice(2);
+    const mes = parts[2];
+    const dia = parts[3];
+    const hora = parts[4];
+    const min = parts[5];
+    const seg = parts[6];
+    return `${dia}/${mes}/${any} a les ${hora}:${min}:${seg}`;
+  }
+  // Si no, intenta parsejar amb Date
+  const d = new Date(dataStr);
+  if (!isNaN(d.getTime())) {
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const any = String(d.getFullYear()).slice(2);
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    const seg = String(d.getSeconds()).padStart(2, "0");
+    return `${dia}/${mes}/${any} a les ${hora}:${min}:${seg}`;
+  }
+  return dataStr;
+}
+function hiHaSeleccioText() {
+  const sel = window.getSelection();
+  return sel && sel.toString().length > 0;
+}
+setInterval(function() {
+  // Només recarrega si la modal està oberta i NO hi ha selecció de text
+  if ($("#xat-modal").is(":visible") && !hiHaSeleccioText()) {
+    carregarXat();
+  }
+}, 3000);
+$("#xat-text").on("input", function() {
+  this.style.height = "auto";
+  this.style.height = (this.scrollHeight) + "px";
+});
+carregarXat();
+</script>
+<div id="comentari-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:20000;background:rgba(0,0,0,0.25);align-items:center;justify-content:center;">
+  <div style="background:white;padding:40px 36px;border-radius:16px;min-width:480px;max-width:98vw;box-shadow:0 2px 32px #0004;position:relative;font-size:1.15em;">
+    <button id="comentari-modal-close" style="position:absolute;top:12px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">&times;</button>
+    <div style="display:flex;gap:24px;margin-bottom:24px;">
+      <button id="tab-editar" class="tab-btn" style="padding:8px 24px;border-radius:8px;border:none;background:#eee;font-weight:600;cursor:pointer;">Editar el meu comentari</button>
+      <button id="tab-veure" class="tab-btn" style="padding:8px 24px;border-radius:8px;border:none;background:#eee;font-weight:600;cursor:pointer;">Veure tots els comentaris</button>
+    </div>
+    <div id="comentari-editar" class="tab-content">
+      <textarea id="comentari-text" rows="7" style="width:100%;font-size:1.08em;padding:10px;border-radius:8px;border:1px solid #bbb;"></textarea>
+      <button id="comentari-guardar" type="button" style="margin-top:16px;padding:8px 28px;background:#27ae60;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Guardar</button>
+      <span id="comentari-guardat" style="margin-left:24px;color:green;display:inline-block;min-width:140px;visibility:hidden;">Comentari guardat!</span>
+    </div>
+    <div id="comentari-veure" class="tab-content" style="display:none;">
+      <div id="comentaris-llista" style="font-size:1.08em;"></div>
+    </div>
+  </div>
+</div>
+</body>
+<div id="spinner" style="display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:9999;">
+  <div style="border:8px solid #eee;border-top:8px solid #3498db;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite"></div>
+</div>
+</html>

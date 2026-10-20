@@ -1,0 +1,105 @@
+name: Deploy
+
+# develop -> dev · main -> prod. El rol d'AWS s'assumeix per OIDC: no hi ha claus permanents.
+on:
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci && npm run typecheck && npm test && npm run build
+        working-directory: frontend
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    # L'entorn "prod" de GitHub pot exigir aprovació manual (Settings > Environments).
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    env:
+      TF_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+      TF_VAR_alert_email: ${{ vars.ALERT_EMAIL }}
+      TF_VAR_use_custom_domain: ${{ vars.USE_CUSTOM_DOMAIN || 'false' }}
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Empaqueta la Lambda i el frontend
+        run: |
+          bash scripts/build_lambda.sh
+          (cd frontend && npm ci && npm run build)
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ github.ref_name == 'main' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: eu-west-1
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+      - name: terraform init
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: terraform init -input=false -backend-config="bucket=${{ vars.TFSTATE_BUCKET }}"
+      # 1) La base de dades primer, 2) les migracions, 3) la resta (codi nou). Les migracions
+      #    són sempre additives, de manera que la versió anterior del codi continua funcionant.
+      - name: Base de dades (Neon)
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: terraform apply -input=false -auto-approve -target=module.database
+      - name: Migracions d'Alembic
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: |
+          pip install -q -e "$GITHUB_WORKSPACE"
+          param=$(terraform output -raw database_url_unpooled_ssm_param)
+          url=$(aws ssm get-parameter --name "$param" --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$url"
+          ACALPERE_DATABASE_URL_UNPOOLED="$url" ACALPERE_DATABASE_URL="$url" acalpere migrate
+      - name: Infraestructura i codi
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: terraform apply -input=false -auto-approve
+      - name: Publica el frontend
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: |
+          bucket=$(terraform output -raw web_bucket)
+          dist=$(terraform output -raw distribution_id)
+          # Els fitxers amb hash (assets/) són immutables; la resta es revalida sempre.
+          aws s3 sync ../../../frontend/dist "s3://$bucket" --delete \
+            --exclude "assets/*" --cache-control "no-cache"
+          aws s3 sync ../../../frontend/dist/assets "s3://$bucket/assets" \
+            --cache-control "public,max-age=31536000,immutable"
+          aws cloudfront create-invalidation --distribution-id "$dist" --paths "/*" >/dev/null
+      - name: Comprova que respon
+        working-directory: terraform/envs/${{ env.TF_ENV }}
+        run: |
+          url=$(terraform output -raw web_url)
+          for i in 1 2 3 4 5 6; do
+            curl -fsS -o /dev/null "$url/api/health" && curl -fsS -o /dev/null "$url/" && { echo "OK $url"; exit 0; }
+            sleep 10
+          done
+          echo "No respon: $url"; exit 1

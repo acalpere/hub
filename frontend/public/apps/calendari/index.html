@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendari de la mare</title>
+    <script src="../common.js"></script>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calendari de la mare</h1>
+            <p><b style="color:rgb(255, 255, 255);font-weight:bolder">SEMPRE</b> UN DELS TRES, COM A MÍNIM, AL POBLE</p>
+        </header>
+
+        <div class="controls">
+            <div class="brother-selector">
+                <label for="brother-select">Germà/na:</label>
+                <select id="brother-select">
+                    <!-- Les opcions es carregaran dinàmicament -->
+                </select>
+            </div>
+
+            <div class="mode-selector">
+                <label for="mode-select">Mode:</label>
+                <select id="mode-select">
+                    <!-- Les opcions es carregaran dinàmicament -->
+                </select>
+            </div>
+
+            <div class="navigation">
+                <button id="prev-month">← Mes anterior</button>
+                <span id="current-month"></span>
+                <button id="next-month">Mes següent →</button>
+            </div>
+            
+            <div class="legend-inline">
+                <div class="legend-item">
+                    <div class="legend-color brother1"></div>
+                    <span>Rosa Maria</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color brother2"></div>
+                    <span>Pere</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color brother3"></div>
+                    <span>Jordi</span>
+                </div>
+            </div>
+            
+            <div class="last-modification">
+                <div id="last-modification-info">
+                    <!-- La darrera modificació es mostrarà aquí -->
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="multi-select-controls">
+                <div class="multi-select-center">
+                    <span id="selection-counter" style="display: none; margin-right: 10px;"></span>
+                    <button id="assign-selected" class="assign-btn" style="display: none;">Assignar seleccionades</button>
+                    <button id="clear-selection" class="clear-btn" style="display: none;">Cancel·lar selecció</button>
+                    <button id="clear-assigned" class="clear-assigned-btn" style="display: none;">Esborrar assignacions</button>
+                </div>
+            </div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

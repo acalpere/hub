@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.env
+.env.local
+*.db
+build/
+node_modules/
+dist/
+.terraform/
+*.tfstate*
+*.tfvars
+!*.tfvars.example
+.neon
+# Dades de la web antiga (hashes de contrasenyes, converses): mai al repositori
+data/legacy/
+crutches/

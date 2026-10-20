@@ -1,0 +1,1297 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    background-color:#ca8435;
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.controls {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+.brother-selector,
+.mode-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brother-selector label,
+.mode-selector label {
+    font-weight: 600;
+    color: #555;
+}
+
+select {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+select:hover,
+select:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navigation button {
+    padding: 10px 15px;
+    border: none;
+    background: #667eea;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.navigation button:hover {
+    background: #5a6fd8;
+}
+
+#current-month {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #333;
+    min-width: 200px;
+    text-align: center;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions button {
+    padding: 10px 20px;
+    border: none;
+    background: #28a745;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.actions button:hover {
+    background: #218838;
+}
+
+.legend-inline {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.legend-inline .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-inline .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legend-inline .legend-color.brother1 {
+    background: #ff6b6b;
+}
+
+.legend-inline .legend-color.brother2 {
+    background: #FFF9C4; /* Groc pastel per Pere */
+}
+
+.legend-inline .legend-color.brother3 {
+    background: #45b7d1;
+}
+
+.legend-inline span {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+/* Botons de selecció múltiple */
+.multi-select-btn {
+    background: #007bff !important;
+}
+
+.multi-select-btn:hover {
+    background: #0056b3 !important;
+}
+
+.multi-select-btn.active {
+    background: #ff6b6b !important;
+}
+
+.multi-select-btn.active:hover {
+    background: #e55555 !important;
+}
+
+.assign-btn {
+    background: #28a745 !important;
+}
+
+.assign-btn:hover {
+    background: #218838 !important;
+}
+
+.clear-btn {
+    background: #6c757d !important;
+}
+
+.clear-btn:hover {
+    background: #545b62 !important;
+}
+
+/* Secció de selecció múltiple centrada */
+.multi-select-center {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 9;
+}
+
+.multi-select-center button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.clear-assigned-btn {
+    background: #dc3545 !important;
+    color: white;
+}
+
+.clear-assigned-btn:hover {
+    background: #c82333 !important;
+    transform: translateY(-1px);
+}
+
+.last-modification {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+#last-modification-info {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    display: none; /* Ocultat per defecte fins que hi hagi dades */
+}
+
+.multi-select-controls {
+    padding: 15px 0;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.calendar-container {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+#calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5px;
+    max-width: 100%;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.calendar-header {
+    background: #f8f9fa;
+    padding: 15px 5px;
+    text-align: center;
+    font-weight: 600;
+    color: #555;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.calendar-day {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+    position: relative;
+    font-size: 12px;
+    min-height: 60px; /* Mida mínima per assegurar clicabilitat */
+    touch-action: manipulation; /* Millorar touch response */
+    -webkit-touch-callout: none; /* Evitar callouts en iOS */
+    -webkit-user-select: none; /* Evitar selecció de text */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.calendar-day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.calendar-day.other-month {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.calendar-day.today {
+    border: 2px solid #667eea;
+    font-weight: 600;
+}
+
+/* Quan hi ha múltiples assignacions al mateix dia - aquesta regla s'aplicarà després */
+.calendar-day.has-multiple-assignments {
+    background: #ffcc99 !important; /* Taronja pastel */
+    color: #333;
+    font-weight: 600;
+    border: 2px solid #ff9966;
+}
+
+.calendar-day.has-assignment {
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.calendar-day.has-assignment.has-multiple-assignments {
+    text-shadow: none;
+}
+
+.day-number {
+    font-size: 16px;
+    font-weight: 900;
+    position: absolute;
+    top: 1px;
+    right: 2px;
+    z-index: 3;
+    color: #0f3ab1;
+    line-height: 1;
+}
+
+.day-assignments {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 0 2px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estils per múltiples assignacions (només pantalla gran) */
+.day-assignments.multiple-assignments {
+    gap: 1px;
+}
+
+@media (min-width: 769px) {
+    .day-assignments.multiple-assignments .assignment {
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 1px 3px;
+        border-radius: 3px;
+        border: 1px solid #ddd;
+    }
+
+    .day-assignments.multiple-assignments .assignment-modality {
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 1px 3px;
+        border-radius: 3px;
+        margin-top: 2px;
+        border: 1px solid #ccc;
+    }
+}
+
+.assignment {
+    font-size: 16px;
+    padding: 0;
+    border-radius: 0;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 900;
+    background: transparent;
+    border: none;
+    min-width: auto;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+}
+
+.assignment-modality {
+    font-size: 12px;
+    padding: 0;
+    border-radius: 0;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.8);
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    min-width: auto;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+/* Estils específics per modalitat poble quan hi ha múltiples assignacions */
+.day-assignments.multiple-assignments .assignment-modality.poble {
+    background: rgba(255, 235, 59, 0.9);
+    color: #333;
+    font-weight: 700;
+}
+
+.assignment.poble::after {
+    content: ' (P)';
+}
+
+.assignment.casa::after {
+    content: ' (C)';
+}
+
+.brother1 {
+    background: #ff6b6b;
+}
+
+.brother2 {
+    background: #FFF9C4; /* Groc pastel per Pere */
+}
+
+.brother3 {
+    background: #45b7d1;
+}
+
+/* Colors de fons per als dies del calendari segons el germà assignat */
+.calendar-day.brother-1 {
+    background: #ff6b6b !important;
+    color: white !important;
+}
+
+.calendar-day.brother-2 {
+    background: #FFF9C4 !important; /* Groc pastel per Pere */
+    color: #333 !important;
+}
+
+.calendar-day.brother-3 {
+    background: #45b7d1 !important;
+    color: white !important;
+}
+
+.calendar-day.brother-4 {
+    background: #a8e6cf !important; /* Verd pastel */
+    color: #333 !important;
+}
+
+.calendar-day.brother-5 {
+    background: #ffd3e1 !important; /* Rosa pastel */
+    color: #333 !important;
+}
+
+/* Estils per la modal de confirmació */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-content h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.modal-content p {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-confirm {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-confirm:hover {
+    background: #c82333;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+/* Modal d'informació personalitzat */
+.info-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.info-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    min-width: 300px;
+    animation: slideIn 0.3s ease;
+}
+
+.info-modal h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
+.info-modal p {
+    margin: 0 0 20px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.info-modal button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.info-modal button:hover {
+    background: #0056b3;
+}
+
+/* Spinner elegant */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.2s ease;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.spinner-text {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pantalles grans - mida de text més gran */
+@media (min-width: 1200px) {
+    .calendar-day {
+        font-size: 14px;
+        min-height: 80px;
+    }
+    
+    .day-number {
+        font-size: 18px;
+    }
+    
+    .assignment {
+        font-size: 18px;
+    }
+    
+    .assignment-modality {
+        font-size: 14px;
+    }
+    
+    .day-assignments.multiple-assignments .assignment {
+        font-size: 16px;
+    }
+    
+    .day-assignments.multiple-assignments .assignment-modality {
+        font-size: 14px;
+    }
+    
+    .calendar-header {
+        font-size: 16px;
+        padding: 20px 8px;
+    }
+}
+
+/* Pantalles mitjanes - mida de text millorada */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .calendar-day {
+        font-size: 13px;
+        min-height: 70px;
+    }
+    
+    .day-number {
+        font-size: 17px;
+    }
+    
+    .assignment {
+        font-size: 17px;
+    }
+    
+    .assignment-modality {
+        font-size: 13px;
+    }
+    
+    .day-assignments.multiple-assignments .assignment {
+        font-size: 16px;
+        line-height: 1.2;
+        margin-bottom: 2px;
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #000 !important;
+        padding: 2px 4px;
+        border-radius: 4px;
+        border: 1px solid #999;
+        font-weight: bold;
+    }
+    
+    .day-assignments.multiple-assignments .assignment-modality {
+        font-size: 14px;
+        line-height: 1.2;
+        margin-top: 2px;
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #000 !important;
+        padding: 1px 3px;
+        border-radius: 3px;
+        border: 1px solid #999;
+        font-weight: bold;
+    }
+    
+    .calendar-header {
+        font-size: 15px;
+        padding: 18px 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .navigation {
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .actions button {
+        width: 100%;
+    }
+    
+    #calendar {
+        gap: 1px;
+        max-width: 100%;
+        width: 100%;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day {
+        width: 100%;
+        min-height: 60px;
+        aspect-ratio: 1;
+        font-size: 10px;
+    }
+    
+    .calendar-header {
+        padding: 10px 2px;
+        font-size: 11px;
+    }
+
+    .assignment {
+        font-size: 10px;
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+    
+    .modal-content {
+        padding: 20px;
+        max-width: 350px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-confirm,
+    .btn-cancel {
+        width: 100%;
+    }
+}
+
+/* Estils per a selecció múltiple */
+.calendar-day.selected {
+    border: 2px solid #ff4444 !important;
+    background-color: rgba(255, 68, 68, 0.1);
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+}
+
+.calendar-day.multi-select-hover {
+    border: 2px solid #ff8888;
+    background-color: rgba(255, 68, 68, 0.05);
+}
+
+/* Estils per botons de selecció múltiple */
+.multi-select-controls {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.multi-select-center {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#selection-counter {
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+}
+
+.assign-btn, .clear-btn, .clear-assigned-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.assign-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.assign-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.assign-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.clear-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.clear-btn:hover {
+    background-color: #c82333;
+}
+
+.clear-assigned-btn {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.clear-assigned-btn:hover {
+    background-color: #e0a800;
+}
+
+/* === MEDIA QUERIES PER RESPONSIVITAT === */
+
+/* Tablets i pantalles mitjanes */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 2em;
+    }
+    
+    .controls {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .brother-selector,
+    .mode-selector {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .navigation {
+        width: 100%;
+        justify-content: center;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #current-month {
+        min-width: 150px;
+        font-size: 1em;
+    }
+    
+    .actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .legend-inline {
+        gap: 15px;
+    }
+    
+    #calendar {
+        max-width: 100%;
+        gap: 1px;
+    }
+    
+    .calendar-header {
+        padding: 10px 2px;
+        font-size: 12px;
+    }
+    
+    .calendar-day {
+        font-size: 10px;
+    }
+    
+    .day-number {
+        font-size: 10px;
+    }
+    
+    .assignment {
+        font-size: 12px;
+    }
+    
+    .assignment-modality {
+        font-size: 9px;
+    }
+}
+
+/* Mòbils */
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+    
+    header h1 {
+        font-size: 1.8em;
+        margin-bottom: 5px;
+    }
+    
+    header p {
+        font-size: 1em;
+    }
+    
+    .controls {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .brother-selector label,
+    .mode-selector label {
+        font-size: 12px;
+    }
+    
+    select {
+        padding: 8px 10px;
+        font-size: 14px;
+        min-height: 44px; /* Mida mínima per tàctil */
+    }
+    
+    .navigation button {
+        padding: 12px 16px;
+        font-size: 14px;
+        min-height: 44px; /* Mida mínima per tàctil */
+    }
+    
+    #current-month {
+        min-width: 120px;
+        font-size: 0.9em;
+    }
+    
+    .actions button {
+        padding: 12px 18px;
+        font-size: 14px;
+        min-height: 44px; /* Mida mínima per tàctil */
+    }
+    
+    .legend-inline {
+        gap: 10px;
+    }
+    
+    .legend-inline span {
+        font-size: 12px;
+    }
+    
+    .calendar-container {
+        padding: 10px;
+    }
+    
+    #calendar {
+        gap: 1px;
+        max-width: 100%;
+        width: 100%;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-header {
+        padding: 8px 1px;
+        font-size: 10px;
+    }
+    
+    .calendar-day {
+        width: 100%;
+        min-height: 50px;
+        aspect-ratio: 1;
+        font-size: 8px;
+        border-radius: 4px;
+    }
+    
+    .calendar-day:hover {
+        transform: none; /* Eliminar l'efecte hover en mòbil */
+    }
+    
+    .calendar-day:active {
+        transform: scale(0.95); /* Efecte visual quan es toca */
+        transition: transform 0.1s;
+    }
+    
+    .day-number {
+        font-size: 10px;
+        top: 2px;
+        right: 3px;
+    }
+    
+    .assignment {
+        font-size: 10px;
+    }
+    
+    .assignment-modality {
+        font-size: 8px;
+    }
+    
+    .multi-select-controls {
+        padding: 8px;
+    }
+    
+    .multi-select-center {
+        gap: 6px;
+        flex-wrap: nowrap; /* Mantenir botons en una sola línia */
+    }
+    
+    .assign-btn, .clear-btn, .clear-assigned-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 40px; /* Mida mínima per tàctil */
+        flex-shrink: 1; /* Permetre que els botons es redueixin */
+        min-width: 80px; /* Mida mínima dels botons */
+    }
+    
+    #selection-counter {
+        font-size: 14px;
+    }
+}
+
+/* Mòbils petits */
+@media (max-width: 320px) {
+    header h1 {
+        font-size: 1.5em;
+    }
+    
+    .controls {
+        padding: 8px;
+    }
+    
+    .navigation button {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    
+    #current-month {
+        min-width: 100px;
+        font-size: 0.8em;
+    }
+    
+    .actions button {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    
+    .calendar-header {
+        padding: 6px 1px;
+        font-size: 9px;
+    }
+    
+    .calendar-day {
+        font-size: 7px;
+    }
+    
+    .day-number {
+        font-size: 9px;
+    }
+    
+    .assignment {
+        font-size: 9px;
+    }
+    
+    .assignment-modality {
+        font-size: 7px;
+    }
+    
+    .assign-btn, .clear-btn, .clear-assigned-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+    
+    #selection-counter {
+        font-size: 11px;
+    }
+}
+
+/* Pantalles horitzontals en mòbil */
+@media (max-width: 768px) and (orientation: landscape) {
+    .container {
+        padding: 5px;
+    }
+    
+    header h1 {
+        font-size: 1.8em;
+        margin-bottom: 5px;
+    }
+    
+    .controls {
+        padding: 10px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .calendar-container {
+        padding: 10px;
+    }
+    
+    #calendar {
+        max-width: 100%;
+        width: 100%;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+    }
+    
+    .calendar-day {
+        font-size: 9px;
+        width: 100%;
+        aspect-ratio: 1;
+        min-height: 40px;
+    }
+    
+    .day-number {
+        font-size: 10px;
+    }
+    
+    .calendar-header {
+        padding: 4px 1px;
+        font-size: 9px;
+    }
+}
+
+/* Responsive design per modals en mòbil */
+@media (max-width: 480px) {
+    .modal-content {
+        max-width: 95vw;
+        width: 95vw;
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .modal-content h3 {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+    }
+
+    .modal-content p {
+        font-size: 0.9em;
+        margin-bottom: 20px;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-confirm,
+    .btn-cancel {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .info-modal-content {
+        max-width: 95vw;
+        min-width: 280px;
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .info-modal h3 {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+    }
+
+    .info-modal p {
+        font-size: 0.9em;
+        margin-bottom: 15px;
+    }
+
+    .info-modal button {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        min-height: 44px;
+    }
+}
+
+/* Responsive design per modals en mòbils petits */
+@media (max-width: 320px) {
+    .modal-content {
+        max-width: 100vw;
+        width: 100vw;
+        margin: 5px;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .modal-content h3 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+    .modal-content p {
+        font-size: 0.85em;
+        margin-bottom: 15px;
+    }
+
+    .info-modal-content {
+        max-width: 100vw;
+        min-width: 260px;
+        margin: 5px;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .info-modal h3 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+    .info-modal p {
+        font-size: 0.85em;
+        margin-bottom: 12px;
+    }
+}
