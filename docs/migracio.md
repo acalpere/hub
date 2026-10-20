@@ -30,6 +30,14 @@ export ACALPERE_DATABASE_URL_UNPOOLED=<neon dev, connexió directa> ACALPERE_DAT
 acalpere import-legacy && acalpere seed-menu
 ```
 
+Jordi i Rosa Maria són germans, no administradors (no veuen «Webs i agents»). A l'origen Jordi era `admin`, així que després
+d'importar:
+
+```bash
+acalpere set-role Jordi germa
+acalpere create-user "Rosa Maria" --role germa      # demana la contrasenya; passa-la-hi per un canal segur
+```
+
 Per a producció, el mateix amb `--replace` just en el moment del canvi (vegeu «Congelar» a sota).
 
 ## Canvi de DNS (OVH → Route 53)
