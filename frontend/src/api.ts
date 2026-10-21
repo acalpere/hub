@@ -45,10 +45,11 @@ export const api = {
   mfa: (code: string) => request<User>("POST", "/auth/mfa", { code }),
   mfaSetup: () => request<{ secret: string; uri: string }>("POST", "/auth/mfa/setup"),
   mfaEnable: (code: string) => request<User>("POST", "/auth/mfa/enable", { code }),
-  passkeyLoginOptions: () => request<unknown>("POST", "/auth/passkey/options"),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  passkeyLoginOptions: () => request<Record<string, any>>("POST", "/auth/passkey/options"),
   passkeyLogin: (credential: unknown) => request<User>("POST", "/auth/passkey/login", { credential }),
   passkeys: () => request<Passkey[]>("GET", "/auth/passkeys"),
-  passkeyRegisterOptions: () => request<unknown>("POST", "/auth/passkeys/options"),
+  passkeyRegisterOptions: () => request<Record<string, any>>("POST", "/auth/passkeys/options"),
   passkeyRegister: (credential: unknown, label: string) =>
     request<Passkey>("POST", "/auth/passkeys", { credential, label }),
   passkeyDelete: (id: number) => request<void>("DELETE", `/auth/passkeys/${id}`),
