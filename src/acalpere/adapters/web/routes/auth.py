@@ -239,6 +239,13 @@ def reverify_passkey(
     return _verified(request)
 
 
+@router.post("/auth/reverify/end")
+def reverify_end(request: Request):
+    """En sortir d'Herència la verificació caduca: la propera vegada cal tornar-la a fer."""
+    request.session.pop("verified_at", None)
+    return {"status": "ok"}
+
+
 @router.post("/auth/logout")
 def logout(request: Request):
     request.session.clear()

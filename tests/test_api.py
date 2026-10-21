@@ -136,6 +136,13 @@ def test_herencia_requires_recent_verification(germa, client, monkeypatch):
     assert client.get("/api/v1/herencia/pisos").status_code == 403
 
 
+def test_leaving_herencia_revokes_the_verification(germa, client):
+    client.post("/api/v1/auth/reverify/code", json={"code": Totp().code(TOTP_SECRET)})
+    assert client.get("/api/v1/herencia/pisos").status_code == 200
+    client.post("/api/v1/auth/reverify/end")
+    assert client.get("/api/v1/herencia/pisos").status_code == 403
+
+
 def test_reverify_requires_a_session(client):
     assert client.post("/api/v1/auth/reverify/code", json={"code": "123456"}).status_code == 401
 

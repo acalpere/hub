@@ -29,6 +29,12 @@
       return response;
     });
   };
+  // Herència: en sortir de la pàgina (tancar, recarregar, canviar d'adreça) la verificació caduca.
+  if (location.pathname.indexOf("/apps/herencia") === 0) {
+    window.addEventListener("pagehide", function () {
+      window.fetch("/api/v1/auth/reverify/end", { method: "POST", keepalive: true });
+    });
+  }
   document.addEventListener("DOMContentLoaded", function () {
     var back = document.createElement("a");
     back.href = "/";
