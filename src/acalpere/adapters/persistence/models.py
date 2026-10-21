@@ -178,6 +178,8 @@ class ConfiguracioRow(Base):
 
 class FillRow(Base):
     __tablename__ = "fills"
+    # Dades sensibles xifrades (JSON); les columnes en clar queden en blanc un cop xifrades.
+    dades: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     codi: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nom: Mapped[str | None] = mapped_column(String(45))
@@ -187,6 +189,8 @@ class FillRow(Base):
 
 class FincaRow(Base):
     __tablename__ = "finques"
+    # Dades sensibles xifrades (JSON); les columnes en clar queden en blanc un cop xifrades.
+    dades: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     codi: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nom: Mapped[str | None] = mapped_column(String(45))
@@ -197,10 +201,13 @@ class FincaRow(Base):
 
 class PisRow(Base):
     __tablename__ = "pisos"
+    # Dades sensibles xifrades (JSON); les columnes en clar queden en blanc un cop xifrades.
+    dades: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     codi: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    finca_codi: Mapped[int] = mapped_column(ForeignKey("finques.codi"), nullable=False, index=True)
-    fill_codi: Mapped[int] = mapped_column(ForeignKey("fills.codi"), nullable=False, index=True)
+    finca_codi: Mapped[int | None] = mapped_column(ForeignKey("finques.codi"), index=True)
+    # Qui té el pis és dada xifrada (a `dades`); aquí queda nul quan ja està xifrada.
+    fill_codi: Mapped[int | None] = mapped_column(ForeignKey("fills.codi"), index=True)
     pis: Mapped[str | None] = mapped_column(String(20))
     porta: Mapped[str | None] = mapped_column(String(20))
     nom: Mapped[str] = mapped_column(String(40), nullable=False)
@@ -219,6 +226,8 @@ class PisRow(Base):
 class ParametresRow(Base):
     # Sense clau forana: l'origen té una fila amb fill_codi 0 (valors per defecte).
     __tablename__ = "parametres"
+    # Dades sensibles xifrades (JSON); les columnes en clar queden en blanc un cop xifrades.
+    dades: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     fill_codi: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     vol: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -229,11 +238,13 @@ class ParametresRow(Base):
 
 class MissatgeRow(Base):
     __tablename__ = "missatges"
+    # Dades sensibles xifrades (JSON); les columnes en clar queden en blanc un cop xifrades.
+    dades: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     autor: Mapped[str] = mapped_column(String(50), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
-    dia_i_hora: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    dia_i_hora: Mapped[datetime | None] = mapped_column(DateTime)
 
 
 # --- hub -----------------------------------------------------------------------------------

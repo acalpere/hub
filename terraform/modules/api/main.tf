@@ -23,6 +23,20 @@ resource "aws_ssm_parameter" "secret_key" {
   value = random_password.secret_key.result
 }
 
+# Clau de xifratge de les dades d'herència (AES-256). Viu aquí, separada de la base de dades (Neon).
+# Si es perd, les dades xifrades són irrecuperables: se'n guarda una còpia fora d'AWS (README).
+resource "random_id" "data_key" {
+  byte_length = 32
+}
+
+resource "aws_ssm_parameter" "data_key" {
+  name  = "/acalpere/${var.env}/data_key"
+  type  = "SecureString"
+  value = random_id.data_key.b64_std
+
+  lifecycle { prevent_destroy = true }
+}
+
 resource "aws_iam_role" "lambda" {
   name = "acalpere-${var.env}-api"
   assume_role_policy = jsonencode({
@@ -46,9 +60,13 @@ resource "aws_iam_role_policy" "app" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["ssm:GetParameter"]
-      Resource = [var.database_url_ssm_arn, aws_ssm_parameter.secret_key.arn]
+      Effect = "Allow"
+      Action = ["ssm:GetParameter"]
+      Resource = [
+        var.database_url_ssm_arn,
+        aws_ssm_parameter.secret_key.arn,
+        aws_ssm_parameter.data_key.arn,
+      ]
     }]
   })
 }
@@ -75,6 +93,7 @@ resource "aws_lambda_function" "api" {
       ACALPERE_AWS_REGION             = data.aws_region.current.region
       ACALPERE_DATABASE_URL_SSM_PARAM = var.database_url_ssm_param
       ACALPERE_SECRET_KEY_SSM_PARAM   = aws_ssm_parameter.secret_key.name
+      ACALPERE_DATA_KEY_SSM_PARAM     = aws_ssm_parameter.data_key.name
       ACALPERE_RP_ID                  = var.rp_id
       # Les migracions les aplica el desplegament (abans de canviar el codi), no cada arrencada.
       ACALPERE_AUTO_MIGRATE = "false"

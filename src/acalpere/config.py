@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # A AWS, el secret de les sessions també es llegeix de SSM (SecureString).
     secret_key_ssm_param: str | None = None
     session_hours: int = 12
+    # Clau (32 bytes, base64) amb què es xifren en repòs les dades d'herència. A AWS, de SSM.
+    data_key: str | None = None
+    data_key_ssm_param: str | None = None
     # Herència exigeix una verificació recent (petjada o codi): cada ús la renova, en sortir caduca.
     reverify_minutes: int = 2
     aws_region: str = "eu-west-1"

@@ -28,6 +28,9 @@ class InheritanceService:
             raise NotFound("Not found")
         return fill
 
+    def seal_all(self) -> int:
+        return self._repo.seal_all()
+
     def finques(self) -> list[Finca]:
         return self._repo.finques()
 

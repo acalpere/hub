@@ -30,6 +30,15 @@ terraform init -backend-config="bucket=acalpere-tfstate-<compte>"
 terraform apply -var alert_email=acalpere@gmail.com
 ```
 
+## Clau de xifratge de les dades d'herència
+
+`api/` genera la clau (AES-256) i la desa a SSM (`/acalpere/<env>/data_key`, SecureString); la Lambda la llegeix en
+arrencar. Les dades d'herència es desen a Neon xifrades amb aquesta clau. **Si la clau es perd, les dades són
+irrecuperables**: després del primer `apply`, desa'n una còpia fora d'AWS (gestor de contrasenyes):
+`aws ssm get-parameter --name /acalpere/prod/data_key --with-decryption --query Parameter.Value --output text`.
+Després de desplegar, xifra les dades que ja hi havia: `acalpere encrypt-herencia` (idempotent; fa servir
+`ACALPERE_DATABASE_URL_SSM_PARAM` i `ACALPERE_DATA_KEY_SSM_PARAM`).
+
 ## Cost estimat
 
 Neon (pla gratuït, escala a zero), Lambda i API Gateway (nivell gratuït), S3/CloudFront/SSM (cèntims), Route 53 (0,50 $/mes per zona).

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import fields
 from datetime import date, datetime
 
@@ -18,6 +19,7 @@ from ...domain.calendar import (
 from ...domain.hub import Access, Agent, Site
 from ...domain.identity import Content, Passkey, Profile, User
 from ...domain.inheritance import Fill, Finca, Missatge, Parametres, Pis
+from ...domain.ports import Cipher
 from . import models as m
 
 
@@ -287,33 +289,87 @@ class SqlCalendarRepository:
             ]
 
 
+# Camps d'herència que es desen xifrats (a `dades`). Només queden en clar els codis (claus
+# primàries sense significat) i les claus foranes de `parametres`.
+_SEALED = {
+    m.FillRow: ("nom", "comentari", "dia_i_hora"),
+    m.FincaRow: ("nom", "taxacio", "comunitat", "comunitat2"),
+    m.PisRow: (
+        "fill_codi", "finca_codi", "pis", "porta", "nom", "taxacio", "taxacio2", "rendiment",
+        "rendiment2", "prorrateig", "prorrateig2", "actual", "proposta_pere", "proposta_jordi",
+        "proposta_rosamaria",
+    ),
+    m.ParametresRow: ("vol", "valor_vol", "llivia", "taxacio"),
+    m.MissatgeRow: ("autor", "text", "dia_i_hora"),
+}  # fmt: skip
+
+
+def _blank(column):
+    """Valor neutre per a una columna en clar ja xifrada (les NOT NULL no poden quedar a nul)."""
+    if column.nullable:
+        return None
+    return {"Integer": 0, "Boolean": False}.get(type(column.type).__name__, "")
+
+
+class _Sealed:
+    """Lectura i escriptura transparents de les dades xifrades d'una fila d'herència."""
+
+    def __init__(self, cipher: Cipher):
+        self._cipher = cipher
+
+    def data(self, row) -> dict:
+        fields_ = _SEALED[type(row)]
+        if row.dades:
+            context = type(row).__tablename__
+            return json.loads(self._cipher.decrypt(row.dades, context))
+        return {f: getattr(row, f) for f in fields_}  # encara sense xifrar (abans de seal_all)
+
+    def load(self, cls, row):
+        values = {f.name: getattr(row, f.name) for f in fields(cls)}
+        values.update(self.data(row))
+        if isinstance(values.get("dia_i_hora"), str):
+            values["dia_i_hora"] = datetime.fromisoformat(values["dia_i_hora"])
+        return cls(**values)
+
+    def save(self, row, **changes) -> None:
+        data = self.data(row) | changes
+        text = json.dumps(data, default=lambda o: o.isoformat())
+        row.dades = self._cipher.encrypt(text, type(row).__tablename__)
+        for name in _SEALED[type(row)]:
+            setattr(row, name, _blank(type(row).__table__.c[name]))
+
+
 class SqlInheritanceRepository:
-    def __init__(self, sf: sessionmaker):
+    def __init__(self, sf: sessionmaker, cipher: Cipher):
         self._sf = sf
+        self._sealed = _Sealed(cipher)
 
     def fills(self) -> list[Fill]:
         with self._sf() as s:
-            return [_to(Fill, r) for r in s.scalars(select(m.FillRow).order_by(m.FillRow.codi))]
+            rows = s.scalars(select(m.FillRow).order_by(m.FillRow.codi))
+            return [self._sealed.load(Fill, r) for r in rows]
 
     def fill(self, codi: int) -> Fill | None:
         with self._sf() as s:
             row = s.get(m.FillRow, codi)
-            return _to(Fill, row) if row else None
+            return self._sealed.load(Fill, row) if row else None
 
     def finques(self) -> list[Finca]:
         with self._sf() as s:
-            return [_to(Finca, r) for r in s.scalars(select(m.FincaRow).order_by(m.FincaRow.codi))]
+            rows = s.scalars(select(m.FincaRow).order_by(m.FincaRow.codi))
+            return [self._sealed.load(Finca, r) for r in rows]
 
     def pisos(self) -> list[Pis]:
         with self._sf() as s:
-            return [_to(Pis, r) for r in s.scalars(select(m.PisRow).order_by(m.PisRow.codi))]
+            rows = s.scalars(select(m.PisRow).order_by(m.PisRow.codi))
+            return [self._sealed.load(Pis, r) for r in rows]
 
     def reassign_pis(self, pis_codi: int, fill_codi: int) -> bool:
         with self._sf.begin() as s:
             row = s.get(m.PisRow, pis_codi)
             if row is None:
                 return False
-            row.fill_codi = fill_codi
+            self._sealed.save(row, fill_codi=fill_codi)
             return True
 
     def set_proposal(self, pis_codi: int, attr: str, fill_codi: int) -> bool:
@@ -321,13 +377,13 @@ class SqlInheritanceRepository:
             row = s.get(m.PisRow, pis_codi)
             if row is None:
                 return False
-            setattr(row, attr, fill_codi)
+            self._sealed.save(row, **{attr: fill_codi})
             return True
 
     def parametres(self, fill_codi: int) -> Parametres | None:
         with self._sf() as s:
             row = s.get(m.ParametresRow, fill_codi)
-            return _to(Parametres, row) if row else None
+            return self._sealed.load(Parametres, row) if row else None
 
     def save_parametres(self, p: Parametres) -> None:
         with self._sf.begin() as s:
@@ -335,11 +391,8 @@ class SqlInheritanceRepository:
             if row is None:
                 row = m.ParametresRow(fill_codi=p.fill_codi)
                 s.add(row)
-            row.vol, row.valor_vol, row.llivia, row.taxacio = (
-                p.vol,
-                p.valor_vol,
-                p.llivia,
-                p.taxacio,
+            self._sealed.save(
+                row, vol=p.vol, valor_vol=p.valor_vol, llivia=p.llivia, taxacio=p.taxacio
             )
 
     def set_comentari(self, fill_codi: int, text: str) -> bool:
@@ -347,19 +400,31 @@ class SqlInheritanceRepository:
             row = s.get(m.FillRow, fill_codi)
             if row is None:
                 return False
-            row.comentari, row.dia_i_hora = text, datetime.now()
+            self._sealed.save(row, comentari=text, dia_i_hora=datetime.now())
             return True
 
     def missatges(self) -> list[Missatge]:
         with self._sf() as s:
-            rows = s.scalars(
-                select(m.MissatgeRow).order_by(m.MissatgeRow.dia_i_hora, m.MissatgeRow.id)
-            )
-            return [_to(Missatge, r) for r in rows]
+            rows = s.scalars(select(m.MissatgeRow).order_by(m.MissatgeRow.id))
+            # La data és xifrada: l'ordre cronològic es fa aquí, no a SQL.
+            messages = [self._sealed.load(Missatge, r) for r in rows]
+            return sorted(messages, key=lambda x: (x.dia_i_hora or datetime.min, x.id or 0))
 
     def add_missatge(self, autor: str, text: str) -> None:
         with self._sf.begin() as s:
-            s.add(m.MissatgeRow(autor=autor, text=text, dia_i_hora=datetime.now()))
+            row = m.MissatgeRow()
+            self._sealed.save(row, autor=autor, text=text, dia_i_hora=datetime.now())
+            s.add(row)
+
+    def seal_all(self) -> int:
+        """Xifra les files encara en clar (migració de dades i importacions). Idempotent."""
+        done = 0
+        with self._sf.begin() as s:
+            for model in _SEALED:
+                for row in s.scalars(select(model).where(model.dades.is_(None))):
+                    self._sealed.save(row)
+                    done += 1
+        return done
 
 
 class SqlSiteRepository:

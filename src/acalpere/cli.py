@@ -34,6 +34,8 @@ def main() -> None:
     imp = sub.add_parser("import-legacy", help="Importa les dades de la web antiga (data/legacy)")
     imp.add_argument("--dir", default="data/legacy")
     imp.add_argument("--replace", action="store_true", help="Substitueix les dades existents")
+    sub.add_parser("encrypt-herencia", help="Xifra les dades d'herència que encara són en clar")
+    sub.add_parser("new-data-key", help="Genera una clau de xifratge (32 bytes, base64)")
     sub.add_parser("hash-password", help="Genera un hash bcrypt")
     srv = sub.add_parser("serve", help="Arrenca el servidor local")
     srv.add_argument("--port", type=int, default=8000)
@@ -102,6 +104,17 @@ def main() -> None:
         counts = import_legacy(make_session_factory(url), Path(args.dir), args.replace)
         for table, n in counts.items():
             print(f"{table:22} {n}")
+        from .bootstrap import build_container
+
+        print(f"Xifrades: {build_container(settings).inheritance.seal_all()} files")
+    elif args.cmd == "encrypt-herencia":
+        from .bootstrap import build_container
+
+        print(f"Files xifrades: {build_container(settings).inheritance.seal_all()}")
+    elif args.cmd == "new-data-key":
+        from .adapters.crypto import new_key
+
+        print(new_key())
     elif args.cmd == "serve":
         import uvicorn
 
