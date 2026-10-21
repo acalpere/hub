@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     # A AWS, el secret de les sessions també es llegeix de SSM (SecureString).
     secret_key_ssm_param: str | None = None
     session_hours: int = 12
+    # Herència exigeix una verificació recent (petjada o codi); cada ús la renova.
+    reverify_minutes: int = 5
     aws_region: str = "eu-west-1"
     # Origens permesos per CORS (frontend de Vite en local). A AWS tot va pel mateix domini.
     cors_origins: str = ""

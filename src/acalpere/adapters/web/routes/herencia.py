@@ -6,10 +6,12 @@ from pydantic import BaseModel, Field
 from ....bootstrap import Container
 from ....domain.inheritance import Parametres
 from .. import shapes
-from ..deps import app_access, container
+from ..deps import app_access, container, recent_verification
 
 router = APIRouter(
-    prefix="/herencia", tags=["herència"], dependencies=[Depends(app_access("/apps/herencia/"))]
+    prefix="/herencia",
+    tags=["herència"],
+    dependencies=[Depends(app_access("/apps/herencia/")), Depends(recent_verification)],
 )
 
 

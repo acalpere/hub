@@ -7,6 +7,7 @@ import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SecurityPage } from "./pages/SecurityPage";
 import { UsersPage } from "./pages/UsersPage";
+import { VerifyPage } from "./pages/VerifyPage";
 
 function RequireAuth({ admin = false }: { admin?: boolean }) {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route element={<RequireAuth />}>
           <Route index element={<HomePage />} />
+          <Route path="verificar" element={<VerifyPage />} />
         </Route>
         <Route element={<RequireAuth admin />}>
           <Route path="seguretat" element={<SecurityPage />} />

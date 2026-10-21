@@ -1,3 +1,5 @@
+import time
+
 import bcrypt
 from conftest import TOTP_SECRET, login
 
@@ -116,7 +118,30 @@ def test_calendar_export_import_roundtrip(germa, client):
     assert len(client.get("/api/v1/calendar").json()["assignments"]) == 1
 
 
+def test_herencia_requires_recent_verification(germa, client, monkeypatch):
+    blocked = client.get("/api/v1/herencia/pisos")
+    assert blocked.status_code == 403 and blocked.json()["detail"] == "reverify"
+    assert client.post("/api/v1/herencia/xat", json={"text": "hola"}).status_code == 403
+    bad = client.post("/api/v1/auth/reverify/code", json={"code": "000000"})
+    assert bad.status_code == 401
+    assert client.get("/api/v1/herencia/pisos").status_code == 403
+    ok = client.post("/api/v1/auth/reverify/code", json={"code": Totp().code(TOTP_SECRET)})
+    assert ok.status_code == 200
+    assert client.get("/api/v1/herencia/pisos").status_code == 200
+    # la sessió oberta no n'hi ha prou: passat el temps cal tornar a verificar
+    from acalpere.adapters.web import deps
+
+    later = time.time() + 600
+    monkeypatch.setattr(deps.time, "time", lambda: later)
+    assert client.get("/api/v1/herencia/pisos").status_code == 403
+
+
+def test_reverify_requires_a_session(client):
+    assert client.post("/api/v1/auth/reverify/code", json={"code": "123456"}).status_code == 401
+
+
 def test_herencia(germa, client):
+    client.post("/api/v1/auth/reverify/code", json={"code": Totp().code(TOTP_SECRET)})
     pisos = client.get("/api/v1/herencia/pisos").json()
     assert (
         pisos[0]["Fills_codi"] == 1
@@ -166,6 +191,7 @@ def test_herencia(germa, client):
 
 
 def test_herencia_comments_and_chat(germa, client):
+    client.post("/api/v1/auth/reverify/code", json={"code": Totp().code(TOTP_SECRET)})
     client.post("/api/v1/herencia/fills/1/comentari", json={"comentari": "Hola"})
     f = client.get("/api/v1/herencia/fills/1").json()
     assert f["comentari"] == "Hola" and f["diaIHora"]

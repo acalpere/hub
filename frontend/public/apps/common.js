@@ -1,6 +1,7 @@
 // Pont entre les apps antigues i la plataforma acalpere:
 //  - afegeix la capçalera anti-CSRF a totes les peticions al mateix origen
 //  - si la sessió ha caducat (401), torna a la pantalla d'accés
+//  - si cal una verificació addicional (403 "reverify"), va a /verificar
 //  - mostra un enllaç discret per tornar al menú
 (function () {
   var nativeFetch = window.fetch.bind(window);
@@ -16,6 +17,14 @@
     return nativeFetch(input, init).then(function (response) {
       if (response.status === 401) {
         location.href = "/login?next=" + encodeURIComponent(location.pathname);
+      }
+      // Contingut delicat: el servidor demana confirmar amb la petjada o el codi.
+      if (response.status === 403) {
+        response.clone().json().then(function (data) {
+          if (data && data.detail === "reverify") {
+            location.href = "/verificar?next=" + encodeURIComponent(location.pathname);
+          }
+        }).catch(function () {});
       }
       return response;
     });

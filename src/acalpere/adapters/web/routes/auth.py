@@ -195,6 +195,50 @@ def passkey_delete(
     c.mfa.delete_passkey(user, passkey_id)
 
 
+def _verified(request: Request) -> dict:
+    request.session.pop("mfa_tries", None)
+    request.session["verified_at"] = int(time.time())
+    return {"status": "ok"}
+
+
+@router.post("/auth/reverify/code")
+def reverify_code(
+    body: CodeIn,
+    request: Request,
+    user: User = Depends(current_user),
+    c: Container = Depends(container),
+):
+    """Verificació addicional per a contingut delicat (Herència): codi de l'autenticador."""
+    _count_try(request)
+    c.mfa.check_totp(user, body.code)
+    return _verified(request)
+
+
+@router.post("/auth/reverify/passkey/options")
+def reverify_passkey_options(
+    request: Request, user: User = Depends(current_user), c: Container = Depends(container)
+):
+    return passkey_login_options(request, c)
+
+
+@router.post("/auth/reverify/passkey")
+def reverify_passkey(
+    body: CredentialIn,
+    request: Request,
+    user: User = Depends(current_user),
+    c: Container = Depends(container),
+):
+    """Verificació addicional amb la petjada: la clau ha de ser de qui té la sessió oberta."""
+    rp_id, origin = _origin(request, c)
+    challenge = request.session.pop("webauthn", None)
+    if not challenge:
+        raise AuthError("Torna-ho a provar.")
+    owner = c.mfa.login_with_passkey(body.credential, base64url_to_bytes(challenge), rp_id, origin)
+    if owner.id != user.id:
+        raise AuthError("Aquesta clau d'accés no és teva.")
+    return _verified(request)
+
+
 @router.post("/auth/logout")
 def logout(request: Request):
     request.session.clear()

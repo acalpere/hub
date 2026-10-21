@@ -48,6 +48,10 @@ export const api = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   passkeyLoginOptions: () => request<Record<string, any>>("POST", "/auth/passkey/options"),
   passkeyLogin: (credential: unknown) => request<User>("POST", "/auth/passkey/login", { credential }),
+  reverifyCode: (code: string) => request<unknown>("POST", "/auth/reverify/code", { code }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reverifyPasskeyOptions: () => request<Record<string, any>>("POST", "/auth/reverify/passkey/options"),
+  reverifyPasskey: (credential: unknown) => request<unknown>("POST", "/auth/reverify/passkey", { credential }),
   passkeys: () => request<Passkey[]>("GET", "/auth/passkeys"),
   passkeyRegisterOptions: () => request<Record<string, any>>("POST", "/auth/passkeys/options"),
   passkeyRegister: (credential: unknown, label: string) =>

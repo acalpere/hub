@@ -36,6 +36,17 @@ def admin_user(user: User = Depends(current_user)) -> User:
     return user
 
 
+REVERIFY = "reverify"  # `detail` de l'error 403 que fa demanar la verificació addicional
+
+
+def recent_verification(request: Request, c: Container = Depends(container)) -> None:
+    """Contingut delicat: cal haver confirmat petjada o codi fa poc, amb la sessió oberta o no."""
+    now = time.time()
+    if now - request.session.get("verified_at", 0) > c.settings.reverify_minutes * 60:
+        raise HTTPException(status_code=403, detail=REVERIFY)
+    request.session["verified_at"] = int(now)  # finestra lliscant: mentre s'hi treballa, no caduca
+
+
 def app_access(url: str):
     """Dependència: l'usuari ha de tenir aquesta app autoritzada (rol o autorització expressa)."""
 
