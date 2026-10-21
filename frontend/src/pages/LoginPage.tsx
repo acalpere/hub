@@ -5,7 +5,7 @@ import { api, type LoginStep } from "../api";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { validate } from "../forms";
 import { useAuth } from "../auth";
-import { getPasskey, hasRememberedPasskey, isTouchDevice, passkeysSupported, rememberPasskey } from "../passkeys";
+import { getPasskey, isTouchDevice, passkeysSupported, rememberPasskey } from "../passkeys";
 
 // Només es redirigeix a camins interns (evita redireccions obertes a altres webs).
 export function safeNext(next: string | null): string {
@@ -34,9 +34,9 @@ export function LoginPage() {
       .catch((e) => setError(message(e)));
   }, [step]);
 
-  // Al mòbil on ja hi ha una clau d'accés, es demana la petjada d'entrada, sense tocar res.
+  // Al mòbil es demana la petjada d'entrada, sense tocar res.
   useEffect(() => {
-    if (!user && step === null && mobile && passkeys && hasRememberedPasskey()) passkeyLogin();
+    if (!user && step === null && mobile && passkeys) passkeyLogin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -119,7 +119,7 @@ export function LoginPage() {
           <>
             {passkeyButton}
             {mobile && passkeys ? (
-              <details open={!hasRememberedPasskey()}>
+              <details>
                 <summary>Entrar amb usuari, clau i codi</summary>
                 {passwordForm}
               </details>
