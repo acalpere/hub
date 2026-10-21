@@ -20,7 +20,7 @@ export function SecurityPage() {
       rememberPasskey();
       await load();
     } catch (e) {
-      setError(e instanceof DOMException ? "Operació cancel·lada" : (e as Error).message);
+      setError(e instanceof DOMException ? `No s'ha pogut registrar la petjada (${e.name}: ${e.message})` : (e as Error).message);
     } finally {
       setBusy(false);
     }

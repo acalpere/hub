@@ -14,7 +14,6 @@ from webauthn import (
 from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
 from webauthn.helpers.exceptions import InvalidAuthenticationResponse, InvalidRegistrationResponse
 from webauthn.helpers.structs import (
-    AuthenticatorAttachment,
     AuthenticatorSelectionCriteria,
     PublicKeyCredentialDescriptor,
     ResidentKeyRequirement,
@@ -34,9 +33,9 @@ class WebAuthnVerifier:
             rp_name="acalpere",
             user_id=str(user_id).encode(),
             user_name=username,
-            # Clau del dispositiu (petjada/cara/PIN), descobrible: entrar sense escriure l'usuari.
+            # Descobrible i amb verificació: petjada al mòbil; a l'ordinador, clau de seguretat o
+            # el mòbil. No es limita al dispositiu: molts ordinadors no en tenen.
             authenticator_selection=AuthenticatorSelectionCriteria(
-                authenticator_attachment=AuthenticatorAttachment.PLATFORM,
                 resident_key=ResidentKeyRequirement.REQUIRED,
                 user_verification=UserVerificationRequirement.REQUIRED,
             ),

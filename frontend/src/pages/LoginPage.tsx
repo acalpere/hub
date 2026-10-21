@@ -76,7 +76,14 @@ export function LoginPage() {
         completeLogin(await api.passkeyLogin(await getPasskey(await api.passkeyLoginOptions())));
         rememberPasskey();
       } catch (err) {
-        if (err instanceof DOMException) throw new Error("Operació cancel·lada");
+        if (err instanceof DOMException) {
+          throw new Error(
+            err.name === "NotAllowedError"
+              ? "Cancel·lat, o aquest dispositiu encara no té cap clau d'accés registrada. " +
+                "Entra amb usuari, clau i codi, i registra-la a Seguretat."
+              : `No s'ha pogut usar la clau d'accés (${err.name}: ${err.message})`,
+          );
+        }
         throw err;
       }
     });
@@ -112,7 +119,7 @@ export function LoginPage() {
           <>
             {passkeyButton}
             {mobile && passkeys ? (
-              <details>
+              <details open={!hasRememberedPasskey()}>
                 <summary>Entrar amb usuari, clau i codi</summary>
                 {passwordForm}
               </details>
