@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PAC2 de Visualització de dades de Pere Vilàrasau: Circle Packing, diagrama al·luvial i OHLC.">
+  <title>Tres mirades a les dades · PAC2 · Pere Vilàrasau</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="ohlc.css">
+  <script src="ohlc-data.js" defer></script>
+  <script src="ohlc.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#contingut">Salta al contingut</a>
+  <header class="topbar">
+    <a class="brand" href="#portada">acalpere<span>.cat</span><span class="divider">/</span><span class="course">Visualització de dades</span></a>
+    <a class="top-link" href="#visualitzacions">Explora la PAC <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="contingut">
+    <section class="cover wrap" id="portada" aria-labelledby="titol">
+      <div class="academic"><img src="dades/assets/uoc.svg" alt="Universitat Oberta de Catalunya" width="234" height="60"><span>Prova d’avaluació continuada 2</span></div>
+      <div class="cover-grid">
+        <div><p class="eyebrow">PAC2 · Visualització de dades</p><h1 id="titol">Tres mirades<br>a les <em>dades.</em></h1><p class="lead">Explorar una jerarquia, seguir una distribució i llegir una sèrie temporal. Tres tècniques per donar forma a preguntes diferents.</p><a class="button" href="#circle-packing">Comença la presentació <span aria-hidden="true">↓</span></a></div>
+        <div class="cover-art" aria-hidden="true"><svg viewBox="0 0 460 410"><circle cx="216" cy="200" r="177" fill="#e5e9ff"/><circle cx="164" cy="167" r="111" fill="#000078"/><circle cx="140" cy="137" r="53" fill="#73edff"/><circle cx="198" cy="206" r="38" fill="#c1bcff"/><circle cx="115" cy="217" r="29" fill="#fff"/><circle cx="307" cy="190" r="52" fill="#73edff"/><circle cx="241" cy="302" r="60" fill="#aaa3ff"/><path d="M37 356H418" stroke="#000078" stroke-width="1"/><text x="39" y="389" fill="#000078" font-size="12" letter-spacing="3">JERARQUIA / FLUX / TEMPS</text></svg></div>
+      </div>
+      <dl class="metadata"><div><dt>Estudiant</dt><dd>Pere Vilàrasau</dd></div><div><dt>Assignatura</dt><dd>Visualització de dades</dd></div><div><dt>Institució</dt><dd>Universitat Oberta de Catalunya</dd></div><div><dt>Lliurament</dt><dd>PAC2 · 2026</dd></div></dl>
+    </section>
+    <nav class="section-nav" id="visualitzacions" aria-label="Visualitzacions"><div class="wrap"><a href="#circle-packing"><span>01</span> Circle Packing</a><a href="#alluvial"><span>02</span> Diagrama al·luvial</a><a href="#ohlc"><span>03</span> OHLC</a></div></nav>
+    <section class="chapter wrap" id="circle-packing" aria-labelledby="circle-title">
+      <div class="chapter-heading"><span class="chapter-number">01</span><div><p class="eyebrow">Jerarquia · Circle Packing</p><h2 id="circle-title">On van els diners<br>de Barcelona?</h2><p class="intro">Pressupost de despeses de 2024. Una exploració de les obligacions reconegudes per àrea, política i grup de programes.</p></div><span class="status available">Interactiva</span></div>
+      <div class="chart-toolbar"><span><span class="dot"></span> Clica els cercles per explorar els nivells de detall.</span><a href="https://public.flourish.studio/visualisation/30738625/" target="_blank" rel="noopener">Obre el gràfic a part ↗</a></div>
+      <div class="chart-frame">
+        <div class="flourish-embed flourish-hierarchy" data-src="visualisation/30738625"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/30738625/thumbnail" width="100%" alt="Circle Packing del pressupost de despeses de Barcelona de 2024. Obre l’enllaç del gràfic per consultar la visualització." /></noscript></div>
+      </div>
+      <p class="chart-credit">Visualització creada amb <a href="https://public.flourish.studio/visualisation/30738625/" target="_blank" rel="noopener">Flourish</a>. Si el gràfic no es carrega, utilitza l’enllaç «Obre el gràfic a part».</p>
+      <div class="reading-grid"><article><h3>Com es llegeix?</h3><p>Els cercles contenidors representen les àrees i les polítiques. Els grups de programes ocupen el nivell més detallat, amb una àrea proporcional a l’import d’<strong>Obligat</strong>, expressat en euros.</p></article><article><h3>Què ens permet explorar?</h3><p>El pes relatiu de les partides i la seva organització dins del pressupost. La navegació permet passar d’una visió general als grups de programes.</p></article><article><h3>Quin límit té?</h3><p>Comparar àrees semblants és menys precís que comparar longituds. L’espai buit entre cercles respon a l’empaquetament i no representa diners sense assignar.</p></article></div>
+      <details><summary>Dades i preparació</summary><p>Font: Ajuntament de Barcelona, Open Data BCN. Pressupost de despeses de 2024. Agrupació per <code>Text_Arees</code>, <code>Text_Politica</code> i <code>Text_Grup_de_programes</code>, sumant <code>Obligat</code>. L’import correspon a obligacions reconegudes, no al crèdit inicial ni als pagaments efectuats.</p><p><a href="dades/pressupost-2024-agrupat.csv" download>Descarrega les dades agrupades (CSV)</a></p></details>
+    </section>
+    <section class="chapter chapter-tinted" id="alluvial" aria-labelledby="alluvial-title"><div class="wrap"><div class="chapter-heading"><span class="chapter-number">02</span><div><p class="eyebrow">Distribució · Alluvial Diagram</p><h2 id="alluvial-title">Seguir el recorregut<br>de les categories.</h2><p class="intro">Un diagrama per explorar com es distribueixen els registres entre diferents classificacions.</p></div><span class="status available">Interactiva</span></div>
+      <div class="chart-toolbar"><span><span class="dot"></span> Passa el cursor per sobre de les bandes per veure'n el detall.</span><a href="https://public.flourish.studio/visualisation/30739873/" target="_blank" rel="noopener">Obre el gràfic a part ↗</a></div>
+      <div class="chart-frame">
+        <div class="flourish-embed flourish-sankey" data-src="visualisation/30739873"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/30739873/thumbnail" width="100%" alt="Diagrama al·luvial (Sankey) de les categories. Obre l’enllaç del gràfic per consultar la visualització." /></noscript></div>
+      </div>
+      <p class="chart-credit">Visualització creada amb <a href="https://public.flourish.studio/visualisation/30739873/" target="_blank" rel="noopener">Flourish</a>. Si el gràfic no es carrega, utilitza l’enllaç «Obre el gràfic a part».</p>
+      <p class="technique-note">En aquesta tècnica, l’amplada de cada banda representa la quantitat de registres que comparteixen les categories connectades.</p></div></section>
+    <section class="chapter wrap" id="ohlc" aria-labelledby="ohlc-title">
+      <div class="chapter-heading"><span class="chapter-number">03</span><div><p class="eyebrow">Temps · OHLC Charts</p><h2 id="ohlc-title">Apple: què passa<br>dins de cada sessió?</h2><p class="intro">Obertura, màxim, mínim i tancament de NASDAQ:AAPL. 39 sessions entre el 2 de gener i el 28 de febrer de 2025, amb preus en dòlars dels EUA (USD).</p></div><span class="status available">Interactiva</span></div>
+      <div class="ohlc-shell" id="ohlc-app">
+        <div class="ohlc-controls"><label for="ohlc-period">Període <select id="ohlc-period"><option value="all">Gener i febrer de 2025</option><option value="2025-01">Gener de 2025</option><option value="2025-02">Febrer de 2025</option></select></label><label class="ohlc-toggle"><input type="checkbox" id="ohlc-highlight" checked> Destaca les dues sessions amb més rang del període</label></div>
+        <div class="ohlc-legend" aria-label="Llegenda"><span><i class="legend-mark rise" aria-hidden="true"></i>Tancament &gt; obertura</span><span><i class="legend-mark fall" aria-hidden="true"></i>Tancament &lt; obertura</span><span><i class="legend-mark flat" aria-hidden="true"></i>Iguals</span></div>
+        <p id="ohlc-instructions" class="ohlc-help">Passa el cursor o toca una barra per consultar la sessió. Amb el teclat, utilitza el selector de sessió de sota.</p>
+        <div id="ohlc-chart" class="ohlc-chart"><p>Carregant el gràfic OHLC…</p></div>
+        <noscript><p class="ohlc-help">Activa JavaScript per consultar el gràfic interactiu o <a href="dades/apple-ohlc-2025.csv">descarrega les dades en CSV</a>.</p></noscript>
+        <div class="ohlc-selector"><label for="ohlc-session">Sessió seleccionada</label><select id="ohlc-session" aria-describedby="ohlc-instructions"></select><div class="ohlc-buttons"><button type="button" id="ohlc-prev" aria-label="Sessió anterior">←</button><button type="button" id="ohlc-next" aria-label="Sessió següent">→</button></div></div>
+        <div id="ohlc-detail" class="ohlc-detail" role="status" aria-live="polite" aria-atomic="true"></div>
+        <p class="ohlc-axis-note">Una barra per sessió, amb separació uniforme. No es representen els dies sense cotització. L’eix de preus s’ajusta al període seleccionat i no comença a zero.</p>
+      </div>
+      <div class="ohlc-insights" aria-label="Observacions del conjunt complet"><article><p class="eyebrow">Màxim rang · 31 de gener</p><strong>13,75 <span>USD</span></strong><p>De 233,44 a 247,19 USD dins de la mateixa sessió.</p></article><article><p class="eyebrow">Segon rang · 28 de febrer</p><strong>11,89 <span>USD</span></strong><p>De 230,20 a 242,09 USD dins de la mateixa sessió.</p></article><article><p class="eyebrow">Entre el primer i l’últim tancament</p><strong>−0,82 <span>%</span></strong><p>De 243,85 a 241,84 USD. Una variació neta petita pot amagar oscil·lacions dins del període.</p></article></div>
+      <div class="reading-grid"><article><h3>Com es llegeix?</h3><p>La línia vertical uneix el <strong>mínim i el màxim</strong>. La marca esquerra representa l’<strong>obertura</strong> i la dreta, el <strong>tancament</strong>. El color reforça la comparació entre aquestes dues marques.</p></article><article><h3>Què ens mostra?</h3><p>Una línia de tancaments només mostra un preu per sessió. L’OHLC permet observar també el rang intradia i comparar l’obertura amb el tancament. Les sessions destacades són les de rang màxim menys mínim més elevat.</p></article><article><h3>Què no podem deduir?</h3><p>No sabem en quin ordre es van assolir el màxim i el mínim, ni què va causar els moviments. El rang és una mesura d’amplitud intradia, no una estimació completa de volatilitat ni una predicció.</p></article></div>
+      <details id="ohlc-table-details"><summary>Consulta les 39 sessions en una taula accessible</summary><div class="ohlc-table-wrap"><table class="ohlc-table"><caption>NASDAQ:AAPL · Gener i febrer de 2025 · Preus en USD</caption><thead><tr><th scope="col">Data</th><th scope="col">Obertura</th><th scope="col">Màxim</th><th scope="col">Mínim</th><th scope="col">Tancament</th><th scope="col">Rang</th></tr></thead><tbody id="ohlc-table-body"></tbody></table></div></details>
+      <details><summary>Font, preparació de les dades i autoria</summary><p>Font: Google Finance, mitjançant <a href="https://support.google.com/docs/answer/3093281?hl=ca" target="_blank" rel="noopener">GOOGLEFINANCE a Google Sheets</a>. Exportació CSV aportada per l’estudiant el 30 d’octubre de 2026. S’han normalitzat les dates i els decimals, ordenat les 39 sessions i comprovat que el mínim ≤ obertura i tancament ≤ màxim. No s’han interpolat sessions absents ni s’han modificat els preus. El volum s’ha conservat al CSV, però no es representa al gràfic.</p><p>Gràfic desenvolupat amb SVG i JavaScript amb assistència de ChatGPT/Codex. Càlcul del rang: màxim menys mínim. Variació entre tancaments: (últim tancament / primer tancament − 1) × 100.</p><p><a href="dades/apple-ohlc-2025.csv" download>Descarrega les dades OHLC normalitzades (CSV)</a></p></details>
+    </section>
+  </main>
+  <footer><div class="wrap footer-inner"><div><strong>Pere Vilàrasau</strong><p>PAC2 · Visualització de dades · UOC</p></div><p>Treball acadèmic de l’estudiant.<br>acalpere.cat</p><a href="#portada">Torna a la portada ↑</a></div></footer>
+</body>
+</html>
