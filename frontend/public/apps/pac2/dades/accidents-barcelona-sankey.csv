@@ -1,0 +1,76 @@
+source,target,value,step_from,step_to
+Conductor,Turisme,4984,1,2
+Conductor,Motocicleta,4043,1,2
+Conductor,Furgoneta,964,1,2
+Conductor,Bicicleta,812,1,2
+Conductor,Autobús / autocar,690,1,2
+Conductor,Altres vehicles,655,1,2
+Conductor,VMP,617,1,2
+Conductor,Taxi,521,1,2
+Conductor,Ciclomotor,342,1,2
+Conductor,Vehicle sense informar,89,1,2
+Passatger,Turisme,746,1,2
+Passatger,Autobús / autocar,645,1,2
+Passatger,Motocicleta,418,1,2
+Passatger,Taxi,80,1,2
+Passatger,Furgoneta,45,1,2
+Passatger,Ciclomotor,44,1,2
+Passatger,Altres vehicles,43,1,2
+Passatger,VMP,13,1,2
+Passatger,Bicicleta,4,1,2
+Passatger,Vehicle sense informar,2,1,2
+Vianant,Turisme,307,1,2
+Vianant,Motocicleta,184,1,2
+Vianant,Bicicleta,136,1,2
+Vianant,VMP,120,1,2
+Vianant,Furgoneta,81,1,2
+Vianant,Taxi,60,1,2
+Vianant,Autobús / autocar,55,1,2
+Vianant,Altres vehicles,50,1,2
+Vianant,Ciclomotor,12,1,2
+Vianant,Vehicle sense informar,9,1,2
+Altres vehicles,Il·lès,482,2,3
+Altres vehicles,Ferit lleu,148,2,3
+Altres vehicles,Sense informació,109,2,3
+Altres vehicles,Ferit greu,7,2,3
+Altres vehicles,Mort,2,2,3
+Autobús / autocar,Ferit lleu,682,2,3
+Autobús / autocar,Il·lès,646,2,3
+Autobús / autocar,Sense informació,47,2,3
+Autobús / autocar,Ferit greu,15,2,3
+Bicicleta,Ferit lleu,652,2,3
+Bicicleta,Il·lès,204,2,3
+Bicicleta,Sense informació,70,2,3
+Bicicleta,Ferit greu,24,2,3
+Bicicleta,Mort,2,2,3
+Ciclomotor,Ferit lleu,305,2,3
+Ciclomotor,Il·lès,55,2,3
+Ciclomotor,Sense informació,34,2,3
+Ciclomotor,Ferit greu,4,2,3
+Furgoneta,Il·lès,748,2,3
+Furgoneta,Ferit lleu,221,2,3
+Furgoneta,Sense informació,111,2,3
+Furgoneta,Ferit greu,8,2,3
+Furgoneta,Mort,2,2,3
+Motocicleta,Ferit lleu,3769,2,3
+Motocicleta,Il·lès,541,2,3
+Motocicleta,Sense informació,193,2,3
+Motocicleta,Ferit greu,133,2,3
+Motocicleta,Mort,9,2,3
+Taxi,Il·lès,439,2,3
+Taxi,Ferit lleu,179,2,3
+Taxi,Sense informació,39,2,3
+Taxi,Ferit greu,4,2,3
+Turisme,Il·lès,3808,2,3
+Turisme,Ferit lleu,1704,2,3
+Turisme,Sense informació,491,2,3
+Turisme,Ferit greu,30,2,3
+Turisme,Mort,4,2,3
+VMP,Ferit lleu,550,2,3
+VMP,Il·lès,125,2,3
+VMP,Sense informació,54,2,3
+VMP,Ferit greu,19,2,3
+VMP,Mort,2,2,3
+Vehicle sense informar,Sense informació,82,2,3
+Vehicle sense informar,Ferit lleu,10,2,3
+Vehicle sense informar,Il·lès,8,2,3
