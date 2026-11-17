@@ -88,12 +88,11 @@ jobs:
           url=$(aws ssm get-parameter --name "$param" --with-decryption --query Parameter.Value --output text)
           echo "::add-mask::$url"
           total=$(DATABASE_URL_UNPOOLED="$url" DATABASE_URL="$url" python -m motfinal.cli count --plain)
-          if [ "$total" -lt 1000 ]; then
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq --no-install-recommends hunspell-ca hunspell-tools
-            unmunch /usr/share/hunspell/ca_ES.dic /usr/share/hunspell/ca_ES.aff > /tmp/mots-ca.txt
+          if [ "$total" -lt 1000 ] || [ "$total" -gt 300000 ]; then
             DATABASE_URL_UNPOOLED="$url" DATABASE_URL="$url" \
-              python -m motfinal.cli import /tmp/mots-ca.txt --batch-size 5000
+              python -m motfinal.cli import \
+                "$GITHUB_WORKSPACE/poemes/data/catalan-words.txt.gz" \
+                --batch-size 5000 --replace
           else
             echo "El lèxic de Poemes ja conté $total mots."
           fi

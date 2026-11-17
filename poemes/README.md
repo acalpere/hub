@@ -92,7 +92,10 @@ motfinal import /tmp/mots-ca.txt
 
 La importació és idempotent: els mots ja existents no es dupliquen. El pipeline de producció només fa aquesta càrrega si detecta menys de 1.000 entrades.
 
-El diccionari català de Softcatalà no es copia en aquest repositori. El pipeline l'obté del paquet de la distribució i el material derivat manté la llicència dual LGPL 2.1 / GPL 2 indicada pel projecte original.
+El lèxic català validat es distribueix comprimit a `data/catalan-words.txt.gz` perquè
+els entorns local i de producció treballin amb el mateix conjunt de mots. Deriva del
+diccionari català de Softcatalà i manté la seva llicència dual LGPL 2.1 / GPL 2;
+l'atribució i els enllaços a les llicències són a `data/SOFTCATALA-DICTIONARY-LICENSE.md`.
 
 ## API
 

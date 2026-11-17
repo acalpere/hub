@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 from collections.abc import Iterator
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from motfinal.adapters.linguistics.catalan import CatalanWordAnalyzer
 from motfinal.adapters.persistence.database import SessionFactory
@@ -29,14 +30,22 @@ def hunspell_words(path: Path) -> Iterator[str]:
 
 
 def text_words(path: Path) -> Iterator[str]:
-    with path.open(encoding="utf-8") as source:
+    source_file = (
+        gzip.open(path, mode="rt", encoding="utf-8")
+        if path.suffix.casefold() == ".gz"
+        else path.open(encoding="utf-8")
+    )
+    with source_file as source:
         for line in source:
             yield line.strip()
 
 
-def import_file(path: Path, hunspell: bool, batch_size: int) -> int:
+def import_file(path: Path, hunspell: bool, batch_size: int, replace: bool = False) -> int:
     source = hunspell_words(path) if hunspell else text_words(path)
     with SessionFactory() as session:
+        if replace:
+            session.execute(delete(WordRecord))
+            session.commit()
         use_case = ImportWords(
             repository=SqlAlchemyWordRepository(session),
             analyzer=CatalanWordAnalyzer(),
@@ -51,6 +60,9 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("path", type=Path)
     importer.add_argument("--hunspell", action="store_true", help="Interpreta un fitxer .dic")
     importer.add_argument("--batch-size", type=int, default=1000)
+    importer.add_argument(
+        "--replace", action="store_true", help="Substitueix el lèxic generat existent"
+    )
     count = subparsers.add_parser("count", help="Compta els mots carregats")
     count.add_argument("--plain", action="store_true")
     subparsers.add_parser(
@@ -62,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     if args.command == "import":
-        imported = import_file(args.path, args.hunspell, args.batch_size)
+        imported = import_file(args.path, args.hunspell, args.batch_size, args.replace)
         print(f"S'han importat {imported} mots nous.")
     elif args.command == "hash-password":
         import getpass
