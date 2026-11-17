@@ -57,7 +57,7 @@ locals {
   # desapareixen d'aquí i passen a ser alies de CloudFront (envs/prod amb use_custom_domain).
   legacy_web = var.serve_web_from_aws ? {} : {
     "@"   = { type = "A", values = ["208.97.144.161"] }
-    "www" = { type = "CNAME", values = ["acalpere.cat."] }
+    "www" = { type = "A", values = ["208.97.144.161"] }
   }
 
   all_records = merge(local.records, local.legacy_web)

@@ -41,7 +41,8 @@ jobs:
     env:
       TF_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
       TF_VAR_alert_email: ${{ vars.ALERT_EMAIL }}
-      TF_VAR_use_custom_domain: ${{ vars.USE_CUSTOM_DOMAIN || 'false' }}
+      # Producció ja té acalpere.cat delegat a Route 53; dev continua sense domini propi.
+      TF_VAR_use_custom_domain: ${{ github.ref_name == 'main' && 'true' || (vars.USE_CUSTOM_DOMAIN || 'false') }}
       NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
     steps:
       - uses: actions/checkout@v4

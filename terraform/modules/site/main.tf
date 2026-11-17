@@ -201,6 +201,9 @@ resource "aws_route53_record" "alias" {
   zone_id = data.aws_route53_zone.this[0].zone_id
   name    = each.value[0]
   type    = each.value[1]
+  # Durant la migració substitueix sense interrupció els A temporals que
+  # encara apunten a l'allotjament antic.
+  allow_overwrite = true
   alias {
     name                   = aws_cloudfront_distribution.this.domain_name
     zone_id                = aws_cloudfront_distribution.this.hosted_zone_id

@@ -14,7 +14,7 @@ variable "alert_email" { type = string }
 variable "use_custom_domain" {
   description = "Activa el domini propi (certificat + alias). Cal que Route 53 ja sigui el DNS de la zona."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "neon_project_id" {
