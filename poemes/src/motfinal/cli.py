@@ -5,7 +5,7 @@ import gzip
 from collections.abc import Iterator
 from pathlib import Path
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text
 
 from motfinal.adapters.linguistics.catalan import CatalanWordAnalyzer
 from motfinal.adapters.persistence.database import SessionFactory
@@ -44,7 +44,14 @@ def import_file(path: Path, hunspell: bool, batch_size: int, replace: bool = Fal
     source = hunspell_words(path) if hunspell else text_words(path)
     with SessionFactory() as session:
         if replace:
-            session.execute(delete(WordRecord))
+            bind = session.get_bind()
+            if bind.dialect.name == "postgresql":
+                # TRUNCATE replaces the physical table and index files.  A DELETE
+                # leaves the old PostgreSQL index pages allocated, which can keep
+                # a small Neon project at its storage limit even with zero rows.
+                session.execute(text("TRUNCATE TABLE words RESTART IDENTITY"))
+            else:
+                session.execute(delete(WordRecord))
             session.commit()
         use_case = ImportWords(
             repository=SqlAlchemyWordRepository(session),
