@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { api, type Agent, type MenuItem, type Site } from "../api";
 import { useAuth } from "../auth";
 
@@ -43,12 +44,13 @@ export function HomePage() {
 
   const empty = apps?.length === 0 && sites.length === 0 && agents.length === 0;
 
+  if (apps === null && !error) return <LoadingSpinner />;
+
   return (
     <section>
       <h1>Hola, {user?.username}</h1>
       <p className="lead">Tot el que tens a acalpere, en un sol lloc.</p>
       <ErrorMessage message={error} />
-      {apps === null && !error && <p className="status">Carregant…</p>}
       {empty && <p className="status">Encara no tens res assignat. Demana-ho a l'administrador.</p>}
 
       {!!apps?.length && (

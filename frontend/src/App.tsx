@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router";
 import { useAuth } from "./auth";
 import { Layout } from "./Layout";
+import { LoadingSpinner } from "./components/LoadingSpinner";
 import { HomePage } from "./pages/HomePage";
 import { GestioPage } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
@@ -13,7 +14,7 @@ import { VerifyPage } from "./pages/VerifyPage";
 function RequireAuth({ admin = false }: { admin?: boolean }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <p className="status">Carregant…</p>;
+  if (loading) return <LoadingSpinner />;
   if (!user) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />;
   if (admin && user.role !== "admin") return <Navigate to="/" replace />;
   return <Outlet />;
