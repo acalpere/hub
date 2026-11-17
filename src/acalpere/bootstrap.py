@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from sqlalchemy.orm import sessionmaker
+
 from .adapters.crypto import AesGcmCipher, PlainCipher
 from .adapters.passkeys import WebAuthnVerifier
 from .adapters.persistence.engine import make_session_factory
@@ -37,6 +39,7 @@ class Container:
     calendar: CalendarService
     inheritance: InheritanceService
     hub: HubService
+    session_factory: sessionmaker
 
 
 def _ssm_value(settings: Settings, name: str) -> str:
@@ -90,4 +93,5 @@ def build_container(settings: Settings) -> Container:
         calendar=CalendarService(SqlCalendarRepository(sf)),
         inheritance=InheritanceService(SqlInheritanceRepository(sf, make_cipher(settings))),
         hub=HubService(sites, SqlAgentRepository(sf), access, users, contents),
+        session_factory=sf,
     )

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Troba mots catalans per síl·laba final, tonicitat i context.">
+    <title>MotFinal · Cercador poètic català</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="workspace">
+      <section class="poem-pane" aria-labelledby="poem-heading">
+        <form id="login-card" class="poem-card login-card" hidden>
+          <p class="eyebrow">Accés als poemes</p>
+          <input id="login-password" type="password" class="login-password" placeholder="Contrasenya" autocomplete="current-password" aria-label="Contrasenya">
+          <p id="login-error" class="poem-message error" role="alert" hidden></p>
+          <button type="submit">Entrar</button>
+        </form>
+        <div id="poem-area" class="poem-area">
+        <div class="poem-card">
+          <div class="poem-top">
+            <p class="eyebrow" id="poem-heading">El poema</p>
+            <button id="new-poem" class="secondary-small" type="button">Nou</button>
+          </div>
+          <input id="poem-title" class="poem-title" placeholder="Títol" maxlength="200" aria-label="Títol del poema">
+          <div class="poem-editor">
+            <ol id="poem-gutter" class="poem-gutter" aria-hidden="true"><li>1</li></ol>
+            <textarea id="poem-body" class="poem-body" rows="14" spellcheck="true" lang="ca" placeholder="Escriu els versos…" aria-label="Versos"></textarea>
+          </div>
+          <div class="poem-actions">
+            <label class="status-field">
+              <span>Estat</span>
+              <select id="poem-status">
+                <option value="in_progress">En procés</option>
+                <option value="finished">Acabat</option>
+                <option value="published">Publicat</option>
+              </select>
+            </label>
+            <button id="save-poem" type="button">Desar</button>
+          </div>
+          <p id="poem-message" class="poem-message" role="status" hidden></p>
+          <dl id="poem-dates" class="poem-dates" hidden></dl>
+        </div>
+        <div class="poem-card poem-list-card">
+          <p class="eyebrow">Els meus poemes</p>
+          <ul id="poem-list" class="poem-list"><li class="poem-empty">Encara no n'hi ha cap.</li></ul>
+          <button id="logout" class="secondary-small logout" type="button" hidden>Sortir</button>
+        </div>
+        </div>
+      </section>
+      <div class="search-pane">
+      <section class="search-card" aria-labelledby="search-title">
+        <h2 id="search-title" class="sr-only">Paràmetres de cerca</h2>
+        <form id="search-form" novalidate>
+          <div class="primary-fields">
+            <label class="reference-field">
+              <span>Paraula de referència</span>
+              <input id="word" name="word" placeholder="paraula" maxlength="160" required autofocus>
+              <small class="field-help">N'extraurem el final automàticament.</small>
+              <small id="word-error" class="form-error" role="alert" hidden></small>
+            </label>
+            <div class="mode-toggles reference-modes" role="group" aria-label="Què vols cercar">
+              <button id="mode-synonyms" class="mode-toggle" type="button" aria-pressed="true">Sinònims</button>
+              <button id="mode-rhymes" class="mode-toggle" type="button" aria-pressed="false">Rimes</button>
+            </div>
+            <fieldset class="rhyme-only">
+              <legend>Vull comparar</legend>
+              <div class="segmented">
+                <label><input type="radio" name="syllable_count" value="1" checked><span>1 síl·laba</span></label>
+                <label><input type="radio" name="syllable_count" value="2"><span>2 síl·labes</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="rhyme-only">
+              <legend>L'última síl·laba és</legend>
+              <div class="segmented">
+                <label><input type="radio" name="stress" value="any" checked><span>Indiferent</span></label>
+                <label><input type="radio" name="stress" value="tonic"><span>Tònica</span></label>
+                <label><input type="radio" name="stress" value="unstressed"><span>Àtona</span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <label class="context-field rhyme-only">
+            <span class="context-label">Entorn semàntic <small>opcional</small>
+              <button id="context-mic" class="mic-button" type="button" aria-pressed="false" title="Dictar per veu" aria-label="Dictar per veu" hidden>
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z"/></svg>
+              </button>
+            </span>
+            <textarea id="context" name="context" maxlength="500" rows="2" placeholder="Una nit d'estiu vora el mar, calma, sal i llum de lluna…"></textarea>
+            <small>Es compara amb les accepcions del Viccionari i amb el significat de la paraula de referència. Com més concret sigui el context, millor; deixa-ho en blanc per veure totes les coincidències.</small>
+          </label>
+
+          <div class="form-actions">
+            <label class="definition-option rhyme-only">
+              <input type="checkbox" name="include_definitions" value="true">
+              <span class="checkmark" aria-hidden="true">✓</span>
+              <span>Mostrar definicions</span>
+            </label>
+            <div class="form-buttons">
+              <button type="submit">Buscar paraules <span aria-hidden="true">→</span></button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="synonyms-section" class="results" aria-live="polite" hidden>
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">Sinònims</p>
+            <h2 id="synonyms-title">Sinònims</h2>
+          </div>
+          <p id="synonyms-count" class="results-count"></p>
+        </div>
+        <ul id="synonyms-list" class="synonym-list"></ul>
+        <p id="synonyms-empty" class="no-word-info" hidden></p>
+      </section>
+
+      <section id="results-section" class="results" aria-live="polite" hidden>
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">Resultats</p>
+            <h2 id="results-title">Paraules trobades</h2>
+          </div>
+          <div class="results-tools">
+            <p id="result-count"></p>
+            <fieldset class="view-mode">
+              <legend class="sr-only">Mode de visualització</legend>
+              <label><input type="radio" name="view_mode" value="list" checked><span>Mode llista</span></label>
+              <label><input type="radio" name="view_mode" value="linked"><span>Lligat</span></label>
+            </fieldset>
+          </div>
+        </div>
+        <p id="notice" class="notice" hidden></p>
+        <div id="results-grid" class="results-grid"></div>
+        <button id="load-more" class="secondary" type="button" hidden>Veure'n més</button>
+      </section>
+
+      <section id="empty-state" class="empty" hidden>
+        <p>No hem trobat cap mot amb aquests criteris.</p>
+        <small>Prova amb una sola síl·laba, sense context o amb una altra tonicitat.</small>
+      </section>
+      </div>
+    </main>
+    <footer>
+      <span>MotFinal · Paraules per fer versos</span>
+      <span>Definicions del <a href="https://ca.wiktionary.org/" target="_blank" rel="noreferrer">Viccionari</a> · CC BY-SA</span>
+    </footer>
+    <dialog id="word-dialog" aria-labelledby="word-dialog-title">
+      <button id="close-word-dialog" class="dialog-close" type="button" aria-label="Tancar">×</button>
+      <p id="word-dialog-label" class="eyebrow"></p>
+      <h2 id="word-dialog-title"></h2>
+      <div id="word-dialog-content" class="word-dialog-content" aria-live="polite"></div>
+      <small>Fonts: <a href="https://www.softcatala.org/diccionari-de-sinonims/" target="_blank" rel="noreferrer">Softcatalà</a> (CC BY 4.0) · <a href="https://ca.wiktionary.org/" target="_blank" rel="noreferrer">Viccionari</a></small>
+    </dialog>
+    <script src="config.js"></script>
+    <script src="poems.js" defer></script>
+    <script src="voice.js" defer></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>

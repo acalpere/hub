@@ -26,10 +26,10 @@ function appDirectoryIndex(): Plugin {
 
 export default defineConfig({
   plugins: [react(), appDirectoryIndex()],
-  // Si un servidor antic ja ocupa el 5173, que falli en lloc de saltar al 5174.
+  // Port propi d'acalpere; lafidelfil conserva el 5173.
   server: {
-    port: 5173,
+    port: 5180,
     strictPort: true,
-    proxy: { "/api": { target: process.env.API_URL ?? "http://localhost:8000", changeOrigin: false } },
+    proxy: { "/api": { target: process.env.API_URL ?? "http://localhost:8010", changeOrigin: false } },
   },
 });

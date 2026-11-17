@@ -7,7 +7,9 @@
     "node": ">=22.12"
   },
   "scripts": {
+    "predev": "node ../scripts/sync-poemes-ui.mjs",
     "dev": "vite",
+    "prebuild": "node ../scripts/sync-poemes-ui.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "preview": "vite preview",

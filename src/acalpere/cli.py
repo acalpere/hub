@@ -12,6 +12,7 @@ DEFAULT_MENU = [
     # (nom, url, rols, posició)
     ("Calendari de la mare", "/apps/calendari/", "admin,germa", 10),
     ("Herència", "/apps/herencia/", "admin,germa", 20),
+    ("Poemes", "/apps/poemes/", "admin", 25),
     ("Webs i agents", "/hub", "admin", 30),
 ]
 
@@ -38,7 +39,7 @@ def main() -> None:
     sub.add_parser("new-data-key", help="Genera una clau de xifratge (32 bytes, base64)")
     sub.add_parser("hash-password", help="Genera un hash bcrypt")
     srv = sub.add_parser("serve", help="Arrenca el servidor local")
-    srv.add_argument("--port", type=int, default=8000)
+    srv.add_argument("--port", type=int, default=8010)
     args = parser.parse_args()
     settings = get_settings()
 
@@ -77,7 +78,7 @@ def main() -> None:
         user = build_container(settings).auth.set_role(args.username, args.role)
         print(f"{user.username} ara és {user.role}.")
     elif args.cmd == "seed-menu":
-        from sqlalchemy import func, select
+        from sqlalchemy import select
 
         from .adapters.persistence import models as m
         from .adapters.persistence.engine import make_session_factory
@@ -87,12 +88,13 @@ def main() -> None:
         url = database_url(settings)
         upgrade(settings.database_url_unpooled or url)
         with make_session_factory(url).begin() as s:
-            if s.scalar(select(func.count()).select_from(m.ContentRow)):
-                print("El menú ja té entrades; no es toca.")
-                return
+            created = 0
             for name, link, roles, pos in DEFAULT_MENU:
+                if s.scalar(select(m.ContentRow.id).where(m.ContentRow.url == link)):
+                    continue
                 s.add(m.ContentRow(name=name, url=link, roles=roles, position=pos))
-        print("Menú creat.")
+                created += 1
+        print(f"Menú actualitzat: {created} entrades noves.")
     elif args.cmd == "import-legacy":
         from .adapters.persistence.engine import make_session_factory
         from .bootstrap import database_url

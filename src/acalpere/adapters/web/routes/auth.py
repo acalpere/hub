@@ -50,6 +50,13 @@ class UserPatch(BaseModel):
     phone: str = Field(default="", max_length=30)
 
 
+class ProfilePatch(BaseModel):
+    first_name: str = Field(default="", max_length=100)
+    last_name: str = Field(default="", max_length=150)
+    email: str = Field(default="", max_length=200)
+    phone: str = Field(default="", max_length=30)
+
+
 def _finish_login(request: Request, user: User) -> dict:
     request.session.clear()  # evita la fixació de sessió
     request.session["uid"] = user.id
@@ -255,6 +262,21 @@ def logout(request: Request):
 @router.get("/auth/me")
 def me(user: User = Depends(current_user)):
     return shapes.user(user)
+
+
+@router.put("/auth/profile")
+def update_profile(
+    body: ProfilePatch, user: User = Depends(current_user), c: Container = Depends(container)
+):
+    return shapes.user(
+        c.auth.update_profile(
+            user.id,
+            body.first_name,
+            body.last_name,
+            body.email,
+            body.phone,
+        )
+    )
 
 
 @router.post("/auth/password")

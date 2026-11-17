@@ -34,14 +34,14 @@ cp .env.example .env              # sense ACALPERE_DATABASE_URL fa servir SQLite
 acalpere migrate
 acalpere create-user Pere         # demana la contrasenya
 acalpere seed-menu                # entrades del menú
-acalpere serve --port 8010        # API: http://localhost:8010/api/docs
+acalpere serve                    # API: http://localhost:8010/api/docs
 ```
 
 En una altra terminal:
 
 ```bash
 cd frontend && nvm use && npm ci
-API_URL=http://localhost:8010 npm run dev     # http://localhost:5173
+npm run dev                       # http://localhost:5180
 ```
 
 ### Amb les dades reals de la web antiga

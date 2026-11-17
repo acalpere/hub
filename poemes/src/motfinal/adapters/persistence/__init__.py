@@ -1,0 +1,1 @@
+"""Persistència SQLAlchemy."""

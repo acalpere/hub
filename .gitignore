@@ -18,3 +18,4 @@ dist/
 # Dades de la web antiga (hashes de contrasenyes, converses): mai al repositori
 data/legacy/
 crutches/
+frontend/public/apps/poemes/

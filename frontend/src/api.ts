@@ -59,6 +59,9 @@ export const api = {
   passkeyDelete: (id: number) => request<void>("DELETE", `/auth/passkeys/${id}`),
   logout: () => request<void>("POST", "/auth/logout"),
   me: () => request<User>("GET", "/auth/me"),
+  updateProfile: (profile: Profile) => request<User>("PUT", "/auth/profile", profile),
+  changePassword: (actual: string, nova: string) =>
+    request<void>("POST", "/auth/password", { actual, nova }),
   menu: () => request<MenuItem[]>("GET", "/menu"),
   users: () => request<User[]>("GET", "/users"),
   createUser: (u: Profile & { username: string; password: string; role: Role }) => request<User>("POST", "/users", u),

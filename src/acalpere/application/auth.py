@@ -99,6 +99,22 @@ class AuthService:
         self._users.update(user_id, username, role, profile)
         return self._users.get(user_id)  # type: ignore[return-value]
 
+    def update_profile(
+        self,
+        user_id: int,
+        first_name: str,
+        last_name: str,
+        email: str,
+        phone: str,
+    ) -> User:
+        """Actualitza només les dades personals de l'usuari autenticat."""
+        user = self._users.get(user_id)
+        if user is None:
+            raise NotFound("Usuari no trobat")
+        profile = _clean_profile(first_name, last_name, email, phone)
+        self._users.update(user_id, user.username, user.role, profile)
+        return self._users.get(user_id)  # type: ignore[return-value]
+
     def set_role(self, username: str, role: str) -> User:
         if role not in ROLES:
             raise InvalidInput(f"Rol no vàlid: {role}")

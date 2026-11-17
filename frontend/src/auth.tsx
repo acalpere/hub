@@ -6,6 +6,7 @@ interface AuthState {
   loading: boolean;
   login: (usuari: string, clau: string) => Promise<LoginStep>;
   completeLogin: (user: User) => void;
+  refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -31,12 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return status;
   }, []);
   const completeLogin = useCallback((u: User) => setUser(u), []);
+  const refreshUser = useCallback(async () => setUser(await api.me()), []);
   const logout = useCallback(async () => {
     await api.logout();
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, completeLogin, logout }), [user, loading, login, completeLogin, logout]);
+  const value = useMemo(
+    () => ({ user, loading, login, completeLogin, refreshUser, logout }),
+    [user, loading, login, completeLogin, refreshUser, logout],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

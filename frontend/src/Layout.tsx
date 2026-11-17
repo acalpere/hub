@@ -19,7 +19,9 @@ export function Layout() {
             {user.role === "admin" && (
               <NavLink to="/gestio" className={`navlink gestio${inGestio ? " active" : ""}`}>Gestió</NavLink>
             )}
-            <span className="who">{user.username}</span>
+            <NavLink to="/perfil" className="who" title="El meu perfil">
+              {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username}
+            </NavLink>
             {user.role === "admin" && (
               <Link to="/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
                 <svg viewBox="0 0 24 24" aria-hidden="true">

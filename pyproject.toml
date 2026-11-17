@@ -20,6 +20,7 @@ dependencies = [
   "bcrypt>=4.2",
   "webauthn>=2.5",
   "cryptography>=43",
+  "pyphen>=0.17",  # motfinal (poemes/), incrustat com a paquet
 ]
 
 [project.optional-dependencies]
@@ -29,15 +30,20 @@ dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.6", "uvicorn[standard]>=0.30", "mysq
 [project.scripts]
 acalpere = "acalpere.cli:main"
 
+# `poemes/` és un paquet independent (té el seu pyproject) que s'incrusta aquí. Per separar-lo:
+# treure "poemes/src" i "motfinal*" d'aquí i afegir `motfinal` a les dependències.
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "poemes/src"]
+include = ["acalpere*", "motfinal*"]
 
 [tool.setuptools.package-data]
 acalpere = ["adapters/web/legacy/**/*", "migrations/**/*"]
+"motfinal.adapters.web" = ["ui/*"]
+"motfinal.adapters.synonyms" = ["*.txt", "*.md"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+testpaths = ["tests", "poemes/tests"]
+pythonpath = ["src", "poemes/src"]
 
 [tool.ruff]
 line-length = 100

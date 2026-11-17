@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from alembic import context
+from motfinal.adapters.persistence.models import Base as MotfinalBase
 from sqlalchemy import create_engine, pool
 
 from acalpere.adapters.persistence.engine import normalize_url
 from acalpere.adapters.persistence.models import Base
 
 config = context.config
-target_metadata = Base.metadata
+# Les taules de motfinal (poemes/) viuen a la mateixa base de dades.
+target_metadata = [Base.metadata, MotfinalBase.metadata]
 
 
 def _url() -> str:

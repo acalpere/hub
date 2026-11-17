@@ -1,0 +1,1 @@
+"""Adaptadors d'anàlisi lingüística."""

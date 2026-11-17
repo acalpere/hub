@@ -11,6 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from ...bootstrap import Container, build_container
 from ...config import Settings, get_settings
 from ...domain.errors import AuthError, Conflict, DomainError, Forbidden, InvalidInput, NotFound
+from .poemes import mount_poemes
 from .routes import auth, calendar, herencia, hub
 
 CSRF_HEADER = "x-requested-with"
@@ -81,4 +82,5 @@ def create_app(settings: Settings | None = None, container: Container | None = N
 
     for router in (auth.router, calendar.router, herencia.router, hub.router):
         app.include_router(router, prefix="/api/v1")
+    mount_poemes(app)
     return app

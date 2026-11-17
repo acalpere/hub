@@ -59,15 +59,23 @@ resource "aws_iam_role_policy" "app" {
   role = aws_iam_role.lambda.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = ["ssm:GetParameter"]
-      Resource = [
-        var.database_url_ssm_arn,
-        aws_ssm_parameter.secret_key.arn,
-        aws_ssm_parameter.data_key.arn,
-      ]
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["ssm:GetParameter"]
+        Resource = [
+          var.database_url_ssm_arn,
+          aws_ssm_parameter.secret_key.arn,
+          aws_ssm_parameter.data_key.arn,
+        ]
+      },
+      {
+        # Poemes (paquet motfinal): embeddings multilingües per al context semàntic de les rimes.
+        Effect   = "Allow"
+        Action   = ["bedrock:InvokeModel"]
+        Resource = ["arn:aws:bedrock:eu-west-1::foundation-model/cohere.embed-multilingual-v3"]
+      },
+    ]
   })
 }
 
@@ -95,6 +103,9 @@ resource "aws_lambda_function" "api" {
       ACALPERE_SECRET_KEY_SSM_PARAM   = aws_ssm_parameter.secret_key.name
       ACALPERE_DATA_KEY_SSM_PARAM     = aws_ssm_parameter.data_key.name
       ACALPERE_RP_ID                  = var.rp_id
+      # Variables de motfinal (poemes), que llegeix sense prefix.
+      SEMANTIC_PROVIDER = "bedrock"
+      BEDROCK_REGION    = "eu-west-1"
       # Les migracions les aplica el desplegament (abans de canviar el codi), no cada arrencada.
       ACALPERE_AUTO_MIGRATE = "false"
     }

@@ -51,6 +51,7 @@ def test_menu_depends_on_role(admin, client):
         "Calendari",
         "Herència",
         "Hub",
+        "Poemes",
     ]
     client.post("/api/v1/auth/logout")
     login(client, "Jordi", "altra-clau-prova")
@@ -317,6 +318,30 @@ def test_change_password(admin, client):
     )
     client.post("/api/v1/auth/logout")
     login(client, "Pere", "una-clau-nova-1")
+
+
+def test_user_can_update_only_their_own_profile(germa, client):
+    r = client.put(
+        "/api/v1/auth/profile",
+        json={
+            "first_name": "Jordi",
+            "last_name": "Vilarasau",
+            "email": "jordi@example.com",
+            "phone": "+34 600 111 222",
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["username"] == "Jordi"
+    assert r.json()["role"] == "germa"
+    assert r.json()["last_name"] == "Vilarasau"
+    assert client.get("/api/v1/auth/me").json()["email"] == "jordi@example.com"
+    assert (
+        client.put(
+            "/api/v1/auth/profile",
+            json={"first_name": "Jordi", "email": "no-és-un-correu"},
+        ).status_code
+        == 400
+    )
 
 
 def test_set_role_removes_admin_access(container, client):

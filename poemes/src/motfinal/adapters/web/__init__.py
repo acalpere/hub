@@ -1,0 +1,1 @@
+"""Interfície HTTP i web."""

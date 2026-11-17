@@ -5,6 +5,7 @@ import { HomePage } from "./pages/HomePage";
 import { GestioPage } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { SecurityPage } from "./pages/SecurityPage";
 import { UsersPage } from "./pages/UsersPage";
 import { VerifyPage } from "./pages/VerifyPage";
@@ -25,6 +26,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route element={<RequireAuth />}>
           <Route index element={<HomePage />} />
+          <Route path="perfil" element={<ProfilePage />} />
           <Route path="verificar" element={<VerifyPage />} />
         </Route>
         <Route element={<RequireAuth admin />}>

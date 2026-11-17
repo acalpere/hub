@@ -1,0 +1,101 @@
+name: CD · AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e '.[dev]'
+      - run: ruff check . && pytest
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Inicialitza Terraform
+        working-directory: terraform/app
+        run: >-
+          terraform init
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=poemes/production.tfstate"
+          -backend-config="region=${AWS_REGION}"
+          -backend-config="encrypt=true"
+
+      - name: Prepara ECR i el contenidor del secret
+        working-directory: terraform/app
+        run: >-
+          terraform apply -auto-approve
+          -target=aws_ecr_repository.app
+          -target=aws_secretsmanager_secret.database_url
+          -var="aws_region=${AWS_REGION}"
+          -var="image_tag=${GITHUB_SHA}"
+
+      - name: Construeix i publica la imatge
+        env:
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          ECR_URL="$(cd terraform/app && terraform output -raw ecr_repository_url)"
+          docker build --tag "${ECR_URL}:${GITHUB_SHA}" .
+          docker push "${ECR_URL}:${GITHUB_SHA}"
+
+      - name: Actualitza la URL agrupada de Neon a Secrets Manager
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          SECRET_ARN="$(cd terraform/app && terraform output -raw database_secret_arn)"
+          aws secretsmanager put-secret-value --secret-id "$SECRET_ARN" --secret-string "$DATABASE_URL" >/dev/null
+
+      - name: Migra i inicialitza el lèxic de Neon
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: |
+          python -m pip install -e .
+          alembic upgrade head
+          WORD_COUNT="$(motfinal count --plain)"
+          if [ "$WORD_COUNT" -lt 1000 ]; then
+            sudo apt-get update
+            sudo apt-get install --yes hunspell-ca hunspell-tools
+            unmunch /usr/share/hunspell/ca_ES.dic /usr/share/hunspell/ca_ES.aff > /tmp/mots-ca.txt
+            motfinal import /tmp/mots-ca.txt
+          fi
+
+      - name: Desplega App Runner
+        working-directory: terraform/app
+        run: >-
+          terraform apply -auto-approve
+          -var="aws_region=${AWS_REGION}"
+          -var="image_tag=${GITHUB_SHA}"
+
+      - name: Adreça publicada
+        working-directory: terraform/app
+        run: terraform output service_url

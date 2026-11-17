@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instal·la dependències
+        run: python -m pip install -e '.[dev]'
+      - name: Qualitat
+        run: ruff check .
+      - name: Proves
+        run: pytest --cov=motfinal --cov-report=term-missing
+      - name: Valida Terraform
+        uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive terraform
