@@ -11,5 +11,5 @@ variable "zone_name" {
 variable "serve_web_from_aws" {
   description = "false: apex i www apunten a DreamHost. true: els gestiona envs/prod (CloudFront)."
   type        = bool
-  default     = false
+  default     = true
 }
