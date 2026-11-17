@@ -24,6 +24,7 @@ window.MOTFINAL = {
   csrf: "acalpere",
   auth: "host",
   loginUrl: "/login",
+  homeUrl: "/",
 };
 `,
 );

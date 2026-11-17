@@ -4,4 +4,5 @@ window.MOTFINAL = {
   csrf: "motfinal",      // valor de la capçalera X-Requested-With
   auth: "password",      // "password": formulari propi · "host": la sessió la gestiona qui incrusta
   loginUrl: null,        // amb auth "host": pàgina d'inici de sessió
+  homeUrl: null,         // qui l'incrusta pot mostrar un retorn persistent al seu inici
 };

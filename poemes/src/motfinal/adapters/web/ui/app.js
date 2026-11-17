@@ -21,6 +21,12 @@ const wordInput = document.querySelector("#word");
 const wordError = document.querySelector("#word-error");
 const definitionToggle = form.elements.include_definitions;
 const viewModeInputs = document.querySelectorAll("input[name='view_mode']");
+const hubHome = document.querySelector("#hub-home");
+
+if (window.MOTFINAL.homeUrl) {
+  hubHome.href = window.MOTFINAL.homeUrl;
+  hubHome.hidden = false;
+}
 
 let currentOffset = 0;
 let currentItems = [];
