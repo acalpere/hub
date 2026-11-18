@@ -62,6 +62,36 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
   const [history, setHistory] = useState<CyranoRevision[] | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const stampInput = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const dirty = useRef(false);
+
+  // Es tanca amb Esc o clicant fora; si hi ha canvis sense desar, abans ho pregunta.
+  // El reproductor de vídeo compta com a dins: s'hi ha de poder parar el vídeo mentre s'edita.
+  useEffect(() => {
+    dirty.current = false;
+  }, [mode]);
+  useEffect(() => {
+    if (!mode) return;
+    const close = () => {
+      if (busy) return;
+      if (dirty.current && !window.confirm("Descartar els canvis d'aquesta línia?")) return;
+      setMode(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    const onPress = (e: MouseEvent) => {
+      const target = e.target as Element | null;
+      if (target?.closest(".cy-player") || formRef.current?.contains(target)) return;
+      close();
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPress);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPress);
+    };
+  }, [mode, busy]);
 
   async function loadHistory() {
     setError("");
@@ -108,7 +138,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
   }
 
   const editor = mode && (
-    <form className="cy-edit" onSubmit={save} key={mode}>
+    <form className="cy-edit" ref={formRef} onSubmit={save} onInput={() => { dirty.current = true; }} key={mode}>
         <div className="cy-edit-row">
           <label>
             Tipus

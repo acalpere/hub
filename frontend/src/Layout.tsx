@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "./api";
+import { SideMenu } from "./components/SideMenu";
 import { useAuth } from "./auth";
 
 export function Layout() {
@@ -12,11 +13,18 @@ export function Layout() {
     if (!user) return setHasCyrano(false);
     api.menu().then((m) => setHasCyrano(m.some((i) => i.url === "/cyrano"))).catch(() => setHasCyrano(false));
   }, [user]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [pathname]); // en navegar, el menú es tanca
   const framed = pathname.startsWith("/app/");
   const inGestio = pathname.startsWith("/gestio");
   return (
     <div className={`shell${framed ? " framed" : ""}`}>
       <header className="top">
+        {user && (
+          <button type="button" className="icon-btn burger" aria-label="Obre el menú" aria-expanded={menuOpen} aria-controls="side-menu" onClick={() => setMenuOpen(true)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+        )}
         <Link to="/" className="brand">
           <img src="/logo.svg" alt="" width={40} height={40} />
           <span>acalpere<span className="tld">.cat</span></span>
@@ -56,6 +64,19 @@ export function Layout() {
           </nav>
         )}
       </header>
+      {user && (
+        <SideMenu
+          user={user}
+          hasCyrano={hasCyrano}
+          pathname={pathname}
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onLogout={async () => {
+            await logout();
+            navigate("/login");
+          }}
+        />
+      )}
       <main className={framed ? "framed" : undefined}>
         <Outlet />
       </main>
