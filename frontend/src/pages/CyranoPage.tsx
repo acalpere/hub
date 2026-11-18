@@ -312,7 +312,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const body = <Marked text={line.text} terms={terms} />;
   return (
     <>
-    <div ref={ref} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}`}>
+    <div ref={ref} data-line={line.id} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}`}>
       {line.kind === "speech" ? (
         <>
           <div className="cy-who">
@@ -585,12 +585,36 @@ export function CyranoPage() {
     setSeen(to);
   };
 
+  // La rèplica que és a dalt de la pantalla i a quina alçada: en canviar de vista, hi tornem.
+  const anchor = useRef<{ id: number; top: number } | null>(null);
+  function remember() {
+    const el = Array.from(document.querySelectorAll<HTMLElement>(".cy-line[data-line]")).find((e) => e.getBoundingClientRect().bottom > 80);
+    if (!el) return null;
+    anchor.current = { id: Number(el.dataset.line), top: el.getBoundingClientRect().top };
+    window.setTimeout(() => (anchor.current = null), 4000);
+    const sec = el.closest<HTMLElement>("section[data-act]");
+    return sec ? { act: Number(sec.dataset.act), scene: Number(sec.dataset.scene) } : null;
+  }
+  useEffect(() => {
+    const a = anchor.current;
+    if (!a) return;
+    const el = document.querySelector<HTMLElement>(`.cy-line[data-line="${a.id}"]`);
+    if (!el) return;
+    anchor.current = null;
+    place.current = null;
+    window.scrollBy({ top: el.getBoundingClientRect().top - a.top });
+  }, [lines, all, continuous]);
+
   function setView(paged: boolean) {
     if (paged && continuous) {
-      const first = outline?.acts.find((a) => a.act === viewAct)?.scenes[0] ?? 0;
-      update({ vista: null, acte: String(viewAct), escena: String(viewScene || first), linia: null });
+      const at = remember();
+      const a = at?.act ?? viewAct;
+      const sc = at?.scene ?? viewScene;
+      const first = outline?.acts.find((x) => x.act === a)?.scenes[0] ?? 0;
+      update({ vista: null, acte: String(a), escena: String(sc || first), linia: null });
     } else if (!paged && !continuous) {
-      place.current = { act, scene }; // en canviar a contínua, es continua per on s'era
+      remember();
+      place.current = { act, scene }; // si no hi ha cap rèplica a la vista, almenys l'escena
       update({ vista: "continua", linia: null });
     }
   }
