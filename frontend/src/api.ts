@@ -14,6 +14,20 @@ export interface Agent {
   config: Record<string, unknown>; can_work?: boolean;
 }
 
+export type CyranoKind = "speech" | "stage" | "text" | "title" | "note";
+export interface CyranoLine {
+  id: number; act: number; scene: number; kind: CyranoKind;
+  speaker: string | null; stamp: string | null; text: string;
+}
+export interface CyranoRevision {
+  id: number; speaker: string | null; kind: CyranoKind; text: string;
+  edited_by: string | null; edited_at: string | null;
+}
+export interface CyranoOutline {
+  acts: { act: number; title: string; scenes: number[] }[];
+  speakers: { name: string; lines: number }[];
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -62,6 +76,18 @@ export const api = {
   updateProfile: (profile: Profile) => request<User>("PUT", "/auth/profile", profile),
   changePassword: (actual: string, nova: string) =>
     request<void>("POST", "/auth/password", { actual, nova }),
+  cyranoOutline: () => request<CyranoOutline>("GET", "/cyrano/outline"),
+  cyranoText: () => request<CyranoLine[]>("GET", "/cyrano/text"),
+  cyranoScene: (act: number, scene: number) => request<CyranoLine[]>("GET", `/cyrano/scenes/${act}/${scene}`),
+  cyranoSearch: (q: string, speaker: string) =>
+    request<{ results: CyranoLine[]; truncated: boolean }>(
+      "GET", `/cyrano/search?q=${encodeURIComponent(q)}&speaker=${encodeURIComponent(speaker)}`,
+    ),
+  cyranoEdit: (id: number, line: { speaker: string | null; kind: CyranoKind; text: string }) =>
+    request<CyranoLine>("PUT", `/cyrano/lines/${id}`, line),
+  cyranoHistory: (id: number) => request<CyranoRevision[]>("GET", `/cyrano/lines/${id}/history`),
+  cyranoRestore: (id: number, revisionId: number) =>
+    request<CyranoLine>("POST", `/cyrano/lines/${id}/restore`, { revision_id: revisionId }),
   menu: () => request<MenuItem[]>("GET", "/menu"),
   users: () => request<User[]>("GET", "/users"),
   createUser: (u: Profile & { username: string; password: string; role: Role }) => request<User>("POST", "/users", u),

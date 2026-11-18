@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { api, type Profile } from "../api";
 import { useAuth } from "../auth";
+import { PasswordInput } from "../components/PasswordInput";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { validate } from "../forms";
 
@@ -98,15 +99,15 @@ export function ProfilePage() {
           <h2>Canviar la contrasenya</h2>
           <label>
             Contrasenya actual
-            <input type="password" required value={password.current} onChange={(e) => setPassword({ ...password, current: e.target.value })} autoComplete="current-password" />
+            <PasswordInput required value={password.current} onChange={(e) => setPassword({ ...password, current: e.target.value })} autoComplete="current-password" />
           </label>
           <label>
             Contrasenya nova
-            <input type="password" required minLength={8} value={password.next} onChange={(e) => setPassword({ ...password, next: e.target.value })} autoComplete="new-password" />
+            <PasswordInput required minLength={8} value={password.next} onChange={(e) => setPassword({ ...password, next: e.target.value })} autoComplete="new-password" />
           </label>
           <label>
             Repeteix la contrasenya nova
-            <input type="password" required minLength={8} value={password.repeat} onChange={(e) => setPassword({ ...password, repeat: e.target.value })} autoComplete="new-password" />
+            <PasswordInput required minLength={8} value={password.repeat} onChange={(e) => setPassword({ ...password, repeat: e.target.value })} autoComplete="new-password" />
           </label>
           <ErrorMessage message={passwordError} />
           {passwordState && <p className={passwordState === "Contrasenya canviada." ? "success" : "muted"}>{passwordState}</p>}

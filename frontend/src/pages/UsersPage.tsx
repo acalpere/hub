@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api, type Access, type Agent, type Content, type Profile, type Role, type Site, type User } from "../api";
 import { useAuth } from "../auth";
+import { PasswordInput } from "../components/PasswordInput";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { validate } from "../forms";
 
@@ -102,7 +103,12 @@ function ProfileFields({ form, onChange, creating }: { form: Form; onChange: (f:
       {field("email", "Correu electrònic", { type: "email" })}
       {field("phone", "Telèfon", { type: "tel" })}
       {field("username", "Usuari (per entrar)", { required: true, autoCapitalize: "off" })}
-      {creating && field("password", "Clau inicial (mín. 8 caràcters)", { type: "password", required: true, minLength: 8, autoComplete: "new-password" })}
+      {creating && (
+        <label>
+          Clau inicial (mín. 8 caràcters)
+          <PasswordInput value={form.password} onChange={(e) => onChange({ ...form, password: e.target.value })} name="new_password" required minLength={8} autoComplete="new-password" />
+        </label>
+      )}
       <label>
         Tipus
         <select value={form.role} onChange={(e) => onChange({ ...form, role: e.target.value as Role })}>

@@ -48,8 +48,7 @@ export function HomePage() {
 
   return (
     <section>
-      <h1>Hola, {user?.username}</h1>
-      <p className="lead">Tot el que tens a acalpere, en un sol lloc.</p>
+      <h1>Hub</h1>
       <ErrorMessage message={error} />
       {empty && <p className="status">Encara no tens res assignat. Demana-ho a l'administrador.</p>}
 

@@ -1,8 +1,8 @@
 (function(){
   var dlg=document.createElement('dialog');dlg.className='csv-dialog';dlg.setAttribute('aria-labelledby','csv-title');
-  dlg.innerHTML='<div class="csv-head"><h3 id="csv-title"></h3><div><a id="csv-download" download>Descarrega el CSV</a><button type="button" class="csv-close">Tanca</button></div></div><div class="csv-body" id="csv-body"></div>';
+  dlg.innerHTML='<div class="csv-head"><h3 id="csv-title"></h3><div><button type="button" class="csv-close">Tanca</button></div></div><div class="csv-body" id="csv-body"></div>';
   document.body.appendChild(dlg);
-  var title=dlg.querySelector('#csv-title'),body=dlg.querySelector('#csv-body'),dl=dlg.querySelector('#csv-download');
+  var title=dlg.querySelector('#csv-title'),body=dlg.querySelector('#csv-body');
   dlg.querySelector('.csv-close').addEventListener('click',function(){dlg.close()});
   dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
   function parse(t){var rows=[],r=[],f='',q=false,i,c;t=t.replace(/^﻿/,'');
@@ -19,7 +19,7 @@
     body.innerHTML=out+'</tbody></table>'}
   document.addEventListener('click',function(e){var b=e.target.closest('.csv-open');if(!b)return;
     e.preventDefault();var url=b.getAttribute('href'),name=b.getAttribute('data-title');
-    title.textContent='Dades: '+name;dl.href=url;body.innerHTML='<p>Carregant…</p>';dlg.showModal();
+    title.textContent='Dades: '+name;body.innerHTML='<p>Carregant…</p>';dlg.showModal();
     fetch(url).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){render(parse(t),name)})
-      .catch(function(){body.innerHTML='<p>No s’han pogut carregar les dades. <a href="'+url+'" download>Descarrega el CSV</a>.</p>'})});
+      .catch(function(){body.innerHTML='<p>No s’han pogut carregar les dades.</p>'})});
 })();

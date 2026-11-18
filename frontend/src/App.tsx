@@ -3,6 +3,7 @@ import { useAuth } from "./auth";
 import { Layout } from "./Layout";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { HomePage } from "./pages/HomePage";
+import { CyranoPage } from "./pages/CyranoPage";
 import { GestioPage } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -29,6 +30,7 @@ export function App() {
           <Route index element={<HomePage />} />
           <Route path="perfil" element={<ProfilePage />} />
           <Route path="verificar" element={<VerifyPage />} />
+          <Route path="cyrano" element={<CyranoPage />} />
         </Route>
         <Route element={<RequireAuth admin />}>
           <Route path="seguretat" element={<SecurityPage />} />

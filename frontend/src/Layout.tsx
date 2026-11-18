@@ -1,10 +1,17 @@
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { api } from "./api";
 import { useAuth } from "./auth";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [hasCyrano, setHasCyrano] = useState(false);
+  useEffect(() => {
+    if (!user) return setHasCyrano(false);
+    api.menu().then((m) => setHasCyrano(m.some((i) => i.url === "/cyrano"))).catch(() => setHasCyrano(false));
+  }, [user]);
   const inGestio = ["/gestio", "/hub", "/usuaris"].some((p) => pathname.startsWith(p));
   return (
     <div className="shell">
@@ -15,7 +22,8 @@ export function Layout() {
         </Link>
         {user && (
           <nav>
-            <NavLink to="/" end className="navlink">Inici</NavLink>
+            <NavLink to="/" end className="navlink">Hub</NavLink>
+            {hasCyrano && <NavLink to="/cyrano" className="navlink">Cyrano</NavLink>}
             {user.role === "admin" && (
               <NavLink to="/gestio" className={`navlink gestio${inGestio ? " active" : ""}`}>Gestió</NavLink>
             )}
@@ -51,8 +59,20 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="foot">
-        <img src="/logo.svg" alt="" width={28} height={28} />
-        <p>© {new Date().getFullYear()} acalpere.cat · Llibres, dades i família.</p>
+        <div className="foot-in">
+          <Link to="/" className="foot-brand">
+            <img src="/logo.svg" alt="" width={32} height={32} />
+            <span>acalpere<span className="tld">.cat</span></span>
+          </Link>
+          {user && (
+            <nav className="foot-nav" aria-label="Peu">
+              <Link to="/">Hub</Link>
+              {hasCyrano && <Link to="/cyrano">Cyrano</Link>}
+              <Link to="/perfil">El meu perfil</Link>
+            </nav>
+          )}
+          <p>© {new Date().getFullYear()} acalpere.cat · Llibres, dades i família.</p>
+        </div>
       </footer>
     </div>
   );

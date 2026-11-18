@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { Navigate, useSearchParams } from "react-router";
 import { api, type LoginStep } from "../api";
+import { PasswordInput } from "../components/PasswordInput";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { validate } from "../forms";
 import { useAuth } from "../auth";
@@ -21,6 +22,8 @@ export function LoginPage() {
   const [params] = useSearchParams();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [manual, setManual] = useState(false);
   const [step, setStep] = useState<LoginStep | null>(null);
   const [setup, setSetup] = useState<{ secret: string; qr: string } | null>(null);
   const next = safeNext(params.get("next"));
@@ -89,9 +92,13 @@ export function LoginPage() {
     });
   }
 
-  const passkeyButton = passkeys && (
-    <button type="button" className={mobile ? "" : "ghost"} disabled={busy} onClick={passkeyLogin}>
-      {mobile ? "Entrar amb la petjada digital" : "Entrar amb clau d'accés"}
+  const passkeyButton = (
+    <button type="button" className="touch" disabled={busy} onClick={passkeyLogin}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 11v3a6 6 0 0 1-1 3.300M8.500 14.500c0-2 .5-3.500 1.500-5M5.500 16c-.7-1.500-1-3-1-4.500a7.500 7.500 0 0 1 15 0c0 1-.1 2-.3 3M16 15c0 2-.5 3.500-1.300 5" />
+        <path d="M12 7a4.500 4.500 0 0 0-4.500 4.500c0 .8-.1 1.500-.3 2.200M12 11v.01" />
+      </svg>
+      Entrar amb la petjada
     </button>
   );
 
@@ -103,30 +110,37 @@ export function LoginPage() {
       </label>
       <label>
         Clau
-        <input name="clau" type="password" autoComplete="current-password" required />
+        <PasswordInput name="clau" autoComplete="current-password" required />
       </label>
       <button type="submit" disabled={busy}>Continuar</button>
+      <button type="button" className="link forgot" aria-expanded={forgot} onClick={() => setForgot((f) => !f)}>
+        Has oblidat la clau?
+      </button>
+      {forgot && (
+        <p className="muted small hint" role="note">
+          Per seguretat la clau no es pot recuperar des d'aquí. Demana a l'administrador que te la restableixi
+          i, un cop dins, canvia-la a <strong>El meu perfil</strong>.
+        </p>
+      )}
     </form>
   );
 
   return (
     <div className="login">
       <div className="card">
-        <img src="/logo.svg" alt="acalpere" width={72} height={72} />
-        <h1>Accés usuaris</h1>
+        <img src="/logo.svg" alt="acalpere" width={56} height={56} />
+        <h1>Benvingut</h1>
+        <p className="sub">Accedeix al teu espai</p>
 
         {step === null && (
-          <>
-            {passkeyButton}
-            {mobile && passkeys ? (
-              <details>
-                <summary>Entrar amb usuari, clau i codi</summary>
-                {passwordForm}
-              </details>
-            ) : (
-              passwordForm
-            )}
-          </>
+          mobile && passkeys && !manual ? (
+            <>
+              {passkeyButton}
+              <button type="button" className="alt" onClick={() => setManual(true)}>Usar usuari i clau</button>
+            </>
+          ) : (
+            passwordForm
+          )
         )}
 
         {step === "mfa_setup" && (

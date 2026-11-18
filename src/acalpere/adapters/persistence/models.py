@@ -317,3 +317,41 @@ class UserContentRow(Base):
     content_id: Mapped[int] = mapped_column(
         ForeignKey("contents.id", ondelete="CASCADE"), primary_key=True
     )
+
+
+# --- cyrano --------------------------------------------------------------------------------
+
+
+class CyranoLineRow(Base):
+    """Una línia del text de Cyrano: rèplica, acotació, títol o nota."""
+
+    __tablename__ = "cyrano_lines"
+    __table_args__ = (Index("ix_cyrano_lines_scene", "act", "scene", "position"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    act: Mapped[int] = mapped_column(Integer, nullable=False)
+    scene: Mapped[int] = mapped_column(Integer, nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)
+    speaker: Mapped[str | None] = mapped_column(String(80))
+    stamp: Mapped[str | None] = mapped_column(String(10))
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    norm: Mapped[str] = mapped_column(Text, nullable=False)  # text sense accents, per cercar
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class CyranoRevisionRow(Base):
+    """Historial d'una línia: cada versió desada (la primera, el text original, sense autor)."""
+
+    __tablename__ = "cyrano_revisions"
+    __table_args__ = (Index("ix_cyrano_revisions_line", "line_id", "id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    line_id: Mapped[int] = mapped_column(
+        ForeignKey("cyrano_lines.id", ondelete="CASCADE"), nullable=False
+    )
+    speaker: Mapped[str | None] = mapped_column(String(80))
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    edited_by: Mapped[str | None] = mapped_column(String(80))
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

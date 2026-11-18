@@ -16,6 +16,7 @@ from ...domain.calendar import (
     LastModification,
     Modalitat,
 )
+from ...domain.cyrano import Line, Revision
 from ...domain.hub import Access, Agent, Site
 from ...domain.identity import Content, Passkey, Profile, User
 from ...domain.inheritance import Fill, Finca, Missatge, Parametres, Pis
@@ -524,3 +525,149 @@ class SqlAccessRepository:
                 for i in access.agent_ids
             )
             s.add_all(m.UserContentRow(user_id=user_id, content_id=i) for i in access.content_ids)
+
+
+class SqlCyranoRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    @staticmethod
+    def _line(r: m.CyranoLineRow) -> Line:
+        return Line(r.id, r.act, r.scene, r.position, r.kind, r.speaker, r.stamp, r.text)
+
+    def sections(self) -> list[tuple[int, int]]:
+        with self._sf() as s:
+            rows = s.execute(
+                select(m.CyranoLineRow.act, m.CyranoLineRow.scene)
+                .distinct()
+                .order_by(m.CyranoLineRow.act, m.CyranoLineRow.scene)
+            )
+            return [(a, sc) for a, sc in rows]
+
+    def all_lines(self) -> list[Line]:
+        with self._sf() as s:
+            rows = s.scalars(select(m.CyranoLineRow).order_by(m.CyranoLineRow.position))
+            return [self._line(r) for r in rows]
+
+    def titles(self) -> list[Line]:
+        with self._sf() as s:
+            rows = s.scalars(
+                select(m.CyranoLineRow)
+                .where(m.CyranoLineRow.kind == "title", m.CyranoLineRow.scene == 0)
+                .order_by(m.CyranoLineRow.position)
+            )
+            return [self._line(r) for r in rows]
+
+    def scene(self, act: int, scene: int) -> list[Line]:
+        with self._sf() as s:
+            rows = s.scalars(
+                select(m.CyranoLineRow)
+                .where(m.CyranoLineRow.act == act, m.CyranoLineRow.scene == scene)
+                .order_by(m.CyranoLineRow.position)
+            )
+            return [self._line(r) for r in rows]
+
+    def speakers(self) -> list[tuple[str, int]]:
+        with self._sf() as s:
+            rows = s.execute(
+                select(m.CyranoLineRow.speaker, func.count())
+                .where(m.CyranoLineRow.speaker.is_not(None))
+                .group_by(m.CyranoLineRow.speaker)
+            )
+            return [(name, n) for name, n in rows]
+
+    def search(self, terms: list[str], speaker: str | None, limit: int) -> list[Line]:
+        query = select(m.CyranoLineRow).where(m.CyranoLineRow.act > 0)
+        for term in terms:
+            query = query.where(m.CyranoLineRow.norm.contains(term, autoescape=True))
+        if speaker:
+            query = query.where(m.CyranoLineRow.speaker.istartswith(speaker, autoescape=True))
+        with self._sf() as s:
+            rows = s.scalars(query.order_by(m.CyranoLineRow.position).limit(limit))
+            return [self._line(r) for r in rows]
+
+    def update(
+        self, line_id: int, speaker: str | None, kind: str, text: str, norm: str, by: str
+    ) -> Line | None:
+        with self._sf.begin() as s:
+            row = s.get(m.CyranoLineRow, line_id)
+            if row is None:
+                return None
+            if not s.scalar(
+                select(func.count())
+                .select_from(m.CyranoRevisionRow)
+                .where(m.CyranoRevisionRow.line_id == line_id)
+            ):  # primera edició: es conserva el text original
+                s.add(
+                    m.CyranoRevisionRow(
+                        line_id=line_id, speaker=row.speaker, kind=row.kind, text=row.text
+                    )
+                )
+            now = _now()
+            row.speaker, row.kind, row.text, row.norm, row.updated_at = (
+                speaker,
+                kind,
+                text,
+                norm,
+                now,
+            )
+            s.add(
+                m.CyranoRevisionRow(
+                    line_id=line_id,
+                    speaker=speaker,
+                    kind=kind,
+                    text=text,
+                    edited_by=by,
+                    edited_at=now,
+                )
+            )
+            s.flush()
+            return self._line(row)
+
+    @staticmethod
+    def _revision(r: m.CyranoRevisionRow) -> Revision:
+        return Revision(r.id, r.line_id, r.speaker, r.kind, r.text, r.edited_by, r.edited_at)
+
+    def history(self, line_id: int) -> list[Revision]:
+        with self._sf() as s:
+            rows = s.scalars(
+                select(m.CyranoRevisionRow)
+                .where(m.CyranoRevisionRow.line_id == line_id)
+                .order_by(m.CyranoRevisionRow.id.desc())
+            )
+            return [self._revision(r) for r in rows]
+
+    def revision(self, revision_id: int) -> Revision | None:
+        with self._sf() as s:
+            row = s.get(m.CyranoRevisionRow, revision_id)
+            return self._revision(row) if row else None
+
+    def edited_count(self) -> int:
+        with self._sf() as s:
+            return (
+                s.scalar(
+                    select(func.count())
+                    .select_from(m.CyranoLineRow)
+                    .where(m.CyranoLineRow.updated_at.is_not(None))
+                )
+                or 0
+            )
+
+    def replace_all(self, lines: list[Line], norms: list[str]) -> int:
+        with self._sf.begin() as s:
+            s.execute(delete(m.CyranoRevisionRow))
+            s.execute(delete(m.CyranoLineRow))
+            s.add_all(
+                m.CyranoLineRow(
+                    act=ln.act,
+                    scene=ln.scene,
+                    position=ln.position,
+                    kind=ln.kind,
+                    speaker=ln.speaker,
+                    stamp=ln.stamp,
+                    text=ln.text,
+                    norm=norm,
+                )
+                for ln, norm in zip(lines, norms, strict=True)
+            )
+        return len(lines)

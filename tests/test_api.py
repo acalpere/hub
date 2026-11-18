@@ -52,6 +52,7 @@ def test_menu_depends_on_role(admin, client):
         "Herència",
         "Hub",
         "Poemes",
+        "Cyrano",
     ]
     client.post("/api/v1/auth/logout")
     login(client, "Jordi", "altra-clau-prova")

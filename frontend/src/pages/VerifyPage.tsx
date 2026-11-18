@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { api } from "../api";
+import { PasswordInput } from "../components/PasswordInput";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { validate } from "../forms";
 import { getPasskey, isTouchDevice, passkeysSupported } from "../passkeys";
@@ -50,22 +51,21 @@ export function VerifyPage() {
   }
 
   return (
-    <section className="card">
-      <h1>Verificació addicional</h1>
-      <p className="lead">Aquest contingut és delicat: confirma que ets tu.</p>
-      {passkeys && (
-        <button type="button" disabled={busy} onClick={fingerprint}>
-          {mobile ? "Confirmar amb la petjada digital" : "Confirmar amb clau d'accés"}
-        </button>
-      )}
-      <form className="stack" noValidate onSubmit={submitCode}>
-        <label>
-          Codi de l'autenticador
-          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,7}" maxLength={7} required />
-        </label>
-        <button type="submit" className={passkeys ? "ghost" : ""} disabled={busy}>Confirmar amb el codi</button>
-      </form>
-      <ErrorMessage message={error} />
-    </section>
+    <div className="verify">
+      <section className="card">
+        <h1>Verificació addicional</h1>
+        {passkeys && mobile && (
+          <button type="button" className="touch" disabled={busy} onClick={fingerprint}>Confirmar amb la petjada</button>
+        )}
+        <form className="stack" noValidate onSubmit={submitCode}>
+          <label>
+            Codi de l'autenticador
+            <PasswordInput name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,7}" maxLength={7} required autoFocus={!mobile} />
+          </label>
+          <button type="submit" className={passkeys && mobile ? "ghost" : ""} disabled={busy}>Confirmar</button>
+        </form>
+        <ErrorMessage message={error} />
+      </section>
+    </div>
   );
 }

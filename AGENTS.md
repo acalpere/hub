@@ -14,6 +14,12 @@
 - Abans de lliurar: `ruff check .`, `pytest`, `alembic check`; al frontend `npm run typecheck && npm test && npm run build`;
   per a infraestructura `terraform fmt -check -recursive terraform` i `terraform validate` a cada arrel.
 - Producció: es desplega per GitHub Actions amb OIDC (`develop` → dev, `main` → prod). `terraform/dns` i `terraform/bootstrap` s'apliquen a mà.
+- **Poemes (`poemes/`)** és un paquet independent (`motfinal`, amb el seu `pyproject`, proves, `terraform/` i workflows propis)
+  incrustat aquí: `adapters/web/poemes.py` munta el seu router a `/api/v1/poemes` amb les sessions, l'autorització
+  (`app_access("/apps/poemes/")`) i la base de dades del hub; la interfície es copia a `frontend/public/apps/poemes` amb
+  `scripts/sync-poemes-ui.mjs` (no es versiona). El hub no importa res de `motfinal` fora de `adapters/web/poemes.py` i
+  `migrations/env.py`, i `motfinal` no sap res del hub. Les seves taules entren al hub amb migracions pròpies (0008). Per
+  separar-lo: veure `docs/poemes.md`.
 
 ## Regles de negoci (decisions del propietari; no canviar sense demanar-ho)
 

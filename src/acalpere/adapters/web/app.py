@@ -12,7 +12,7 @@ from ...bootstrap import Container, build_container
 from ...config import Settings, get_settings
 from ...domain.errors import AuthError, Conflict, DomainError, Forbidden, InvalidInput, NotFound
 from .poemes import mount_poemes
-from .routes import auth, calendar, herencia, hub
+from .routes import auth, calendar, cyrano, herencia, hub
 
 CSRF_HEADER = "x-requested-with"
 CSRF_VALUE = "acalpere"
@@ -80,7 +80,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     def health():
         return {"status": "ok", "env": settings.env}
 
-    for router in (auth.router, calendar.router, herencia.router, hub.router):
+    for router in (auth.router, calendar.router, cyrano.router, herencia.router, hub.router):
         app.include_router(router, prefix="/api/v1")
     mount_poemes(app)
     return app

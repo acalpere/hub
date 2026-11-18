@@ -8,12 +8,14 @@ from sqlalchemy.orm import sessionmaker
 
 from .adapters.crypto import AesGcmCipher, PlainCipher
 from .adapters.passkeys import WebAuthnVerifier
+from .adapters.pdf import PdfPlayRenderer
 from .adapters.persistence.engine import make_session_factory
 from .adapters.persistence.repos import (
     SqlAccessRepository,
     SqlAgentRepository,
     SqlCalendarRepository,
     SqlContentRepository,
+    SqlCyranoRepository,
     SqlInheritanceRepository,
     SqlPasskeyRepository,
     SqlSiteRepository,
@@ -21,6 +23,7 @@ from .adapters.persistence.repos import (
 )
 from .application.auth import AuthService
 from .application.calendar import CalendarService
+from .application.cyrano import CyranoService
 from .application.hub import HubService
 from .application.inheritance import InheritanceService
 from .application.menu import MenuService
@@ -38,6 +41,7 @@ class Container:
     menu: MenuService
     calendar: CalendarService
     inheritance: InheritanceService
+    cyrano: CyranoService
     hub: HubService
     session_factory: sessionmaker
 
@@ -92,6 +96,7 @@ def build_container(settings: Settings) -> Container:
         menu=MenuService(contents, access),
         calendar=CalendarService(SqlCalendarRepository(sf)),
         inheritance=InheritanceService(SqlInheritanceRepository(sf, make_cipher(settings))),
+        cyrano=CyranoService(SqlCyranoRepository(sf), PdfPlayRenderer()),
         hub=HubService(sites, SqlAgentRepository(sf), access, users, contents),
         session_factory=sf,
     )

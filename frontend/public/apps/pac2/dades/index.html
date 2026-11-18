@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ca">
 <head>
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="PAC2 de Visualització de dades de Pere Vilàrasau: Circle Packing, diagrama al·luvial i OHLC.">
@@ -24,16 +26,16 @@
     </section>
     <nav class="section-nav" id="visualitzacions" aria-label="Visualitzacions"><div class="wrap"><a href="#circle-packing"><span>01</span> Circle Packing</a><a href="#alluvial"><span>02</span> Diagrama al·luvial</a><a href="#ohlc"><span>03</span> OHLC</a></div></nav>
     <section class="chapter wrap" id="circle-packing" aria-labelledby="circle-title">
-      <div class="chapter-heading"><span class="chapter-number">01</span><div><p class="eyebrow">Jerarquia · Circle Packing</p><h2 id="circle-title">On van els diners<br>de Barcelona?</h2><p class="intro">Pressupost de despeses de 2024. Una exploració de les obligacions reconegudes per àrea, política i grup de programes.</p></div><span class="status available">Interactiva</span></div>
+      <div class="chapter-heading"><span class="chapter-number">01</span><div><p class="eyebrow">Jerarquia · Circle Packing</p><h2 id="circle-title">On van els diners<br>de Barcelona?</h2><p class="intro">Pressupost de despeses de 2024. Una exploració de les obligacions reconegudes per àrea, política i grup de programes.</p></div></div>
       <div class="chart-toolbar"><span><span class="dot"></span> Clica els cercles per explorar els nivells de detall.</span><a href="https://public.flourish.studio/visualisation/30738625/" target="_blank" rel="noopener">Obre el gràfic a part ↗</a></div>
       <div class="chart-frame">
         <div class="flourish-embed flourish-hierarchy" data-src="visualisation/30738625"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/30738625/thumbnail" width="100%" alt="Circle Packing del pressupost de despeses de Barcelona de 2024. Obre l’enllaç del gràfic per consultar la visualització." /></noscript></div>
       </div>
       <p class="chart-credit">Visualització creada amb <a href="https://public.flourish.studio/visualisation/30738625/" target="_blank" rel="noopener">Flourish</a>. Si el gràfic no es carrega, utilitza l’enllaç «Obre el gràfic a part».</p>
       <div class="reading-grid"><article><h3>Com es llegeix?</h3><p>Els cercles contenidors representen les àrees i les polítiques. Els grups de programes ocupen el nivell més detallat, amb una àrea proporcional a l’import d’<strong>Obligat</strong>, expressat en euros.</p></article><article><h3>Què ens permet explorar?</h3><p>El pes relatiu de les partides i la seva organització dins del pressupost. La navegació permet passar d’una visió general als grups de programes.</p></article><article><h3>Quin límit té?</h3><p>Comparar àrees semblants és menys precís que comparar longituds. L’espai buit entre cercles respon a l’empaquetament i no representa diners sense assignar.</p></article></div>
-      <details><summary>Dades i preparació</summary><p>Font: Ajuntament de Barcelona, Open Data BCN. Pressupost de despeses de 2024. Agrupació per <code>Text_Arees</code>, <code>Text_Politica</code> i <code>Text_Grup_de_programes</code>, sumant <code>Obligat</code>. L’import correspon a obligacions reconegudes, no al crèdit inicial ni als pagaments efectuats.</p><p><a href="dades/pressupost-2024-agrupat.csv" download>Descarrega les dades agrupades (CSV)</a></p></details>
+      <details><summary>Dades i preparació</summary><p>Font: Ajuntament de Barcelona, Open Data BCN. Pressupost de despeses de 2024. Agrupació per <code>Text_Arees</code>, <code>Text_Politica</code> i <code>Text_Grup_de_programes</code>, sumant <code>Obligat</code>. L’import correspon a obligacions reconegudes, no al crèdit inicial ni als pagaments efectuats.</p></details>
     </section>
-    <section class="chapter chapter-tinted" id="alluvial" aria-labelledby="alluvial-title"><div class="wrap"><div class="chapter-heading"><span class="chapter-number">02</span><div><p class="eyebrow">Distribució · Alluvial Diagram</p><h2 id="alluvial-title">Seguir el recorregut<br>de les categories.</h2><p class="intro">Un diagrama per explorar com es distribueixen els registres entre diferents classificacions.</p></div><span class="status available">Interactiva</span></div>
+    <section class="chapter chapter-tinted" id="alluvial" aria-labelledby="alluvial-title"><div class="wrap"><div class="chapter-heading"><span class="chapter-number">02</span><div><p class="eyebrow">Distribució · Alluvial Diagram</p><h2 id="alluvial-title">Seguir el recorregut<br>de les categories.</h2><p class="intro">Un diagrama per explorar com es distribueixen els registres entre diferents classificacions.</p></div></div>
       <div class="chart-toolbar"><span><span class="dot"></span> Passa el cursor per sobre de les bandes per veure'n el detall.</span><a href="https://public.flourish.studio/visualisation/30739873/" target="_blank" rel="noopener">Obre el gràfic a part ↗</a></div>
       <div class="chart-frame">
         <div class="flourish-embed flourish-sankey" data-src="visualisation/30739873"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/30739873/thumbnail" width="100%" alt="Diagrama al·luvial (Sankey) de les categories. Obre l’enllaç del gràfic per consultar la visualització." /></noscript></div>

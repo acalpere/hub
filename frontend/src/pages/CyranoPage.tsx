@@ -1,0 +1,444 @@
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router";
+import { api, type CyranoKind, type CyranoLine, type CyranoOutline, type CyranoRevision } from "../api";
+import { ErrorMessage } from "../components/ErrorMessage";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { useAuth } from "../auth";
+import { highlight, roman, searchTerms } from "../cyrano";
+
+const actLabel = (act: number) => (act === 0 ? "Notes" : `Acte ${roman(act)}`);
+const sceneLabel = (act: number, scene: number) =>
+  act === 0 ? (scene === 0 ? "Nota editorial" : "Criteri editorial") : `Escena ${roman(scene)}`;
+
+function Marked({ text, terms }: { text: string; terms: string[] }) {
+  return (
+    <>
+      {highlight(text, terms).map((p, i) => (p.hit ? <mark key={i}>{p.text}</mark> : <span key={i}>{p.text}</span>))}
+    </>
+  );
+}
+
+interface LineProps {
+  line: CyranoLine;
+  terms: string[];
+  focus: boolean;
+  canEdit: boolean;
+  speakers: string[];
+  onSaved: (l: CyranoLine) => void;
+  showPlace?: boolean;
+  onOpen?: () => void;
+}
+
+function when(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleString("ca", { dateStyle: "medium", timeStyle: "short" }) : "";
+}
+
+function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; busy: boolean; onRestore: (r: CyranoRevision) => void }) {
+  if (versions.length === 0) return <p className="muted small">Aquesta línia no s'ha editat mai.</p>;
+  return (
+    <ol className="cy-history">
+      {versions.map((v, i) => (
+        <li key={v.id}>
+          <div className="cy-history-meta">
+            <span>{v.edited_by ? `${v.edited_by} · ${when(v.edited_at)}` : "Text original"}</span>
+            {i === 0 ? <em>vigent</em> : <button type="button" className="link" disabled={busy} onClick={() => onRestore(v)}>Restaura</button>}
+          </div>
+          <p>{v.speaker && <strong>{v.speaker}. </strong>}{v.text}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpen }: LineProps) {
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [history, setHistory] = useState<CyranoRevision[] | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  async function loadHistory() {
+    setError("");
+    try {
+      setHistory(await api.cyranoHistory(line.id));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function restore(r: CyranoRevision) {
+    setBusy(true);
+    setError("");
+    try {
+      onSaved(await api.cyranoRestore(line.id, r.id));
+      setHistory(await api.cyranoHistory(line.id));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (focus) ref.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focus]);
+
+  async function save(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const kind = String(f.get("kind")) as CyranoKind;
+    setBusy(true);
+    setError("");
+    try {
+      onSaved(await api.cyranoEdit(line.id, { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")) }));
+      setEditing(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <form className="cy-edit" onSubmit={save}>
+        <div className="cy-edit-row">
+          <label>
+            Tipus
+            <select name="kind" defaultValue={line.kind === "speech" || line.kind === "stage" ? line.kind : "text"}>
+              <option value="speech">Rèplica</option>
+              <option value="stage">Acotació</option>
+              <option value="text">Text</option>
+            </select>
+          </label>
+          <label>
+            Personatge
+            <input name="speaker" list="cy-speakers" defaultValue={line.speaker ?? ""} />
+          </label>
+        </div>
+        <datalist id="cy-speakers">{speakers.map((s) => <option key={s} value={s} />)}</datalist>
+        <textarea name="text" defaultValue={line.text} rows={Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
+        <ErrorMessage message={error} />
+        <div className="cy-edit-actions">
+          <button type="submit" disabled={busy}>Desa</button>
+          <button type="button" className="ghost" onClick={() => setEditing(false)}>Cancel·la</button>
+          <button type="button" className="link" onClick={() => (history ? setHistory(null) : void loadHistory())}>
+            {history ? "Amaga l'historial" : "Historial"}
+          </button>
+        </div>
+        {history && <History versions={history} busy={busy} onRestore={(r) => void restore(r)} />}
+      </form>
+    );
+  }
+
+  const body = <Marked text={line.text} terms={terms} />;
+  return (
+    <div ref={ref} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}`}>
+      {line.kind === "speech" ? (
+        <>
+          <div className="cy-who">
+            {line.speaker}
+            {line.stamp && <small>{line.stamp}</small>}
+          </div>
+          <p>{body}</p>
+        </>
+      ) : (
+        <p className="cy-plain">{body}</p>
+      )}
+      <div className="cy-tools">
+        {showPlace && onOpen && (
+          <button type="button" className="link" onClick={onOpen}>
+            {actLabel(line.act)} · {sceneLabel(line.act, line.scene)}
+          </button>
+        )}
+        {canEdit && (
+          <button type="button" className="link" onClick={() => setEditing(true)} aria-label="Edita aquesta línia">
+            Edita
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function CyranoPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [params, setParams] = useSearchParams();
+  const canEdit = isAdmin && params.get("mode") === "edicio";
+  const [outline, setOutline] = useState<CyranoOutline | null>(null);
+  const [lines, setLines] = useState<CyranoLine[]>([]);
+  const [results, setResults] = useState<{ list: CyranoLine[]; truncated: boolean } | null>(null);
+  const [all, setAll] = useState<CyranoLine[] | null>(null);
+  const [seen, setSeen] = useState<{ act: number; scene: number } | null>(null);
+  const [error, setError] = useState("");
+
+  const continuous = params.get("vista") === "continua";
+  const q = params.get("q") ?? "";
+  const who = params.get("personatge") ?? "";
+  const searching = params.get("cerca") === "1";
+  const focusId = Number(params.get("linia")) || 0;
+  const terms = useMemo(() => searchTerms(q), [q]);
+  const speakers = useMemo(() => outline?.speakers.map((s) => s.name) ?? [], [outline]);
+
+  const update = useCallback(
+    (changes: Record<string, string | null>) => {
+      const next = new URLSearchParams(params);
+      for (const [k, v] of Object.entries(changes)) (v ? next.set(k, v) : next.delete(k));
+      setParams(next, { replace: false });
+    },
+    [params, setParams],
+  );
+
+  useEffect(() => {
+    api.cyranoOutline().then(setOutline).catch((e) => setError((e as Error).message));
+  }, []);
+
+  const first = outline?.acts.find((a) => a.act > 0) ?? outline?.acts[0];
+  const act = Number(params.get("acte") ?? first?.act ?? 1);
+  const actInfo = outline?.acts.find((a) => a.act === act);
+  const scene = Number(params.get("escena") ?? actInfo?.scenes[0] ?? 1);
+  // Mentre es llegeixen les notes, la fila d'escenes continua mostrant les de l'últim acte triat.
+  const [lastAct, setLastAct] = useState(0);
+  // En la vista contínua, l'acte i l'escena que es veuen els dóna el desplaçament, no l'adreça.
+  const viewAct = continuous && seen ? seen.act : act;
+  const viewScene = continuous && seen ? seen.scene : scene;
+  useEffect(() => {
+    if (viewAct > 0) setLastAct(viewAct);
+  }, [viewAct]);
+  const sceneAct = viewAct > 0 ? viewAct : lastAct || first?.act || 1;
+  const sceneInfo = outline?.acts.find((a) => a.act === sceneAct);
+  const noteInfo = outline?.acts.find((a) => a.act === 0);
+
+  useEffect(() => {
+    if (!outline || searching || !continuous || all) return;
+    api.cyranoText().then((l) => { setAll(l); setError(""); }).catch((e) => setError((e as Error).message));
+  }, [outline, searching, continuous, all]);
+
+  // Llista de seccions (acte, escena) de la vista contínua, i seguiment de la que es veu.
+  const sections = useMemo(() => {
+    const out: { act: number; scene: number; lines: CyranoLine[] }[] = [];
+    for (const l of all ?? []) {
+      const last = out[out.length - 1];
+      if (last && last.act === l.act && last.scene === l.scene) last.lines.push(l);
+      else out.push({ act: l.act, scene: l.scene, lines: [l] });
+    }
+    return out;
+  }, [all]);
+
+  useEffect(() => {
+    if (!continuous || searching || !sections.length) return;
+    const watcher = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setSeen({ act: Number((e.target as HTMLElement).dataset.act), scene: Number((e.target as HTMLElement).dataset.scene) });
+        }
+      },
+      { rootMargin: "-30% 0px -65% 0px" },
+    );
+    document.querySelectorAll("[data-act]").forEach((el) => watcher.observe(el));
+    return () => watcher.disconnect();
+  }, [continuous, searching, sections]);
+
+  // En passar a la vista contínua, es va a l'escena que es llegia.
+  useEffect(() => {
+    if (!continuous || searching || !sections.length || focusId) return;
+    const target = act > 0 && scene === actInfo?.scenes[0] ? 0 : scene;
+    requestAnimationFrame(() => document.getElementById(`s-${act}-${target}`)?.scrollIntoView({ block: "start" }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [continuous, searching, sections.length]);
+
+  useEffect(() => {
+    if (!outline || searching || continuous) return;
+    api.cyranoScene(act, scene).then((l) => { setLines(l); setError(""); }).catch((e) => setError((e as Error).message));
+  }, [outline, act, scene, searching, continuous]);
+
+  useEffect(() => {
+    if (!searching) return;
+    setResults(null);
+    api.cyranoSearch(q, who)
+      .then((r) => { setResults({ list: r.results, truncated: r.truncated }); setError(""); })
+      .catch((e) => setError((e as Error).message));
+  }, [searching, q, who]);
+
+  function submitSearch(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const text = String(f.get("q")).trim();
+    const person = String(f.get("personatge"));
+    if (!text && !person) return update({ q: null, personatge: null, cerca: null, linia: null });
+    update({ q: text || null, personatge: person || null, cerca: "1", linia: null });
+  }
+
+  function openLine(l: CyranoLine) {
+    update({ acte: String(l.act), escena: String(l.scene), linia: String(l.id), cerca: null });
+  }
+
+  function saved(updated: CyranoLine) {
+    const swap = (l: CyranoLine) => (l.id === updated.id ? updated : l);
+    setLines((ls) => ls.map(swap));
+    setAll((a) => a && a.map(swap));
+    setResults((r) => r && { ...r, list: r.list.map(swap) });
+  }
+
+  const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
+  const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
+  const go = (to: { act: number; scene: number } | undefined) => {
+    if (!to) return;
+    if (!continuous) return update({ acte: String(to.act), escena: String(to.scene), linia: null, cerca: null });
+    // Vista contínua: es desplaça fins a la secció (el títol de l'acte, si és la primera escena).
+    const target = to.act > 0 && to.scene === outline?.acts.find((a) => a.act === to.act)?.scenes[0] ? 0 : to.scene;
+    document.getElementById(`s-${to.act}-${target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setSeen(to);
+  };
+
+  function setView(paged: boolean) {
+    if (paged && continuous) {
+      const first = outline?.acts.find((a) => a.act === viewAct)?.scenes[0] ?? 0;
+      update({ vista: null, acte: String(viewAct), escena: String(viewScene || first), linia: null });
+    } else if (!paged && !continuous) {
+      update({ vista: "continua", linia: null });
+    }
+  }
+
+  if (!outline) return error ? <ErrorMessage message={error} /> : <LoadingSpinner />;
+
+  return (
+    <section className={`cy${canEdit ? " cy-editing" : ""}`}>
+      <div className="cy-title">
+        <h1>Cyrano de Bergerac</h1>
+        <div className="cy-switches">
+          <div className="cy-modes" role="group" aria-label="Vista">
+            <button type="button" className={continuous ? "" : "on"} aria-pressed={!continuous} onClick={() => setView(true)}>Paginada</button>
+            <button type="button" className={continuous ? "on" : ""} aria-pressed={continuous} onClick={() => setView(false)}>Contínua</button>
+          </div>
+          <a className="cy-pdf" href="/api/v1/cyrano/pdf" download="Cyrano-de-Bergerac.pdf" title="Baixa l'obra en PDF">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4v10M8 10.5l4 4 4-4M5 19h14" />
+            </svg>
+            PDF
+          </a>
+          {isAdmin && (
+            <div className="cy-modes" role="group" aria-label="Mode">
+              <button type="button" className={canEdit ? "" : "on"} aria-pressed={!canEdit} onClick={() => update({ mode: null })}>Lectura</button>
+              <button type="button" className={canEdit ? "on" : ""} aria-pressed={canEdit} onClick={() => update({ mode: "edicio" })}>Edició</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <form className="cy-search" role="search" onSubmit={submitSearch}>
+        <input name="q" defaultValue={q} key={`q-${q}`} placeholder="Cerca una paraula, o una frase entre cometes…" aria-label="Cerca al text" />
+        <select name="personatge" defaultValue={who} key={`p-${who}`} aria-label="Personatge">
+          <option value="">Tots els personatges</option>
+          {outline.speakers.map((s) => <option key={s.name} value={s.name}>{s.name} ({s.lines})</option>)}
+        </select>
+        <button type="submit" className="cy-go">Cerca <span aria-hidden="true">→</span></button>
+      </form>
+
+      {!searching && q && (
+        <p className="cy-chip">
+          Ressaltant «{q}»
+          <button type="button" className="link" onClick={() => update({ cerca: "1", linia: null })}>Torna als resultats</button>
+          <button type="button" className="link" onClick={() => update({ q: null, personatge: null })}>Esborra</button>
+        </p>
+      )}
+
+      <ErrorMessage message={error} />
+
+      {searching ? (
+        <div className="cy-results">
+          {results === null ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <p className="muted">
+                {results.list.length === 0
+                  ? "Cap coincidència."
+                  : `${results.list.length}${results.truncated ? "+" : ""} ${results.list.length === 1 ? "línia" : "línies"}`}
+                {results.truncated && " (afina la cerca per veure'n més)"}
+              </p>
+              {results.list.map((l) => (
+                <Line key={l.id} line={l} terms={terms} focus={false} canEdit={canEdit} speakers={speakers} onSaved={saved} showPlace onOpen={() => openLine(l)} />
+              ))}
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className={continuous ? "cy-navs sticky" : "cy-navs"}>
+          <nav className="cy-nav" aria-label="Actes">
+            <span className="cy-label">Actes:</span>
+            {outline.acts.filter((a) => a.act > 0).map((a) => (
+              <button key={a.act} type="button" className={`cy-tab${a.act === viewAct ? " on" : ""}`} aria-current={a.act === viewAct} onClick={() => go({ act: a.act, scene: a.scenes[0] ?? 0 })}>
+                {roman(a.act)}
+              </button>
+            ))}
+            <span className="cy-group cy-notes-sub">
+              {noteInfo?.scenes.map((s) => (
+                <button key={s} type="button" className={`cy-tab${viewAct === 0 && s === viewScene ? " on" : ""}`} aria-current={viewAct === 0 && s === viewScene} onClick={() => go({ act: 0, scene: s })}>
+                  {sceneLabel(0, s)}
+                </button>
+              ))}
+            </span>
+          </nav>
+          <div className="cy-nav cy-scenes">
+            <nav className="cy-group" aria-label="Escenes">
+              <span className="cy-label">Escenes:</span>
+              {sceneInfo?.scenes.map((s) => (
+                <button key={s} type="button" className={`cy-tab${viewAct === sceneAct && s === viewScene ? " on" : ""}`} aria-current={viewAct === sceneAct && s === viewScene} onClick={() => go({ act: sceneAct, scene: s })}>
+                  {roman(s)}
+                </button>
+              ))}
+            </nav>
+          </div>
+          </div>
+
+          {continuous ? (
+            all === null ? (
+              <LoadingSpinner />
+            ) : (
+              <div className="cy-whole">
+                {sections.map((sec) => (
+                  <section key={`${sec.act}-${sec.scene}`} id={`s-${sec.act}-${sec.scene}`} data-act={sec.act} data-scene={sec.scene} className="cy-sec">
+                    <header className="cy-head">
+                      {sec.act > 0 && sec.scene === 0 ? (
+                        <>
+                          <p className="eyebrow">{actLabel(sec.act)}</p>
+                          <h2>{sec.lines[0]?.text}</h2>
+                        </>
+                      ) : (
+                        <p className="eyebrow">{sec.act === 0 ? sceneLabel(0, sec.scene) : `${actLabel(sec.act)} · Escena ${roman(sec.scene)}`}</p>
+                      )}
+                    </header>
+                    {sec.lines.filter((l) => !(sec.act > 0 && sec.scene === 0 && l.kind === "title")).map((l) => (
+                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} />
+                    ))}
+                  </section>
+                ))}
+              </div>
+            )
+          ) : (
+            <>
+            <header className="cy-head">
+              <p className="eyebrow">{actLabel(act)}{act > 0 && ` · Escena ${roman(scene)}`}</p>
+              {act > 0 && actInfo?.title && <h2>{actInfo.title}</h2>}
+            </header>
+
+            <div className="cy-scene">
+              {lines.map((l) => (
+                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} />
+              ))}
+            </div>
+
+            <div className="cy-pager">
+              <button type="button" className="ghost" disabled={at <= 0} onClick={() => go(ordered[at - 1])}>← Anterior</button>
+              <button type="button" className="ghost" disabled={at < 0 || at >= ordered.length - 1} onClick={() => go(ordered[at + 1])}>Següent →</button>
+            </div>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}

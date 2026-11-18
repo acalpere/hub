@@ -7,12 +7,14 @@ import getpass
 from pathlib import Path
 
 from .config import get_settings
+from .domain.errors import DomainError
 
 DEFAULT_MENU = [
     # (nom, url, rols, posició)
     ("Calendari de la mare", "/apps/calendari/", "admin,germa", 10),
     ("Herència", "/apps/herencia/", "admin,germa", 20),
     ("Poemes", "/apps/poemes/", "admin", 25),
+    ("Cyrano", "/cyrano", "admin", 27),
     ("Webs i agents", "/hub", "admin", 30),
 ]
 
@@ -35,6 +37,13 @@ def main() -> None:
     imp = sub.add_parser("import-legacy", help="Importa les dades de la web antiga (data/legacy)")
     imp.add_argument("--dir", default="data/legacy")
     imp.add_argument("--replace", action="store_true", help="Substitueix les dades existents")
+    cyr = sub.add_parser("import-cyrano", help="Importa el text de Cyrano d'un .odt")
+    cyr.add_argument("path", nargs="?", default="CyranoDeBergerac.odt")
+    cyr.add_argument(
+        "--force", action="store_true", help="Esborra també les edicions i l'historial"
+    )
+    exp = sub.add_parser("export-cyrano", help="Exporta el text vigent de Cyrano (.odt o .json)")
+    exp.add_argument("path", nargs="?", help="Per defecte Cyrano-AAAA-MM-DD.odt")
     sub.add_parser("encrypt-herencia", help="Xifra les dades d'herència que encara són en clar")
     sub.add_parser("new-data-key", help="Genera una clau de xifratge (32 bytes, base64)")
     sub.add_parser("hash-password", help="Genera un hash bcrypt")
@@ -109,6 +118,34 @@ def main() -> None:
         from .bootstrap import build_container
 
         print(f"Xifrades: {build_container(settings).inheritance.seal_all()} files")
+    elif args.cmd == "import-cyrano":
+        from .adapters.odt import read_paragraphs
+        from .bootstrap import build_container
+
+        try:
+            n = build_container(settings).cyrano.import_transcript(
+                read_paragraphs(Path(args.path)), args.force
+            )
+        except DomainError as exc:
+            raise SystemExit(str(exc)) from exc
+        print(f"Cyrano: {n} línies importades.")
+    elif args.cmd == "export-cyrano":
+        import json
+        from dataclasses import asdict
+        from datetime import date
+
+        from .bootstrap import build_container
+
+        cyrano = build_container(settings).cyrano
+        path = Path(args.path or f"Cyrano-{date.today():%Y-%m-%d}.odt")
+        if path.suffix == ".json":  # còpia sense pèrdues: totes les línies, amb els seus camps
+            data = [asdict(line) for line in cyrano.export_lines()]
+            path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        else:  # llegible, i es pot tornar a importar amb import-cyrano
+            from .adapters.odt import write_paragraphs
+
+            write_paragraphs(path, cyrano.export_transcript())
+        print(f"Cyrano exportat a {path}")
     elif args.cmd == "encrypt-herencia":
         from .bootstrap import build_container
 
