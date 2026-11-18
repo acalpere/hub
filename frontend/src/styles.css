@@ -258,16 +258,13 @@ mark { background: color-mix(in srgb, var(--btn) 70%, transparent); color: inher
 .hub-card h3 { margin: 0 0 0.5rem; font-size: 1.2rem; font-weight: 600; }
 .hub-card ul { list-style: none; margin: 0; padding: 0; }
 .hub-card li + li { border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); }
-.hub-env { display: grid; grid-template-columns: 0.6rem 3.2rem 1fr auto; align-items: center; gap: 0.5rem; padding: 0.55rem 0; color: var(--fg); font-family: var(--sans); font-size: 0.84rem; text-decoration: none; }
+.hub-env { display: grid; grid-template-columns: 0.6rem 3.2rem 1fr; align-items: center; gap: 0.5rem; padding: 0.55rem 0; color: var(--fg); font-family: var(--sans); font-size: 0.84rem; text-decoration: none; }
 .hub-env .dot, .hub-meta .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #6fb88a; }
 .hub-env.local .dot, .hub-meta .dot.off { background: transparent; box-shadow: inset 0 0 0 1.5px #a9a396; }
 .hub-env .env { font-weight: 600; }
 .hub-env .host { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hub-env.local { opacity: 0.62; }
-.hub-env .go { color: var(--muted); opacity: 0; transition: opacity 0.15s, color 0.15s; }
-.hub-env:hover .go, .hub-env:focus-visible .go { opacity: 1; color: var(--wine); }
 .hub-env:hover { opacity: 1; }
-@media (hover: none) { .hub-env .go { opacity: 1; } }
 .hub-meta { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; color: var(--muted); font-family: var(--sans); font-size: 0.84rem; }
 .hub-toggle { font-size: 0.84rem; color: var(--wine); text-decoration: none; }
 .hub-toggle:hover { text-decoration: underline; }

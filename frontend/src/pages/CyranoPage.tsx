@@ -562,6 +562,18 @@ export function CyranoPage() {
     return () => io.disconnect();
   }, [navsEl]);
 
+  // Venint de la vista paginada, la contínua s'obre a l'escena que es llegia (sense animació).
+  const place = useRef<{ act: number; scene: number } | null>(null);
+  useEffect(() => {
+    const to = place.current;
+    if (!to || !continuous || !all || !outline) return;
+    place.current = null;
+    const first = outline.acts.find((a) => a.act === to.act)?.scenes[0];
+    const target = to.act > 0 && to.scene === first ? 0 : to.scene;
+    document.getElementById(`s-${to.act}-${target}`)?.scrollIntoView({ block: "start" });
+    setSeen(to);
+  }, [all, continuous, outline]);
+
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
   const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
   const go = (to: { act: number; scene: number } | undefined) => {
@@ -578,6 +590,7 @@ export function CyranoPage() {
       const first = outline?.acts.find((a) => a.act === viewAct)?.scenes[0] ?? 0;
       update({ vista: null, acte: String(viewAct), escena: String(viewScene || first), linia: null });
     } else if (!paged && !continuous) {
+      place.current = { act, scene }; // en canviar a contínua, es continua per on s'era
       update({ vista: "continua", linia: null });
     }
   }

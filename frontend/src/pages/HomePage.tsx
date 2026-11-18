@@ -111,7 +111,6 @@ export function HomePage() {
                         <span className="dot" aria-hidden="true" />
                         <span className="env">{e.env}</span>
                         <span className="host">{host(e.url)}</span>
-                        <span className="go" aria-hidden="true">Obrir →</span>
                       </a>
                     </li>
                   ))}
