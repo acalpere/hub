@@ -479,9 +479,10 @@ export function CyranoPage() {
     return () => watcher.disconnect();
   }, [continuous, searching, sections]);
 
-  // En passar a la vista contínua, es va a l'escena que es llegia.
+  // Si no hi ha cap rèplica per recordar (vegeu «remember»), en passar a la contínua es va al començament de l'escena.
+  const skipJump = useRef(false);
   useEffect(() => {
-    if (!continuous || searching || !sections.length || focusId) return;
+    if (!continuous || searching || !sections.length || focusId || skipJump.current) return;
     const target = act > 0 && scene === actInfo?.scenes[0] ? 0 : scene;
     requestAnimationFrame(() => document.getElementById(`s-${act}-${target}`)?.scrollIntoView({ block: "start" }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -562,18 +563,6 @@ export function CyranoPage() {
     return () => io.disconnect();
   }, [navsEl]);
 
-  // Venint de la vista paginada, la contínua s'obre a l'escena que es llegia (sense animació).
-  const place = useRef<{ act: number; scene: number } | null>(null);
-  useEffect(() => {
-    const to = place.current;
-    if (!to || !continuous || !all || !outline) return;
-    place.current = null;
-    const first = outline.acts.find((a) => a.act === to.act)?.scenes[0];
-    const target = to.act > 0 && to.scene === first ? 0 : to.scene;
-    document.getElementById(`s-${to.act}-${target}`)?.scrollIntoView({ block: "start" });
-    setSeen(to);
-  }, [all, continuous, outline]);
-
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
   const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
   const go = (to: { act: number; scene: number } | undefined) => {
@@ -591,7 +580,8 @@ export function CyranoPage() {
     const el = Array.from(document.querySelectorAll<HTMLElement>(".cy-line[data-line]")).find((e) => e.getBoundingClientRect().bottom > 80);
     if (!el) return null;
     anchor.current = { id: Number(el.dataset.line), top: el.getBoundingClientRect().top };
-    window.setTimeout(() => (anchor.current = null), 4000);
+    skipJump.current = true;
+    window.setTimeout(() => { anchor.current = null; skipJump.current = false; }, 4000);
     const sec = el.closest<HTMLElement>("section[data-act]");
     return sec ? { act: Number(sec.dataset.act), scene: Number(sec.dataset.scene) } : null;
   }
@@ -601,8 +591,8 @@ export function CyranoPage() {
     const el = document.querySelector<HTMLElement>(`.cy-line[data-line="${a.id}"]`);
     if (!el) return;
     anchor.current = null;
-    place.current = null;
-    window.scrollBy({ top: el.getBoundingClientRect().top - a.top });
+    skipJump.current = false;
+    window.scrollBy({ top: el.getBoundingClientRect().top - a.top, behavior: "instant" });
   }, [lines, all, continuous]);
 
   function setView(paged: boolean) {
@@ -614,7 +604,6 @@ export function CyranoPage() {
       update({ vista: null, acte: String(a), escena: String(sc || first), linia: null });
     } else if (!paged && !continuous) {
       remember();
-      place.current = { act, scene }; // si no hi ha cap rèplica a la vista, almenys l'escena
       update({ vista: "continua", linia: null });
     }
   }
