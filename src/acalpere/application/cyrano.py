@@ -56,6 +56,25 @@ class CyranoService:
             return []
         return self._repo.search(terms, speaker_base(speaker) or None, SEARCH_LIMIT)
 
+    @staticmethod
+    def _checked(
+        speaker: str | None, kind: str, text: str, stamp: str | None
+    ) -> tuple[str | None, str, str | None]:
+        """Valida i neteja el que es desa d'una línia: (personatge, text, marca de temps)."""
+        text = text.strip()
+        speaker = (speaker or "").strip() or None
+        if kind not in EDITABLE_KINDS:
+            raise InvalidInput("Tipus de línia no vàlid")
+        if not text:
+            raise InvalidInput("El text no pot quedar buit")
+        if kind == "speech" and not speaker:
+            raise InvalidInput("Una rèplica necessita personatge")
+        try:
+            stamp = normalize_stamp(stamp)
+        except ValueError as exc:
+            raise InvalidInput(str(exc)) from exc
+        return (speaker if kind == "speech" else None), text, stamp
+
     def edit(
         self,
         line_id: int,
@@ -65,21 +84,24 @@ class CyranoService:
         stamp: str | None,
         by: str,
     ) -> Line:
-        text = text.strip()
-        speaker = (speaker or "").strip() or None
-        if kind not in EDITABLE_KINDS:
-            raise InvalidInput("Tipus de línia no vàlid")
-        if not text:
-            raise InvalidInput("El text no pot quedar buit")
-        if kind == "speech" and not speaker:
-            raise InvalidInput("Una rèplica necessita personatge")
-        if kind != "speech":
-            speaker = None
-        try:
-            stamp = normalize_stamp(stamp)
-        except ValueError as exc:
-            raise InvalidInput(str(exc)) from exc
+        speaker, text, stamp = self._checked(speaker, kind, text, stamp)
         return self._save(line_id, speaker, kind, text, stamp, by)
+
+    def insert_after(
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        stamp: str | None,
+        by: str,
+    ) -> Line:
+        """Afegeix una línia nova just a sota de `line_id`, a la mateixa escena."""
+        speaker, text, stamp = self._checked(speaker, kind, text, stamp)
+        line = self._repo.insert_after(line_id, speaker, kind, text, fold(text), stamp, by)
+        if line is None:
+            raise NotFound("Línia no trobada")
+        return line
 
     def _save(
         self,

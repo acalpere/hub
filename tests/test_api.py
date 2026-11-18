@@ -534,3 +534,28 @@ def test_old_sessions_without_mfa_are_not_valid(client):
 def test_passkeys_are_admin_only(germa, client):
     assert client.get("/api/v1/auth/passkeys").status_code == 403
     assert client.post("/api/v1/auth/passkeys/options").status_code == 403
+
+
+def test_passkey_origin_accepts_the_domain_and_its_subdomains_only(settings, container):
+    from fastapi.testclient import TestClient
+
+    from acalpere.adapters.web.app import create_app
+
+    container.settings = settings.model_copy(update={"rp_id": "acalpere.cat"})
+    c = TestClient(
+        create_app(container.settings, container), headers={"X-Requested-With": "acalpere"}
+    )
+
+    def options(origin):
+        return c.post("/api/v1/auth/passkey/options", headers={"Origin": origin})
+
+    for origin in ("https://acalpere.cat", "https://www.acalpere.cat"):
+        r = options(origin)
+        assert r.status_code == 200 and r.json()["rpId"] == "acalpere.cat"
+    for origin in (
+        "https://dev.acalpere.com",
+        "https://malacalpere.cat",
+        "https://x.cloudfront.net",
+    ):
+        r = options(origin)
+        assert r.status_code == 401 and "acalpere.cat" in r.json()["error"]

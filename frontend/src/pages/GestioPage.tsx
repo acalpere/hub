@@ -1,26 +1,22 @@
-import { Link } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 
 const OPTIONS = [
-  { to: "/hub", name: "Hub", text: "Afegeix, edita i treu les webs i els agents." },
-  { to: "/usuaris", name: "Usuaris", text: "Dades dels usuaris i què pot veure cadascun." },
+  { to: "/gestio/hub", name: "Webs i agents" },
+  { to: "/gestio/usuaris", name: "Usuaris" },
+  { to: "/gestio/seguretat", name: "Seguretat" },
 ];
 
-export function GestioPage() {
+// El títol sempre és «Gestió»; l'opció triada s'obre a sota, amb les pestanyes per canviar-ne o tornar-hi.
+export function GestioLayout() {
   return (
     <section>
-      <h1>Gestió</h1>
-      <p className="lead">Opcions d'administració.</p>
-      <ul className="projects">
+      <h1><Link to="/gestio">Gestió</Link></h1>
+      <nav className="tabs" aria-label="Opcions de gestió">
         {OPTIONS.map((o) => (
-          <li key={o.to} className="project">
-            <h3>{o.name}</h3>
-            <p>{o.text}</p>
-            <div className="actions">
-              <Link className="btn" to={o.to}>Obrir</Link>
-            </div>
-          </li>
+          <NavLink key={o.to} to={o.to} className="tab">{o.name}</NavLink>
         ))}
-      </ul>
+      </nav>
+      <Outlet />
     </section>
   );
 }

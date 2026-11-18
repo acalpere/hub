@@ -84,16 +84,21 @@ def _count_try(request: Request) -> None:
 
 
 def _origin(request: Request, c: Container) -> tuple[str, str]:
-    """(rp_id, origen) de WebAuthn; amb rp_id configurat, l'origen del navegador ha de coincidir."""
+    """(rp_id, origen) de WebAuthn.
+
+    Amb rp_id configurat, l'origen pot ser aquest domini o un subdomini seu (www.acalpere.cat): les
+    claus d'accés valen per a tot el domini registrable, i Chrome al mòbil amaga el «www.».
+    """
     origin = request.headers.get("origin", "")
     host = urlparse(origin).hostname
-    if not host or (c.settings.rp_id and host != c.settings.rp_id):
-        raise AuthError(
-            f"Les claus d'accés només funcionen a {c.settings.rp_id}: entra des d'aquesta adreça."
-            if host and c.settings.rp_id
-            else "Origen no permès."
-        )
-    return host, origin
+    rp_id = c.settings.rp_id
+    if not host:
+        raise AuthError("Origen no permès.")
+    if not rp_id:
+        return host, origin
+    if host != rp_id and not host.endswith("." + rp_id):
+        raise AuthError(f"Les claus d'accés només funcionen a {rp_id}: entra des d'aquesta adreça.")
+    return rp_id, origin
 
 
 @router.post("/auth/login")

@@ -25,6 +25,7 @@ interface LineProps {
   canEdit: boolean;
   speakers: string[];
   onSaved: (l: CyranoLine) => void;
+  onInserted?: (l: CyranoLine, afterId: number) => void;
   showPlace?: boolean;
   onOpen?: () => void;
   onSeek?: (seconds: number) => void;
@@ -53,8 +54,9 @@ function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; bu
   );
 }
 
-function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
-  const [editing, setEditing] = useState(false);
+function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
+  // «edit»: canvia aquesta línia; «add»: n'afegeix una de nova just a sota.
+  const [mode, setMode] = useState<"edit" | "add" | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<CyranoRevision[] | null>(null);
@@ -94,8 +96,10 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
     setBusy(true);
     setError("");
     try {
-      onSaved(await api.cyranoEdit(line.id, { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null }));
-      setEditing(false);
+      const payload = { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
+      if (mode === "add") onInserted?.(await api.cyranoInsert(line.id, payload), line.id);
+      else onSaved(await api.cyranoEdit(line.id, payload));
+      setMode(null);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -103,13 +107,12 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
     }
   }
 
-  if (editing) {
-    return (
-      <form className="cy-edit" onSubmit={save}>
+  const editor = mode && (
+    <form className="cy-edit" onSubmit={save} key={mode}>
         <div className="cy-edit-row">
           <label>
             Tipus
-            <select name="kind" defaultValue={line.kind === "speech" || line.kind === "stage" ? line.kind : "text"}>
+            <select name="kind" defaultValue={mode === "add" ? "text" : line.kind === "speech" || line.kind === "stage" ? line.kind : "text"}>
               <option value="speech">Rèplica</option>
               <option value="stage">Acotació</option>
               <option value="text">Text</option>
@@ -117,13 +120,13 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
           </label>
           <label>
             Personatge
-            <input name="speaker" list="cy-speakers" defaultValue={line.speaker ?? ""} />
+            <input name="speaker" list="cy-speakers" defaultValue={mode === "add" ? "" : line.speaker ?? ""} />
           </label>
         </div>
         <div className="cy-stamp-row">
           <label>
             Hora del vídeo
-            <input ref={stampInput} name="stamp" defaultValue={line.stamp ?? ""} placeholder="00:03:01" inputMode="numeric" pattern="\d{1,2}:\d{2}:\d{2}" maxLength={8} />
+            <input ref={stampInput} name="stamp" defaultValue={mode === "add" ? "" : line.stamp ?? ""} placeholder="00:03:01" inputMode="numeric" pattern="\d{1,2}:\d{2}:\d{2}" maxLength={8} />
           </label>
           {videoTime && (
             <button
@@ -141,22 +144,26 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
           )}
         </div>
         <datalist id="cy-speakers">{speakers.map((s) => <option key={s} value={s} />)}</datalist>
-        <textarea name="text" defaultValue={line.text} rows={Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
+        <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
         <ErrorMessage message={error} />
         <div className="cy-edit-actions">
-          <button type="submit" disabled={busy}>Desa</button>
-          <button type="button" className="ghost" onClick={() => setEditing(false)}>Cancel·la</button>
-          <button type="button" className="link" onClick={() => (history ? setHistory(null) : void loadHistory())}>
-            {history ? "Amaga l'historial" : "Historial"}
-          </button>
+          <button type="submit" disabled={busy}>{mode === "add" ? "Afegeix" : "Desa"}</button>
+          <button type="button" className="ghost" onClick={() => setMode(null)}>Cancel·la</button>
+          {mode === "edit" && (
+            <button type="button" className="link" onClick={() => (history ? setHistory(null) : void loadHistory())}>
+              {history ? "Amaga l'historial" : "Historial"}
+            </button>
+          )}
         </div>
-        {history && <History versions={history} busy={busy} onRestore={(r) => void restore(r)} />}
+        {mode === "edit" && history && <History versions={history} busy={busy} onRestore={(r) => void restore(r)} />}
       </form>
-    );
-  }
+  );
+
+  if (mode === "edit") return editor;
 
   const body = <Marked text={line.text} terms={terms} />;
   return (
+    <>
     <div ref={ref} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}`}>
       {line.kind === "speech" ? (
         <>
@@ -180,12 +187,19 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
           </button>
         )}
         {canEdit && (
-          <button type="button" className="link" onClick={() => setEditing(true)} aria-label="Edita aquesta línia">
+          <button type="button" className="link" onClick={() => setMode("edit")} aria-label="Edita aquesta línia">
             Edita
+          </button>
+        )}
+        {canEdit && onInserted && (
+          <button type="button" className="link" onClick={() => setMode("add")} aria-label="Afegeix una línia a sota">
+            Afegeix a sota
           </button>
         )}
       </div>
     </div>
+    {mode === "add" && editor}
+    </>
   );
 }
 
@@ -361,6 +375,15 @@ export function CyranoPage() {
     update({ acte: String(l.act), escena: String(l.scene), linia: String(l.id), cerca: null });
   }
 
+  function inserted(created: CyranoLine, afterId: number) {
+    const put = (list: CyranoLine[]) => {
+      const at = list.findIndex((l) => l.id === afterId);
+      return at < 0 ? list : [...list.slice(0, at + 1), created, ...list.slice(at + 1)];
+    };
+    setLines(put);
+    setAll((a) => a && put(a));
+  }
+
   function saved(updated: CyranoLine) {
     const swap = (l: CyranoLine) => (l.id === updated.id ? updated : l);
     setLines((ls) => ls.map(swap));
@@ -508,7 +531,7 @@ export function CyranoPage() {
                       )}
                     </header>
                     {sec.lines.filter((l) => !(sec.act > 0 && sec.scene === 0 && l.kind === "title")).map((l) => (
-                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
                     ))}
                   </section>
                 ))}
@@ -523,7 +546,7 @@ export function CyranoPage() {
 
             <div className="cy-scene">
               {lines.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
               ))}
             </div>
 

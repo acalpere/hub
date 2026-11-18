@@ -6,7 +6,7 @@ import json
 from dataclasses import fields
 from datetime import date, datetime
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import sessionmaker
 
 from ...domain.calendar import (
@@ -635,6 +635,53 @@ class SqlCyranoRepository:
                 )
             )
             s.flush()
+            return self._line(row)
+
+    def insert_after(
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        norm: str,
+        stamp: str | None,
+        by: str,
+    ) -> Line | None:
+        """Línia nova just a sota de `line_id`, a la mateixa escena; la resta es desplacen."""
+        with self._sf.begin() as s:
+            anchor = s.get(m.CyranoLineRow, line_id)
+            if anchor is None:
+                return None
+            s.execute(
+                update(m.CyranoLineRow)
+                .where(m.CyranoLineRow.position > anchor.position)
+                .values(position=m.CyranoLineRow.position + 1)
+            )
+            now = _now()
+            row = m.CyranoLineRow(
+                act=anchor.act,
+                scene=anchor.scene,
+                position=anchor.position + 1,
+                kind=kind,
+                speaker=speaker,
+                stamp=stamp,
+                text=text,
+                norm=norm,
+                updated_at=now,
+            )
+            s.add(row)
+            s.flush()
+            s.add(
+                m.CyranoRevisionRow(
+                    line_id=row.id,
+                    speaker=speaker,
+                    kind=kind,
+                    text=text,
+                    stamp=stamp,
+                    edited_by=by,
+                    edited_at=now,
+                )
+            )
             return self._line(row)
 
     @staticmethod

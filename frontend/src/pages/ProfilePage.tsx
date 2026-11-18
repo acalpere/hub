@@ -112,7 +112,7 @@ export function ProfilePage() {
           <ErrorMessage message={passwordError} />
           {passwordState && <p className={passwordState === "Contrasenya canviada." ? "success" : "muted"}>{passwordState}</p>}
           <button type="submit">Canviar la contrasenya</button>
-          {user?.role === "admin" && <Link to="/seguretat">Gestionar les claus d'accés i la seguretat</Link>}
+          {user?.role === "admin" && <Link to="/gestio/seguretat">Gestionar les claus d'accés i la seguretat</Link>}
         </form>
       </div>
     </section>

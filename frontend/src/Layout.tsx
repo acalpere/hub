@@ -13,7 +13,7 @@ export function Layout() {
     api.menu().then((m) => setHasCyrano(m.some((i) => i.url === "/cyrano"))).catch(() => setHasCyrano(false));
   }, [user]);
   const framed = pathname.startsWith("/app/");
-  const inGestio = ["/gestio", "/hub", "/usuaris"].some((p) => pathname.startsWith(p));
+  const inGestio = pathname.startsWith("/gestio");
   return (
     <div className={`shell${framed ? " framed" : ""}`}>
       <header className="top">
@@ -32,7 +32,7 @@ export function Layout() {
               {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username}
             </NavLink>
             {user.role === "admin" && (
-              <Link to="/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
+              <Link to="/gestio/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z" />
                   <path d="M9 12l2 2 4-4" />

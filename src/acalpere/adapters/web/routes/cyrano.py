@@ -99,6 +99,21 @@ def edit(
     )
 
 
+@router.post("/lines/{line_id}/insert")
+def insert(
+    line_id: int,
+    body: LineIn,
+    user: User = Depends(admin_user),
+    c: Container = Depends(container),
+):
+    """Línia nova just a sota de la indicada (acotació, text o rèplica entre dues rèpliques)."""
+    return _line(
+        c.cyrano.insert_after(
+            line_id, body.speaker, body.kind, body.text, body.stamp, user.username
+        )
+    )
+
+
 @router.get("/lines/{line_id}/history")
 def history(line_id: int, _: User = Depends(admin_user), c: Container = Depends(container)):
     return [

@@ -315,3 +315,11 @@ button.cy-pdf[aria-pressed="true"] { color: var(--wine); border-color: var(--win
 .cy-stamp-row label { flex: 0 0 8.5rem; }
 .cy-stamp-row input { width: 100%; padding: 0.5rem 0.6rem; border: 1px solid var(--rule); border-radius: 8px; font-size: 0.95rem; }
 .cy-stamp-row .ghost { font-size: 0.82rem; padding: 0.45rem 0.8rem; }
+
+/* Gestió: el títol és fix i les opcions són pestanyes; l'opció triada s'obre a sota */
+main h1 a { color: inherit; text-decoration: none; }
+.tabs { display: flex; flex-wrap: wrap; gap: 0.2rem 1.8rem; margin: 0 0 1.25rem; border-bottom: 1px solid var(--rule); font-family: var(--sans); }
+.tab { margin-bottom: -1px; padding: 0.55rem 0.05rem; border-bottom: 2px solid transparent; color: var(--muted); font-size: 0.92rem; text-decoration: none; }
+.tab:hover { color: var(--fg); }
+.tab.active { color: var(--fg); font-weight: 600; border-bottom-color: var(--wine); }
+h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none; font-size: 1.5rem; }

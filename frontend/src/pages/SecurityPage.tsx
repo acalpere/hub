@@ -28,7 +28,7 @@ export function SecurityPage() {
 
   return (
     <section>
-      <h1>Seguretat</h1>
+      <h2 className="opt-title">Seguretat</h2>
       <p className="lead">
         Amb una clau d'accés pots entrar des del mòbil només amb la petjada digital. Des d'altres dispositius, l'accés
         sempre demana usuari, clau i codi de l'aplicació d'autenticació.

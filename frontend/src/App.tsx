@@ -5,7 +5,7 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import { HomePage } from "./pages/HomePage";
 import { AppFramePage } from "./pages/AppFramePage";
 import { CyranoPage } from "./pages/CyranoPage";
-import { GestioPage } from "./pages/GestioPage";
+import { GestioLayout } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -35,10 +35,15 @@ export function App() {
           <Route path="app/:slug" element={<AppFramePage />} />
         </Route>
         <Route element={<RequireAuth admin />}>
-          <Route path="seguretat" element={<SecurityPage />} />
-          <Route path="gestio" element={<GestioPage />} />
-          <Route path="hub" element={<HubPage />} />
-          <Route path="usuaris" element={<UsersPage />} />
+          <Route path="seguretat" element={<Navigate to="/gestio/seguretat" replace />} />
+          <Route path="gestio" element={<GestioLayout />}>
+            <Route index element={<Navigate to="hub" replace />} />
+            <Route path="hub" element={<HubPage />} />
+            <Route path="usuaris" element={<UsersPage />} />
+            <Route path="seguretat" element={<SecurityPage />} />
+          </Route>
+          <Route path="hub" element={<Navigate to="/gestio/hub" replace />} />
+          <Route path="usuaris" element={<Navigate to="/gestio/usuaris" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

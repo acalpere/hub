@@ -69,7 +69,7 @@ export function HubPage() {
 
   return (
     <section>
-      <h1>Hub</h1>
+      <h2 className="opt-title">Webs i agents</h2>
       <ErrorMessage message={error} />
 
       <div className="hub-block">

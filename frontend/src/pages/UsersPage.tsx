@@ -214,7 +214,7 @@ export function UsersPage() {
 
   return (
     <section>
-      <h1>Usuaris</h1>
+      <h2 className="opt-title">Usuaris</h2>
       <p className="lead">Dades i autoritzacions de cada usuari. Els administradors ho veuen tot.</p>
       <ErrorMessage message={error} />
       <ul className="rows">

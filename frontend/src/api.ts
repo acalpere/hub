@@ -86,6 +86,8 @@ export const api = {
     ),
   cyranoEdit: (id: number, line: { speaker: string | null; kind: CyranoKind; text: string; stamp: string | null }) =>
     request<CyranoLine>("PUT", `/cyrano/lines/${id}`, line),
+  cyranoInsert: (afterId: number, line: { speaker: string | null; kind: CyranoKind; text: string; stamp: string | null }) =>
+    request<CyranoLine>("POST", `/cyrano/lines/${afterId}/insert`, line),
   cyranoHistory: (id: number) => request<CyranoRevision[]>("GET", `/cyrano/lines/${id}/history`),
   cyranoRestore: (id: number, revisionId: number) =>
     request<CyranoLine>("POST", `/cyrano/lines/${id}/restore`, { revision_id: revisionId }),

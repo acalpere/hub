@@ -248,3 +248,42 @@ def test_cyrano_edit_stamp(client, container, admin):
     assert [v["stamp"] for v in history] == [None, "00:12:05", None]
     admin.post(url + "/restore", json={"revision_id": history[1]["id"]})
     assert admin.get("/api/v1/cyrano/scenes/1/2").json()[0]["stamp"] == "00:12:05"
+
+
+def test_cyrano_insert_line_between_replies(client, container, admin):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    first = admin.get("/api/v1/cyrano/scenes/1/1").json()[0]
+    before = [x["text"] for x in admin.get("/api/v1/cyrano/scenes/1/1").json()]
+
+    made = admin.post(
+        f"/api/v1/cyrano/lines/{first['id']}/insert",
+        json={"kind": "stage", "text": "  Entra el duc.  ", "stamp": "0:04:00"},
+    )
+    assert made.status_code == 200
+    new = made.json()
+    assert (new["act"], new["scene"], new["kind"], new["speaker"]) == (1, 1, "stage", None)
+    assert (new["text"], new["stamp"]) == ("Entra el duc.", "00:04:00")
+
+    after = [x["text"] for x in admin.get("/api/v1/cyrano/scenes/1/1").json()]
+    assert after == [before[0], "Entra el duc.", *before[1:]]  # just a sota, sense perdre res
+    assert [x["text"] for x in admin.get("/api/v1/cyrano/scenes/1/2").json()] == [
+        "Aquest pobre borratxo."
+    ]
+    assert len(admin.get("/api/v1/cyrano/search", params={"q": "duc"}).json()["results"]) == 1
+    assert [v["text"] for v in admin.get(f"/api/v1/cyrano/lines/{new['id']}/history").json()] == [
+        "Entra el duc."
+    ]
+    assert "[00:04:00] Entra el duc." in container.cyrano.export_transcript()
+
+    for bad in (
+        {"kind": "speech", "text": "a"},  # rèplica sense personatge
+        {"kind": "stage", "text": " "},
+        {"kind": "title", "text": "a"},
+    ):
+        assert admin.post(f"/api/v1/cyrano/lines/{first['id']}/insert", json=bad).status_code == 400
+    assert (
+        admin.post(
+            "/api/v1/cyrano/lines/99999/insert", json={"kind": "text", "text": "a"}
+        ).status_code
+        == 404
+    )

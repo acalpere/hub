@@ -189,6 +189,17 @@ class CyranoRepository(Protocol):
         by: str,
     ) -> Line | None: ...
 
+    def insert_after(
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        norm: str,
+        stamp: str | None,
+        by: str,
+    ) -> Line | None: ...
+
     def history(self, line_id: int) -> list[Revision]: ...
 
     def revision(self, revision_id: int) -> Revision | None: ...
