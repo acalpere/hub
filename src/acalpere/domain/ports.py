@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 from typing import Protocol
 
 from .calendar import Assignacio, Germa, HistoryEntry, LastModification, Modalitat
@@ -178,7 +179,14 @@ class CyranoRepository(Protocol):
     def search(self, terms: list[str], speaker: str | None, limit: int) -> list[Line]: ...
 
     def update(
-        self, line_id: int, speaker: str | None, kind: str, text: str, norm: str, by: str
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        norm: str,
+        stamp: str | None,
+        by: str,
     ) -> Line | None: ...
 
     def history(self, line_id: int) -> list[Revision]: ...
@@ -192,3 +200,13 @@ class CyranoRepository(Protocol):
 
 class PlayRenderer(Protocol):
     def render(self, lines: list[Line], title: str) -> bytes: ...
+
+
+class MediaStore(Protocol):
+    def video_url(self, name: str) -> str | None:
+        """Adreça (temporal) per reproduir el vídeo, o None si encara no s'ha pujat."""
+        ...
+
+    def local_file(self, name: str) -> Path | None:
+        """El fitxer, quan viu al disc (només en local); a AWS no."""
+        ...

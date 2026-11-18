@@ -587,7 +587,14 @@ class SqlCyranoRepository:
             return [self._line(r) for r in rows]
 
     def update(
-        self, line_id: int, speaker: str | None, kind: str, text: str, norm: str, by: str
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        norm: str,
+        stamp: str | None,
+        by: str,
     ) -> Line | None:
         with self._sf.begin() as s:
             row = s.get(m.CyranoLineRow, line_id)
@@ -600,15 +607,20 @@ class SqlCyranoRepository:
             ):  # primera edició: es conserva el text original
                 s.add(
                     m.CyranoRevisionRow(
-                        line_id=line_id, speaker=row.speaker, kind=row.kind, text=row.text
+                        line_id=line_id,
+                        speaker=row.speaker,
+                        kind=row.kind,
+                        text=row.text,
+                        stamp=row.stamp,
                     )
                 )
             now = _now()
-            row.speaker, row.kind, row.text, row.norm, row.updated_at = (
+            row.speaker, row.kind, row.text, row.norm, row.stamp, row.updated_at = (
                 speaker,
                 kind,
                 text,
                 norm,
+                stamp,
                 now,
             )
             s.add(
@@ -617,6 +629,7 @@ class SqlCyranoRepository:
                     speaker=speaker,
                     kind=kind,
                     text=text,
+                    stamp=stamp,
                     edited_by=by,
                     edited_at=now,
                 )
@@ -626,7 +639,9 @@ class SqlCyranoRepository:
 
     @staticmethod
     def _revision(r: m.CyranoRevisionRow) -> Revision:
-        return Revision(r.id, r.line_id, r.speaker, r.kind, r.text, r.edited_by, r.edited_at)
+        return Revision(
+            r.id, r.line_id, r.speaker, r.kind, r.text, r.stamp, r.edited_by, r.edited_at
+        )
 
     def history(self, line_id: int) -> list[Revision]:
         with self._sf() as s:

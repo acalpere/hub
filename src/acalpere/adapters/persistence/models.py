@@ -353,5 +353,6 @@ class CyranoRevisionRow(Base):
     speaker: Mapped[str | None] = mapped_column(String(80))
     kind: Mapped[str] = mapped_column(String(10), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    stamp: Mapped[str | None] = mapped_column(String(10))
     edited_by: Mapped[str | None] = mapped_column(String(80))
     edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

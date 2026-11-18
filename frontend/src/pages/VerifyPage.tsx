@@ -64,7 +64,9 @@ export function VerifyPage() {
           </label>
           <button type="submit" className={passkeys && mobile ? "ghost" : ""} disabled={busy}>Confirmar</button>
         </form>
-        <ErrorMessage message={error} />
+        <div className="err-slot">
+          <ErrorMessage message={error} />
+        </div>
       </section>
     </div>
   );

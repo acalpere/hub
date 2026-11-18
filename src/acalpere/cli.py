@@ -11,7 +11,7 @@ from .domain.errors import DomainError
 
 DEFAULT_MENU = [
     # (nom, url, rols, posició)
-    ("Calendari de la mare", "/apps/calendari/", "admin,germa", 10),
+    ("Calendari mare", "/apps/calendari/", "admin,germa", 10),
     ("Herència", "/apps/herencia/", "admin,germa", 20),
     ("Poemes", "/apps/poemes/", "admin", 25),
     ("Cyrano", "/cyrano", "admin", 27),

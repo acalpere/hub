@@ -20,7 +20,7 @@ export interface CyranoLine {
   speaker: string | null; stamp: string | null; text: string;
 }
 export interface CyranoRevision {
-  id: number; speaker: string | null; kind: CyranoKind; text: string;
+  id: number; speaker: string | null; kind: CyranoKind; text: string; stamp: string | null;
   edited_by: string | null; edited_at: string | null;
 }
 export interface CyranoOutline {
@@ -77,13 +77,14 @@ export const api = {
   changePassword: (actual: string, nova: string) =>
     request<void>("POST", "/auth/password", { actual, nova }),
   cyranoOutline: () => request<CyranoOutline>("GET", "/cyrano/outline"),
+  cyranoVideo: () => request<{ available: boolean; url: string | null }>("GET", "/cyrano/video"),
   cyranoText: () => request<CyranoLine[]>("GET", "/cyrano/text"),
   cyranoScene: (act: number, scene: number) => request<CyranoLine[]>("GET", `/cyrano/scenes/${act}/${scene}`),
   cyranoSearch: (q: string, speaker: string) =>
     request<{ results: CyranoLine[]; truncated: boolean }>(
       "GET", `/cyrano/search?q=${encodeURIComponent(q)}&speaker=${encodeURIComponent(speaker)}`,
     ),
-  cyranoEdit: (id: number, line: { speaker: string | null; kind: CyranoKind; text: string }) =>
+  cyranoEdit: (id: number, line: { speaker: string | null; kind: CyranoKind; text: string; stamp: string | null }) =>
     request<CyranoLine>("PUT", `/cyrano/lines/${id}`, line),
   cyranoHistory: (id: number) => request<CyranoRevision[]>("GET", `/cyrano/lines/${id}/history`),
   cyranoRestore: (id: number, revisionId: number) =>

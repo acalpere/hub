@@ -31,7 +31,7 @@ async function api(url, options = {}) {
 function needLogin() {
   // Incrustat al hub: la sessió és la del hub. Sola: formulari de contrasenya propi.
   if (window.MOTFINAL.auth === "host" && window.MOTFINAL.loginUrl) {
-    window.location.assign(window.MOTFINAL.loginUrl);
+    (window.top || window).location.assign(window.MOTFINAL.loginUrl);
   } else {
     showLogin();
   }

@@ -4,7 +4,9 @@ import { api, type Agent, type Site } from "../api";
 import { useAuth } from "../auth";
 import { validate } from "../forms";
 
-const STATUSES = ["active", "paused", "archived"];
+// L'estat és només una etiqueta d'organització (el servidor desa «active», «paused», «archived»).
+const STATUS_LABELS: Record<string, string> = { active: "Activa", paused: "Aturada", archived: "Arxivada" };
+const STATUSES = Object.keys(STATUS_LABELS);
 
 export function HubPage() {
   const { user } = useAuth();
@@ -70,22 +72,32 @@ export function HubPage() {
       <h1>Hub</h1>
       <ErrorMessage message={error} />
 
+      <div className="hub-block">
       <h2>Webs</h2>
-      <ul className="rows">
+      <aside className="hub-note">
+        <p>
+          <strong>Estat.</strong> <em>Activa</em>: la web és en ús. <em>Aturada</em>: en pausa de moment. <em>Arxivada</em>: ja no es fa servir.
+          És només una etiqueta per organitzar-les; no canvia res a la web.
+        </p>
+        <p>
+          <strong>Eliminar del hub</strong> treu la web d'aquesta llista i de les autoritzacions dels usuaris. La web real no es toca.
+        </p>
+      </aside>
+      <ul className="rows table">
         {sites.map((s) => (
           <li key={s.id}>
             <a href={s.url} target="_blank" rel="noreferrer">{s.name}</a>
             {admin ? (
               <>
                 <select value={s.status} onChange={(e) => void run(() => api.updateSite(s.id, { status: e.target.value }))}>
-                  {STATUSES.map((st) => <option key={st}>{st}</option>)}
+                  {STATUSES.map((st) => <option key={st} value={st}>{STATUS_LABELS[st]}</option>)}
                 </select>
-                <button className="link danger" onClick={() => confirm(`Eliminar ${s.name}?`) && void run(() => api.deleteSite(s.id))}>
-                  Eliminar
+                <button className="link danger" onClick={() => confirm(`Eliminar ${s.name} del hub? La web real no es toca.`) && void run(() => api.deleteSite(s.id))}>
+                  Eliminar del hub
                 </button>
               </>
             ) : (
-              <span className="muted">{s.status}</span>
+              <span className="muted">{STATUS_LABELS[s.status] ?? s.status}</span>
             )}
           </li>
         ))}
@@ -96,9 +108,11 @@ export function HubPage() {
         <input name="url" placeholder="https://…" type="url" required />
         <button type="submit">Afegir web</button>
       </form>}
+      </div>
 
+      <div className="hub-block">
       <h2>Agents</h2>
-      <ul className="rows">
+      <ul className="rows table">
         {agents.map((a) => (
           <li key={a.id}>
             <span>
@@ -110,8 +124,8 @@ export function HubPage() {
                   <input type="checkbox" checked={a.enabled} onChange={(e) => void run(() => api.updateAgent(a.id, { enabled: e.target.checked }))} />
                   actiu
                 </label>
-                <button className="link danger" onClick={() => confirm(`Eliminar ${a.name}?`) && void run(() => api.deleteAgent(a.id))}>
-                  Eliminar
+                <button className="link danger" onClick={() => confirm(`Eliminar ${a.name} del hub?`) && void run(() => api.deleteAgent(a.id))}>
+                  Eliminar del hub
                 </button>
               </>
             ) : (
@@ -130,6 +144,7 @@ export function HubPage() {
         </select>
         <button type="submit">Afegir agent</button>
       </form>}
+      </div>
     </section>
   );
 }

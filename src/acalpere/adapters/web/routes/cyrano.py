@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from ....bootstrap import Container
@@ -18,6 +19,7 @@ class RestoreIn(BaseModel):
 class LineIn(BaseModel):
     speaker: str | None = Field(default=None, max_length=80)
     kind: str = Field(max_length=10)
+    stamp: str | None = Field(default=None, max_length=10)
     text: str = Field(max_length=4000)
 
 
@@ -42,6 +44,22 @@ def outline(c: Container = Depends(container)):
 def text(c: Container = Depends(container)):
     """Tota l'obra, per llegir-la sense pàgines."""
     return [_line(line) for line in c.cyrano.export_lines()]
+
+
+@router.get("/video")
+def video(c: Container = Depends(container)):
+    """Adreça per reproduir el vídeo (a AWS, un enllaç signat temporal), si ja s'ha pujat."""
+    url = c.cyrano.video_url()
+    return {"available": url is not None, "url": url}
+
+
+@router.get("/video/file")
+def video_file(c: Container = Depends(container)):
+    """Només en local: serveix el fitxer de la carpeta de multimèdia (admet salts amb Range)."""
+    path = c.cyrano.video_file()
+    if path is None:
+        raise HTTPException(status_code=404, detail="Vídeo no trobat")
+    return FileResponse(path, media_type="video/mp4")
 
 
 @router.get("/pdf")
@@ -76,7 +94,9 @@ def edit(
     user: User = Depends(admin_user),
     c: Container = Depends(container),
 ):
-    return _line(c.cyrano.edit(line_id, body.speaker, body.kind, body.text, user.username))
+    return _line(
+        c.cyrano.edit(line_id, body.speaker, body.kind, body.text, body.stamp, user.username)
+    )
 
 
 @router.get("/lines/{line_id}/history")
@@ -87,6 +107,7 @@ def history(line_id: int, _: User = Depends(admin_user), c: Container = Depends(
             "speaker": r.speaker,
             "kind": r.kind,
             "text": r.text,
+            "stamp": r.stamp,
             "edited_by": r.edited_by,
             "edited_at": r.edited_at.isoformat() if r.edited_at else None,
         }

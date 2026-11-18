@@ -8,3 +8,14 @@ variable "rp_id" {
   type        = string
   default     = ""
 }
+
+variable "media_bucket" {
+  description = "Bucket privat amb el vídeo de Cyrano. Buit: l'API no serveix vídeo."
+  type        = string
+  default     = ""
+}
+
+variable "media_bucket_arn" {
+  type    = string
+  default = ""
+}

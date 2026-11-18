@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     # Domini de les claus d'accés (WebAuthn). Sense valor, es dedueix de l'origen de la petició.
     rp_id: str | None = None
+    # Vídeo de Cyrano: a AWS, un bucket d'S3 privat (enllaços signats); en local, una carpeta.
+    media_bucket: str = ""
+    media_dir: str = "data/media"
     # Mostra el frontend antic (calendari i herència) tal com era, sobre l'API nova.
     serve_legacy_ui: bool = True
 

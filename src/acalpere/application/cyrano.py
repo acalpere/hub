@@ -7,21 +7,24 @@ from ..domain.cyrano import (
     Line,
     Revision,
     fold,
+    normalize_stamp,
     parse_transcript,
     search_terms,
     speaker_base,
     to_transcript,
 )
 from ..domain.errors import InvalidInput, NotFound
-from ..domain.ports import CyranoRepository, PlayRenderer
+from ..domain.ports import CyranoRepository, MediaStore, PlayRenderer
 
 SEARCH_LIMIT = 300
+VIDEO_NAME = "cyrano.mp4"
 
 
 class CyranoService:
-    def __init__(self, repo: CyranoRepository, renderer: PlayRenderer):
+    def __init__(self, repo: CyranoRepository, renderer: PlayRenderer, media: MediaStore):
         self._repo = repo
         self._renderer = renderer
+        self._media = media
 
     def outline(self) -> list[dict]:
         """Actes amb el seu títol i les escenes que tenen."""
@@ -53,7 +56,15 @@ class CyranoService:
             return []
         return self._repo.search(terms, speaker_base(speaker) or None, SEARCH_LIMIT)
 
-    def edit(self, line_id: int, speaker: str | None, kind: str, text: str, by: str) -> Line:
+    def edit(
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        stamp: str | None,
+        by: str,
+    ) -> Line:
         text = text.strip()
         speaker = (speaker or "").strip() or None
         if kind not in EDITABLE_KINDS:
@@ -64,10 +75,22 @@ class CyranoService:
             raise InvalidInput("Una rèplica necessita personatge")
         if kind != "speech":
             speaker = None
-        return self._save(line_id, speaker, kind, text, by)
+        try:
+            stamp = normalize_stamp(stamp)
+        except ValueError as exc:
+            raise InvalidInput(str(exc)) from exc
+        return self._save(line_id, speaker, kind, text, stamp, by)
 
-    def _save(self, line_id: int, speaker: str | None, kind: str, text: str, by: str) -> Line:
-        line = self._repo.update(line_id, speaker, kind, text, fold(text), by)
+    def _save(
+        self,
+        line_id: int,
+        speaker: str | None,
+        kind: str,
+        text: str,
+        stamp: str | None,
+        by: str,
+    ) -> Line:
+        line = self._repo.update(line_id, speaker, kind, text, fold(text), stamp, by)
         if line is None:
             raise NotFound("Línia no trobada")
         return line
@@ -81,7 +104,7 @@ class CyranoService:
         rev = self._repo.revision(revision_id)
         if rev is None or rev.line_id != line_id:
             raise NotFound("Versió no trobada")
-        return self._save(line_id, rev.speaker, rev.kind, rev.text, by)
+        return self._save(line_id, rev.speaker, rev.kind, rev.text, rev.stamp, by)
 
     def export_lines(self) -> list[Line]:
         return self._repo.all_lines()
@@ -89,6 +112,14 @@ class CyranoService:
     def export_transcript(self) -> list[str]:
         """El text vigent en paràgrafs, en el format que llegeix `import_transcript`."""
         return to_transcript(self._repo.all_lines())
+
+    def video_url(self) -> str | None:
+        """Enllaç per reproduir el vídeo de l'obra; None si encara no s'ha pujat."""
+        return self._media.video_url(VIDEO_NAME)
+
+    def video_file(self):
+        """El fitxer del vídeo, quan és al disc (només en local)."""
+        return self._media.local_file(VIDEO_NAME)
 
     def pdf(self) -> bytes:
         """L'obra sencera amb el text vigent, en PDF."""

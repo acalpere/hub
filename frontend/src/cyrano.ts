@@ -48,3 +48,16 @@ export function highlight(text: string, terms: string[]): Piece[] {
 
 const ROMANS = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV"];
 export const roman = (n: number): string => ROMANS[n] ?? String(n);
+
+/** «00:03:01» (marca de l'enregistrament) a segons. */
+export function toSeconds(stamp: string): number {
+  const [h = 0, m = 0, sec = 0] = stamp.split(":").map(Number);
+  return h * 3600 + m * 60 + sec;
+}
+
+/** Segons a «hh:mm:ss», com les marques de la transcripció. */
+export function toStamp(seconds: number): string {
+  const t = Math.max(0, Math.floor(seconds));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}`;
+}

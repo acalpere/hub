@@ -181,3 +181,70 @@ def test_cyrano_pdf_download(client, container, admin):
 
 def test_cyrano_pdf_requires_access(client, container, germa):
     assert client.get("/api/v1/cyrano/pdf").status_code == 403
+
+
+def test_cyrano_video_local(client, container, admin, tmp_path):
+    from acalpere.adapters.media import LocalMediaStore
+
+    assert admin.get("/api/v1/cyrano/video").json() == {"available": False, "url": None}
+    assert admin.get("/api/v1/cyrano/video/file").status_code == 404
+
+    (tmp_path / "cyrano.mp4").write_bytes(bytes(range(256)) * 4)
+    container.cyrano._media = LocalMediaStore(tmp_path)
+    assert admin.get("/api/v1/cyrano/video").json() == {
+        "available": True,
+        "url": "/api/v1/cyrano/video/file",
+    }
+    whole = admin.get("/api/v1/cyrano/video/file")
+    assert whole.status_code == 200 and len(whole.content) == 1024
+    part = admin.get("/api/v1/cyrano/video/file", headers={"Range": "bytes=10-19"})
+    assert part.status_code == 206 and part.content == bytes(range(10, 20))
+
+
+def test_cyrano_video_requires_access(client, container, germa):
+    assert client.get("/api/v1/cyrano/video").status_code == 403
+    assert client.get("/api/v1/cyrano/video/file").status_code == 403
+
+
+def test_s3_media_store_signs_only_existing_files():
+    from acalpere.adapters.media import LINK_SECONDS, S3MediaStore
+
+    class NotFound(Exception):  # com el ClientError de botocore, que el CI no instal·la
+        pass
+
+    class FakeS3:
+        def __init__(self, exists):
+            self.exists, self.signed = exists, None
+
+        def head_object(self, Bucket, Key):  # noqa: N803
+            if not self.exists:
+                raise NotFound("404 HeadObject")
+
+        def generate_presigned_url(self, op, Params, ExpiresIn):  # noqa: N803
+            self.signed = (op, Params, ExpiresIn)
+            return "https://bucket.s3.amazonaws.com/cyrano.mp4?X-Amz-Signature=x"
+
+    missing = S3MediaStore("b", "eu-west-1", client=FakeS3(False))
+    assert missing.video_url("cyrano.mp4") is None
+    fake = FakeS3(True)
+    store = S3MediaStore("b", "eu-west-1", client=fake)
+    assert store.video_url("cyrano.mp4").startswith("https://")
+    assert fake.signed[0] == "get_object" and fake.signed[1]["Key"] == "cyrano.mp4"
+    assert fake.signed[2] == LINK_SECONDS and store.local_file("cyrano.mp4") is None
+
+
+def test_cyrano_edit_stamp(client, container, admin):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    line = admin.get("/api/v1/cyrano/scenes/1/2").json()[0]
+    assert line["stamp"] is None
+    url = f"/api/v1/cyrano/lines/{line['id']}"
+    body = {"speaker": "LE BRET", "kind": "speech", "text": line["text"], "stamp": "0:12:05"}
+    assert admin.put(url, json=body).json()["stamp"] == "00:12:05"
+    assert admin.get("/api/v1/cyrano/scenes/1/2").json()[0]["stamp"] == "00:12:05"
+    assert admin.put(url, json={**body, "stamp": "12:5"}).status_code == 400
+    assert admin.put(url, json={**body, "stamp": "00:99:00"}).status_code == 400
+    assert admin.put(url, json={**body, "stamp": ""}).json()["stamp"] is None
+    history = admin.get(url + "/history").json()
+    assert [v["stamp"] for v in history] == [None, "00:12:05", None]
+    admin.post(url + "/restore", json={"revision_id": history[1]["id"]})
+    assert admin.get("/api/v1/cyrano/scenes/1/2").json()[0]["stamp"] == "00:12:05"

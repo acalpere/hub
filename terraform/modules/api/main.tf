@@ -54,12 +54,21 @@ resource "aws_iam_role_policy_attachment" "logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+locals {
+  # Permís per llegir el vídeo (enllaços signats): només si hi ha bucket de multimèdia.
+  media_statements = var.media_bucket_arn == "" ? [] : [{
+    Effect   = "Allow"
+    Action   = ["s3:GetObject"]
+    Resource = ["${var.media_bucket_arn}/*"]
+  }]
+}
+
 resource "aws_iam_role_policy" "app" {
   name = "acalpere-app"
   role = aws_iam_role.lambda.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat(local.media_statements, [
       {
         Effect = "Allow"
         Action = ["ssm:GetParameter"]
@@ -75,7 +84,7 @@ resource "aws_iam_role_policy" "app" {
         Action   = ["bedrock:InvokeModel"]
         Resource = ["arn:aws:bedrock:eu-west-1::foundation-model/cohere.embed-multilingual-v3"]
       },
-    ]
+    ])
   })
 }
 
@@ -103,6 +112,7 @@ resource "aws_lambda_function" "api" {
       ACALPERE_SECRET_KEY_SSM_PARAM   = aws_ssm_parameter.secret_key.name
       ACALPERE_DATA_KEY_SSM_PARAM     = aws_ssm_parameter.data_key.name
       ACALPERE_RP_ID                  = var.rp_id
+      ACALPERE_MEDIA_BUCKET           = var.media_bucket
       # Variables de motfinal (poemes), que llegeix sense prefix.
       SEMANTIC_PROVIDER = "bedrock"
       BEDROCK_REGION    = "eu-west-1"

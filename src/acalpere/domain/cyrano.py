@@ -40,6 +40,7 @@ class Revision:
     speaker: str | None
     kind: str
     text: str
+    stamp: str | None
     edited_by: str | None
     edited_at: datetime | None
 
@@ -156,6 +157,17 @@ def to_transcript(lines: list[Line]) -> list[str]:
         else:
             paragraphs.append(line.text)
     return paragraphs
+
+
+def normalize_stamp(value: str | None) -> str | None:
+    """«0:3:1» no val; «0:03:01» o «00:03:01» sí. Buit vol dir sense marca de temps."""
+    value = (value or "").strip()
+    if not value:
+        return None
+    match = re.fullmatch(r"(\d{1,2}):([0-5]\d):([0-5]\d)", value)
+    if not match:
+        raise ValueError("La marca de temps ha de ser hh:mm:ss (per exemple 00:03:01)")
+    return f"{int(match.group(1)):02d}:{match.group(2)}:{match.group(3)}"
 
 
 def edited(line: Line, speaker: str | None, kind: str, text: str) -> Line:

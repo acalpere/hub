@@ -112,7 +112,7 @@ export function LoginPage() {
         Clau
         <PasswordInput name="clau" autoComplete="current-password" required />
       </label>
-      <button type="submit" disabled={busy}>Continuar</button>
+      <button type="submit" disabled={busy}>Entrar</button>
       <button type="button" className="link forgot" aria-expanded={forgot} onClick={() => setForgot((f) => !f)}>
         Has oblidat la clau?
       </button>
@@ -129,8 +129,7 @@ export function LoginPage() {
     <div className="login">
       <div className="card">
         <img src="/logo.svg" alt="acalpere" width={56} height={56} />
-        <h1>Benvingut</h1>
-        <p className="sub">Accedeix al teu espai</p>
+        <h1>Som-hi</h1>
 
         {step === null && (
           mobile && passkeys && !manual ? (
@@ -168,7 +167,9 @@ export function LoginPage() {
           </form>
         )}
 
-        <ErrorMessage message={error} />
+        <div className="err-slot">
+          <ErrorMessage message={error} />
+        </div>
       </div>
     </div>
   );

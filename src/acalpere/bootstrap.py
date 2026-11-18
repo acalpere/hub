@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from sqlalchemy.orm import sessionmaker
 
 from .adapters.crypto import AesGcmCipher, PlainCipher
+from .adapters.media import LocalMediaStore, S3MediaStore
 from .adapters.passkeys import WebAuthnVerifier
 from .adapters.pdf import PdfPlayRenderer
 from .adapters.persistence.engine import make_session_factory
@@ -89,6 +91,11 @@ def build_container(settings: Settings) -> Container:
     users = SqlUserRepository(sf)
     access = SqlAccessRepository(sf)
     contents = SqlContentRepository(sf)
+    media = (
+        S3MediaStore(settings.media_bucket, settings.aws_region)
+        if settings.media_bucket
+        else LocalMediaStore(Path(settings.media_dir))
+    )
     return Container(
         settings=settings,
         auth=AuthService(users, BcryptHasher()),
@@ -96,7 +103,7 @@ def build_container(settings: Settings) -> Container:
         menu=MenuService(contents, access),
         calendar=CalendarService(SqlCalendarRepository(sf)),
         inheritance=InheritanceService(SqlInheritanceRepository(sf, make_cipher(settings))),
-        cyrano=CyranoService(SqlCyranoRepository(sf), PdfPlayRenderer()),
+        cyrano=CyranoService(SqlCyranoRepository(sf), PdfPlayRenderer(), media),
         hub=HubService(sites, SqlAgentRepository(sf), access, users, contents),
         session_factory=sf,
     )

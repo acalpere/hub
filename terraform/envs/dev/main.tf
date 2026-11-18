@@ -36,12 +36,19 @@ module "database" {
   create_branch   = true
 }
 
+module "media" {
+  source = "../../modules/media"
+  env    = "dev"
+}
+
 module "api" {
   source                 = "../../modules/api"
   env                    = "dev"
   package_path           = var.package_path
   database_url_ssm_param = module.database.database_url_ssm_param
   database_url_ssm_arn   = module.database.database_url_ssm_arn
+  media_bucket           = module.media.bucket
+  media_bucket_arn       = module.media.bucket_arn
   rp_id                  = var.use_custom_domain ? "dev.acalpere.cat" : ""
 }
 

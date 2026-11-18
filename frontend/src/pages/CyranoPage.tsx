@@ -4,7 +4,7 @@ import { api, type CyranoKind, type CyranoLine, type CyranoOutline, type CyranoR
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useAuth } from "../auth";
-import { highlight, roman, searchTerms } from "../cyrano";
+import { highlight, roman, searchTerms, toSeconds, toStamp } from "../cyrano";
 
 const actLabel = (act: number) => (act === 0 ? "Notes" : `Acte ${roman(act)}`);
 const sceneLabel = (act: number, scene: number) =>
@@ -27,6 +27,9 @@ interface LineProps {
   onSaved: (l: CyranoLine) => void;
   showPlace?: boolean;
   onOpen?: () => void;
+  onSeek?: (seconds: number) => void;
+  playing?: boolean;
+  videoTime?: () => number | null; // hora actual del vídeo (null: el reproductor és tancat)
 }
 
 function when(iso: string | null): string {
@@ -43,19 +46,20 @@ function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; bu
             <span>{v.edited_by ? `${v.edited_by} · ${when(v.edited_at)}` : "Text original"}</span>
             {i === 0 ? <em>vigent</em> : <button type="button" className="link" disabled={busy} onClick={() => onRestore(v)}>Restaura</button>}
           </div>
-          <p>{v.speaker && <strong>{v.speaker}. </strong>}{v.text}</p>
+          <p>{v.speaker && <strong>{v.speaker}. </strong>}{v.text}{v.stamp && <span className="muted"> · {v.stamp}</span>}</p>
         </li>
       ))}
     </ol>
   );
 }
 
-function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpen }: LineProps) {
+function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<CyranoRevision[] | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const stampInput = useRef<HTMLInputElement>(null);
 
   async function loadHistory() {
     setError("");
@@ -90,7 +94,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
     setBusy(true);
     setError("");
     try {
-      onSaved(await api.cyranoEdit(line.id, { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")) }));
+      onSaved(await api.cyranoEdit(line.id, { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null }));
       setEditing(false);
     } catch (err) {
       setError((err as Error).message);
@@ -116,6 +120,26 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
             <input name="speaker" list="cy-speakers" defaultValue={line.speaker ?? ""} />
           </label>
         </div>
+        <div className="cy-stamp-row">
+          <label>
+            Hora del vídeo
+            <input ref={stampInput} name="stamp" defaultValue={line.stamp ?? ""} placeholder="00:03:01" inputMode="numeric" pattern="\d{1,2}:\d{2}:\d{2}" maxLength={8} />
+          </label>
+          {videoTime && (
+            <button
+              type="button"
+              className="ghost"
+              disabled={videoTime() === null}
+              title={videoTime() === null ? "Obre el vídeo i para'l a la rèplica" : "Posa l'hora que marca ara el vídeo"}
+              onClick={() => {
+                const t = videoTime();
+                if (t !== null && stampInput.current) stampInput.current.value = toStamp(t);
+              }}
+            >
+              Agafa l'hora del vídeo
+            </button>
+          )}
+        </div>
         <datalist id="cy-speakers">{speakers.map((s) => <option key={s} value={s} />)}</datalist>
         <textarea name="text" defaultValue={line.text} rows={Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
         <ErrorMessage message={error} />
@@ -133,12 +157,16 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, showPlace, onOpe
 
   const body = <Marked text={line.text} terms={terms} />;
   return (
-    <div ref={ref} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}`}>
+    <div ref={ref} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}`}>
       {line.kind === "speech" ? (
         <>
           <div className="cy-who">
             {line.speaker}
-            {line.stamp && <small>{line.stamp}</small>}
+            {line.stamp && (onSeek ? (
+              <button type="button" className="cy-stamp" title="Reprodueix el vídeo des d'aquí" onClick={() => onSeek(toSeconds(line.stamp as string))}>
+                ▶ {line.stamp}
+              </button>
+            ) : <small>{line.stamp}</small>)}
           </div>
           <p>{body}</p>
         </>
@@ -173,6 +201,12 @@ export function CyranoPage() {
   const [seen, setSeen] = useState<{ act: number; scene: number } | null>(null);
   const [error, setError] = useState("");
 
+  // Vídeo de l'obra (si s'ha pujat): reproductor flotant, i les marques de temps salten al vídeo.
+  const [video, setVideo] = useState<string | null>(null);
+  const [playerOpen, setPlayerOpen] = useState(false);
+  const [time, setTime] = useState(0);
+  const player = useRef<HTMLVideoElement>(null);
+  const pending = useRef<number | null>(null);
   const continuous = params.get("vista") === "continua";
   const q = params.get("q") ?? "";
   const who = params.get("personatge") ?? "";
@@ -189,6 +223,44 @@ export function CyranoPage() {
     },
     [params, setParams],
   );
+
+  useEffect(() => {
+    api.cyranoVideo().then((v) => setVideo(v.available ? v.url : null)).catch(() => setVideo(null));
+  }, []);
+
+  // Hora actual del reproductor, per posar-la a una rèplica des de l'editor.
+  const currentTime = () => (playerOpen && player.current ? player.current.currentTime : null);
+
+  function seek(seconds: number) {
+    const el = player.current;
+    if (!playerOpen || !el) {
+      pending.current = seconds;
+      setPlayerOpen(true);
+    } else {
+      el.currentTime = seconds;
+      void el.play();
+    }
+  }
+
+  // L'enllaç signat caduca: si la reproducció falla, se'n demana un de nou i es continua pel mateix punt.
+  async function renew() {
+    pending.current = player.current?.currentTime ?? 0;
+    try {
+      const v = await api.cyranoVideo();
+      setVideo(v.available ? v.url : null);
+    } catch {
+      setVideo(null);
+    }
+  }
+
+  function playerReady() {
+    const el = player.current;
+    if (el && pending.current !== null) {
+      el.currentTime = pending.current;
+      pending.current = null;
+      void el.play().catch(() => undefined);
+    }
+  }
 
   useEffect(() => {
     api.cyranoOutline().then(setOutline).catch((e) => setError((e as Error).message));
@@ -261,6 +333,21 @@ export function CyranoPage() {
       .catch((e) => setError((e as Error).message));
   }, [searching, q, who]);
 
+  const playingId = useMemo(() => {
+    if (!playerOpen) return 0;
+    let found = 0;
+    let best = -1;
+    for (const l of (continuous ? all : lines) ?? []) {
+      if (!l.stamp) continue;
+      const at = toSeconds(l.stamp);
+      if (at <= time && at > best) {
+        best = at;
+        found = l.id;
+      }
+    }
+    return found;
+  }, [playerOpen, continuous, all, lines, time]);
+
   function submitSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -312,6 +399,15 @@ export function CyranoPage() {
             <button type="button" className={continuous ? "" : "on"} aria-pressed={!continuous} onClick={() => setView(true)}>Paginada</button>
             <button type="button" className={continuous ? "on" : ""} aria-pressed={continuous} onClick={() => setView(false)}>Contínua</button>
           </div>
+          {video && (
+            <button type="button" className="cy-pdf" aria-pressed={playerOpen} onClick={() => setPlayerOpen((o) => !o)} title="Mostra o amaga el vídeo de l'obra">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M10 9.5v5l4.5-2.5z" />
+              </svg>
+              Vídeo
+            </button>
+          )}
           <a className="cy-pdf" href="/api/v1/cyrano/pdf" download="Cyrano-de-Bergerac.pdf" title="Baixa l'obra en PDF">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 4v10M8 10.5l4 4 4-4M5 19h14" />
@@ -359,7 +455,7 @@ export function CyranoPage() {
                 {results.truncated && " (afina la cerca per veure'n més)"}
               </p>
               {results.list.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={false} canEdit={canEdit} speakers={speakers} onSaved={saved} showPlace onOpen={() => openLine(l)} />
+                <Line key={l.id} line={l} terms={terms} focus={false} canEdit={canEdit} speakers={speakers} onSaved={saved} showPlace onOpen={() => openLine(l)} onSeek={video ? seek : undefined} videoTime={video ? currentTime : undefined} />
               ))}
             </>
           )}
@@ -412,7 +508,7 @@ export function CyranoPage() {
                       )}
                     </header>
                     {sec.lines.filter((l) => !(sec.act > 0 && sec.scene === 0 && l.kind === "title")).map((l) => (
-                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} />
+                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
                     ))}
                   </section>
                 ))}
@@ -427,7 +523,7 @@ export function CyranoPage() {
 
             <div className="cy-scene">
               {lines.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} />
+                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
               ))}
             </div>
 
@@ -438,6 +534,20 @@ export function CyranoPage() {
             </>
           )}
         </>
+      )}
+      {video && playerOpen && (
+        <div className="cy-player">
+          <button type="button" className="cy-player-close" aria-label="Tanca el vídeo" onClick={() => setPlayerOpen(false)}>×</button>
+          <video
+            ref={player}
+            src={video}
+            controls
+            preload="metadata"
+            onLoadedMetadata={playerReady}
+            onTimeUpdate={(e) => setTime(Math.floor(e.currentTarget.currentTime))}
+            onError={() => void renew()}
+          />
+        </div>
       )}
     </section>
   );

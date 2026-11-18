@@ -22,3 +22,5 @@ frontend/public/apps/poemes/
 CyranoDeBergerac.odt
 Cyrano-*.odt
 Cyrano-*.json
+data/media/
+*.mp4

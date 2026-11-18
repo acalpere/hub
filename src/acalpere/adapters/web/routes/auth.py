@@ -88,7 +88,11 @@ def _origin(request: Request, c: Container) -> tuple[str, str]:
     origin = request.headers.get("origin", "")
     host = urlparse(origin).hostname
     if not host or (c.settings.rp_id and host != c.settings.rp_id):
-        raise AuthError("Origen no permès.")
+        raise AuthError(
+            f"Les claus d'accés només funcionen a {c.settings.rp_id}: entra des d'aquesta adreça."
+            if host and c.settings.rp_id
+            else "Origen no permès."
+        )
     return host, origin
 
 

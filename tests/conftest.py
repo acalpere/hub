@@ -15,7 +15,10 @@ TOTP_SECRET = "JBSWY3DPEHPK3PXP"
 @pytest.fixture
 def settings(tmp_path):
     return Settings(
-        database_url=f"sqlite:///{tmp_path / 'test.db'}", secret_key="test", _env_file=None
+        database_url=f"sqlite:///{tmp_path / 'test.db'}",
+        secret_key="test",
+        media_dir=str(tmp_path / "media"),  # mai el vídeo real de data/media
+        _env_file=None,
     )
 
 

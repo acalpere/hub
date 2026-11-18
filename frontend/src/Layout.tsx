@@ -12,9 +12,10 @@ export function Layout() {
     if (!user) return setHasCyrano(false);
     api.menu().then((m) => setHasCyrano(m.some((i) => i.url === "/cyrano"))).catch(() => setHasCyrano(false));
   }, [user]);
+  const framed = pathname.startsWith("/app/");
   const inGestio = ["/gestio", "/hub", "/usuaris"].some((p) => pathname.startsWith(p));
   return (
-    <div className="shell">
+    <div className={`shell${framed ? " framed" : ""}`}>
       <header className="top">
         <Link to="/" className="brand">
           <img src="/logo.svg" alt="" width={40} height={40} />
@@ -55,25 +56,27 @@ export function Layout() {
           </nav>
         )}
       </header>
-      <main>
+      <main className={framed ? "framed" : undefined}>
         <Outlet />
       </main>
-      <footer className="foot">
-        <div className="foot-in">
-          <Link to="/" className="foot-brand">
-            <img src="/logo.svg" alt="" width={32} height={32} />
-            <span>acalpere<span className="tld">.cat</span></span>
-          </Link>
-          {user && (
-            <nav className="foot-nav" aria-label="Peu">
-              <Link to="/">Hub</Link>
-              {hasCyrano && <Link to="/cyrano">Cyrano</Link>}
-              <Link to="/perfil">El meu perfil</Link>
-            </nav>
-          )}
-          <p>© {new Date().getFullYear()} acalpere.cat · Llibres, dades i família.</p>
-        </div>
-      </footer>
+      {!framed && (
+        <footer className="foot">
+          <div className="foot-in">
+            <Link to="/" className="foot-brand">
+              <img src="/logo.svg" alt="" width={32} height={32} />
+              <span>acalpere<span className="tld">.cat</span></span>
+            </Link>
+            {user && (
+              <nav className="foot-nav" aria-label="Peu">
+                <Link to="/">Hub</Link>
+                {hasCyrano && <Link to="/cyrano">Cyrano</Link>}
+                <Link to="/perfil">El meu perfil</Link>
+              </nav>
+            )}
+            <p>© {new Date().getFullYear()} acalpere.cat · Llibres, dades i família.</p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

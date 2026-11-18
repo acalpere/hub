@@ -23,7 +23,8 @@ const definitionToggle = form.elements.include_definitions;
 const viewModeInputs = document.querySelectorAll("input[name='view_mode']");
 const hubHome = document.querySelector("#hub-home");
 
-if (window.MOTFINAL.homeUrl) {
+// Incrustat en un marc, qui l'allotja ja té la seva navegació a sobre.
+if (window.MOTFINAL.homeUrl && window === window.top) {
   hubHome.href = window.MOTFINAL.homeUrl;
   hubHome.hidden = false;
 }
