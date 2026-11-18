@@ -414,3 +414,13 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 .card .code-field { align-self: center; align-items: center; width: 10.5rem; text-align: center; }
 .login .card .code-field input { width: 100%; padding: 0.2rem 0 0.4rem; text-align: center; font-size: 1.6rem; letter-spacing: 0.22em; font-variant-numeric: tabular-nums; }
 .card .code-field input::placeholder { color: color-mix(in srgb, var(--muted) 40%, transparent); }
+
+/* El pop-up de salt és petit i discret */
+.dlg.jump { width: min(21rem, 100%); padding: 1.1rem 1.2rem 1rem; border-radius: 14px; }
+.jump-opts { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+.dlg.jump .cy-modes button { padding: 0.18rem 0.65rem; font-size: 0.74rem; }
+.dlg.jump .jump-label { margin: 0.5rem 0 0.3rem; font-size: 0.66rem; }
+.dlg.jump .jump-chips { gap: 0.3rem; margin-bottom: 0.4rem; max-height: 6.5rem; }
+.dlg.jump .jump-chip { min-width: 2rem; padding: 0.15rem 0.55rem; font-size: 0.85rem; }
+.dlg.jump .dlg-actions { margin-top: 0.8rem; gap: 0.5rem; }
+.dlg.jump .dlg-actions button { min-width: 4.5rem; padding: 0.3rem 0.9rem; font-size: 0.82rem; border-radius: 999px; }

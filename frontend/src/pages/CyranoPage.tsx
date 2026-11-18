@@ -60,9 +60,21 @@ function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; bu
 }
 
 // Finestra per saltar a un acte i una escena (surt del botó rodó que apareix en perdre de vista les barres).
-function Jump({ outline, from, onGo, onClose }: { outline: CyranoOutline; from: { act: number; scene: number }; onGo: (to: { act: number; scene: number }) => void; onClose: () => void }) {
+interface JumpProps {
+  outline: CyranoOutline;
+  from: { act: number; scene: number };
+  continuous: boolean;
+  onView: (paged: boolean) => void;
+  canSwitchMode: boolean;
+  editing: boolean;
+  onEditing: (on: boolean) => void;
+  onGo: (to: { act: number; scene: number }) => void;
+  onClose: () => void;
+}
+
+function Jump({ outline, from, continuous, onView, canSwitchMode, editing, onEditing, onGo, onClose }: JumpProps) {
   const [pick, setPick] = useState(from);
-  const acts = [...outline.acts.filter((a) => a.act > 0), ...outline.acts.filter((a) => a.act === 0)];
+  const acts = outline.acts.filter((a) => a.act > 0);
   const scenes = outline.acts.find((a) => a.act === pick.act)?.scenes ?? [];
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -72,12 +84,23 @@ function Jump({ outline, from, onGo, onClose }: { outline: CyranoOutline; from: 
   return createPortal(
     <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dlg jump" role="dialog" aria-modal="true" aria-label="Anar a un acte i una escena">
-        <h2>Anar a…</h2>
+        <div className="jump-opts">
+          <div className="cy-modes" role="group" aria-label="Vista">
+            <button type="button" className={continuous ? "" : "on"} aria-pressed={!continuous} onClick={() => onView(true)}>Paginada</button>
+            <button type="button" className={continuous ? "on" : ""} aria-pressed={continuous} onClick={() => onView(false)}>Contínua</button>
+          </div>
+          {canSwitchMode && (
+            <div className="cy-modes" role="group" aria-label="Mode">
+              <button type="button" className={editing ? "" : "on"} aria-pressed={!editing} onClick={() => onEditing(false)}>Lectura</button>
+              <button type="button" className={editing ? "on" : ""} aria-pressed={editing} onClick={() => onEditing(true)}>Edició</button>
+            </div>
+          )}
+        </div>
         <p className="jump-label">Acte</p>
         <div className="jump-chips">
           {acts.map((a) => (
             <button key={a.act} type="button" className={`jump-chip${a.act === pick.act ? " on" : ""}`} onClick={() => setPick({ act: a.act, scene: a.scenes[0] ?? 0 })}>
-              {a.act === 0 ? "Notes" : roman(a.act)}
+              {roman(a.act)}
             </button>
           ))}
         </div>
@@ -85,7 +108,7 @@ function Jump({ outline, from, onGo, onClose }: { outline: CyranoOutline; from: 
         <div className="jump-chips">
           {scenes.map((sc) => (
             <button key={sc} type="button" className={`jump-chip${sc === pick.scene ? " on" : ""}`} onClick={() => setPick({ ...pick, scene: sc })}>
-              {pick.act === 0 ? sceneLabel(0, sc) : roman(sc)}
+              {roman(sc)}
             </button>
           ))}
         </div>
@@ -716,7 +739,12 @@ export function CyranoPage() {
       {outline && jumping && (
         <Jump
           outline={outline}
-          from={{ act: viewAct, scene: viewScene }}
+          from={{ act: sceneAct, scene: viewAct > 0 ? viewScene : sceneInfo?.scenes[0] ?? 1 }}
+          continuous={continuous}
+          onView={setView}
+          canSwitchMode={isAdmin}
+          editing={canEdit}
+          onEditing={(on) => update({ mode: on ? "edicio" : null })}
           onClose={() => setJumping(false)}
           onGo={(to) => {
             setJumping(false);
