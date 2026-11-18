@@ -39,7 +39,7 @@ export function LoginPage() {
 
   // Al mòbil es demana la petjada d'entrada, sense tocar res.
   useEffect(() => {
-    if (!user && step === null && mobile && passkeys) passkeyLogin();
+    if (!user && step === null && mobile && passkeys) passkeyLogin(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -73,12 +73,17 @@ export function LoginPage() {
     void run(async () => completeLogin(await (step === "mfa_setup" ? api.mfaEnable(code) : api.mfa(code))));
   }
 
-  function passkeyLogin() {
+  // «auto»: es demana sol en entrar; si es cancel·la o falla, queda el formulari d'usuari i clau.
+  function passkeyLogin(auto = false) {
     void run(async () => {
       try {
         completeLogin(await api.passkeyLogin(await getPasskey(await api.passkeyLoginOptions())));
         rememberPasskey();
       } catch (err) {
+        if (auto) {
+          setManual(true);
+          if (err instanceof DOMException && err.name === "NotAllowedError") return;
+        }
         if (err instanceof DOMException) {
           throw new Error(
             err.name === "NotAllowedError"
@@ -93,7 +98,7 @@ export function LoginPage() {
   }
 
   const passkeyButton = (
-    <button type="button" className="touch" disabled={busy} onClick={passkeyLogin}>
+    <button type="button" className="touch" disabled={busy} onClick={() => passkeyLogin()}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 11v3a6 6 0 0 1-1 3.300M8.500 14.500c0-2 .5-3.500 1.500-5M5.500 16c-.7-1.500-1-3-1-4.500a7.500 7.500 0 0 1 15 0c0 1-.1 2-.3 3M16 15c0 2-.5 3.500-1.300 5" />
         <path d="M12 7a4.500 4.500 0 0 0-4.500 4.500c0 .8-.1 1.500-.3 2.200M12 11v.01" />
@@ -138,7 +143,10 @@ export function LoginPage() {
               <button type="button" className="alt" onClick={() => setManual(true)}>Usar usuari i clau</button>
             </>
           ) : (
-            passwordForm
+            <>
+              {passwordForm}
+              {mobile && passkeys && passkeyButton}
+            </>
           )
         )}
 

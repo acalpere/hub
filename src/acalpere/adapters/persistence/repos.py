@@ -699,6 +699,23 @@ class SqlCyranoRepository:
             )
             return [self._revision(r) for r in rows]
 
+    def delete(self, line_id: int, kinds: tuple[str, ...]) -> Line | None:
+        """Treu la línia (si és d'un dels tipus) i el seu historial; tanca el forat de posicions."""
+        with self._sf.begin() as s:
+            row = s.get(m.CyranoLineRow, line_id)
+            if row is None or row.kind not in kinds:
+                return None
+            gone = self._line(row)
+            s.execute(delete(m.CyranoRevisionRow).where(m.CyranoRevisionRow.line_id == line_id))
+            s.delete(row)
+            s.flush()
+            s.execute(
+                update(m.CyranoLineRow)
+                .where(m.CyranoLineRow.position > row.position)
+                .values(position=m.CyranoLineRow.position - 1)
+            )
+            return gone
+
     def revision(self, revision_id: int) -> Revision | None:
         with self._sf() as s:
             row = s.get(m.CyranoRevisionRow, revision_id)

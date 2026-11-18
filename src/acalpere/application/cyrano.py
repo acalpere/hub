@@ -103,6 +103,11 @@ class CyranoService:
             raise NotFound("Línia no trobada")
         return line
 
+    def delete(self, line_id: int) -> None:
+        """Esborra una rèplica, acotació o text (els títols i les notes no es toquen)."""
+        if self._repo.delete(line_id, tuple(EDITABLE_KINDS)) is None:
+            raise NotFound("Línia no trobada")
+
     def _save(
         self,
         line_id: int,

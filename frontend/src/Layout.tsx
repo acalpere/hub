@@ -36,31 +36,21 @@ export function Layout() {
             {user.role === "admin" && (
               <NavLink to="/gestio" className={`navlink gestio${inGestio ? " active" : ""}`}>Gestió</NavLink>
             )}
-            <NavLink to="/perfil" className="who" title="El meu perfil">
-              {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username}
-            </NavLink>
-            {user.role === "admin" && (
-              <Link to="/gestio/seguretat" className="icon-btn" aria-label="Seguretat" title="Seguretat">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
-              </Link>
-            )}
-            <button
-              className="icon-btn"
-              aria-label="Sortir"
-              title="Sortir"
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
-                <path d="M16 8l4 4-4 4M20 12H9" />
-              </svg>
-            </button>
+            <div className="who-box">
+              <NavLink to="/perfil" className="who" title="El meu perfil">
+                {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username}
+              </NavLink>
+              <button
+                type="button"
+                className="link exit"
+                onClick={async () => {
+                  await logout();
+                  navigate("/login");
+                }}
+              >
+                Sortir
+              </button>
+            </div>
           </nav>
         )}
       </header>
@@ -68,7 +58,6 @@ export function Layout() {
         <SideMenu
           user={user}
           hasCyrano={hasCyrano}
-          pathname={pathname}
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           onLogout={async () => {

@@ -26,6 +26,7 @@ interface LineProps {
   speakers: string[];
   onSaved: (l: CyranoLine) => void;
   onInserted?: (l: CyranoLine, afterId: number) => void;
+  onDeleted?: (id: number) => void;
   showPlace?: boolean;
   onOpen?: () => void;
   onSeek?: (seconds: number) => void;
@@ -54,7 +55,7 @@ function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; bu
   );
 }
 
-function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
+function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDeleted, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
   // «edit»: canvia aquesta línia; «add»: n'afegeix una de nova just a sota.
   const [mode, setMode] = useState<"edit" | "add" | null>(null);
   const [error, setError] = useState("");
@@ -64,6 +65,13 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
   const stampInput = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const dirty = useRef(false);
+  // El tipus que es tria mostra o amaga el personatge. En afegir, es comença com la línia de sobre:
+  // si és una rèplica, la nova és del mateix personatge.
+  const [kind, setKind] = useState<CyranoKind>("text");
+  useEffect(() => {
+    if (mode === "edit") setKind(line.kind === "speech" || line.kind === "stage" ? line.kind : "text");
+    else if (mode === "add") setKind(line.kind === "speech" || line.kind === "stage" ? line.kind : "text");
+  }, [mode, line.kind]);
 
   // Es tanca amb Esc o clicant fora; si hi ha canvis sense desar, abans ho pregunta.
   // El reproductor de vídeo compta com a dins: s'hi ha de poder parar el vídeo mentre s'edita.
@@ -119,6 +127,20 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
     if (focus) ref.current?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [focus]);
 
+  async function remove() {
+    if (!window.confirm("Esborrar aquesta línia i el seu historial? No es pot desfer.")) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api.cyranoDelete(line.id);
+      setMode(null);
+      onDeleted?.(line.id);
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  }
+
   async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -126,7 +148,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
     setBusy(true);
     setError("");
     try {
-      const payload = { speaker: kind === "speech" ? String(f.get("speaker")) : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
+      const payload = { speaker: kind === "speech" ? String(f.get("speaker") ?? "") : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
       if (mode === "add") onInserted?.(await api.cyranoInsert(line.id, payload), line.id);
       else onSaved(await api.cyranoEdit(line.id, payload));
       setMode(null);
@@ -142,16 +164,18 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
         <div className="cy-edit-row">
           <label>
             Tipus
-            <select name="kind" defaultValue={mode === "add" ? "text" : line.kind === "speech" || line.kind === "stage" ? line.kind : "text"}>
-              <option value="speech">Rèplica</option>
-              <option value="stage">Acotació</option>
-              <option value="text">Text</option>
+            <select name="kind" value={kind} onChange={(e) => setKind(e.target.value as CyranoKind)}>
+              <option value="speech">Rèplica (parla un personatge)</option>
+              <option value="stage">Acotació (indicació escènica, en cursiva)</option>
+              <option value="text">Text (sense personatge)</option>
             </select>
           </label>
-          <label>
-            Personatge
-            <input name="speaker" list="cy-speakers" defaultValue={mode === "add" ? "" : line.speaker ?? ""} />
-          </label>
+          {kind === "speech" && (
+            <label>
+              Personatge
+              <input name="speaker" list="cy-speakers" defaultValue={line.kind === "speech" ? line.speaker ?? "" : ""} required />
+            </label>
+          )}
         </div>
         <div className="cy-stamp-row">
           <label>
@@ -179,8 +203,13 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, show
         <div className="cy-edit-actions">
           <button type="submit" disabled={busy}>{mode === "add" ? "Afegeix" : "Desa"}</button>
           <button type="button" className="ghost" onClick={() => setMode(null)}>Cancel·la</button>
+          {mode === "edit" && onDeleted && (
+            <button type="button" className="link danger" disabled={busy} onClick={() => void remove()}>
+              Esborra
+            </button>
+          )}
           {mode === "edit" && (
-            <button type="button" className="link" onClick={() => (history ? setHistory(null) : void loadHistory())}>
+            <button type="button" className="link hist" onClick={() => (history ? setHistory(null) : void loadHistory())}>
               {history ? "Amaga l'historial" : "Historial"}
             </button>
           )}
@@ -414,6 +443,17 @@ export function CyranoPage() {
     setAll((a) => a && put(a));
   }
 
+  function toTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function deleted(id: number) {
+    const gone = (l: CyranoLine) => l.id !== id;
+    setLines((ls) => ls.filter(gone));
+    setAll((a) => a && a.filter(gone));
+    setResults((r) => r && { ...r, list: r.list.filter(gone) });
+  }
+
   function saved(updated: CyranoLine) {
     const swap = (l: CyranoLine) => (l.id === updated.id ? updated : l);
     setLines((ls) => ls.map(swap));
@@ -508,14 +548,14 @@ export function CyranoPage() {
                 {results.truncated && " (afina la cerca per veure'n més)"}
               </p>
               {results.list.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={false} canEdit={canEdit} speakers={speakers} onSaved={saved} showPlace onOpen={() => openLine(l)} onSeek={video ? seek : undefined} videoTime={video ? currentTime : undefined} />
+                <Line key={l.id} line={l} terms={terms} focus={false} canEdit={canEdit} speakers={speakers} onSaved={saved} onDeleted={deleted} showPlace onOpen={() => openLine(l)} onSeek={video ? seek : undefined} videoTime={video ? currentTime : undefined} />
               ))}
             </>
           )}
         </div>
       ) : (
         <>
-          <div className={continuous ? "cy-navs sticky" : "cy-navs"}>
+          <div className="cy-navs">
           <nav className="cy-nav" aria-label="Actes">
             <span className="cy-label">Actes:</span>
             {outline.acts.filter((a) => a.act > 0).map((a) => (
@@ -561,10 +601,11 @@ export function CyranoPage() {
                       )}
                     </header>
                     {sec.lines.filter((l) => !(sec.act > 0 && sec.scene === 0 && l.kind === "title")).map((l) => (
-                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
                     ))}
                   </section>
                 ))}
+                <p className="cy-top"><button type="button" className="link" onClick={toTop}>↑ Torna al principi</button></p>
               </div>
             )
           ) : (
@@ -576,7 +617,7 @@ export function CyranoPage() {
 
             <div className="cy-scene">
               {lines.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
               ))}
             </div>
 
@@ -584,6 +625,7 @@ export function CyranoPage() {
               <button type="button" className="ghost" disabled={at <= 0} onClick={() => go(ordered[at - 1])}>← Anterior</button>
               <button type="button" className="ghost" disabled={at < 0 || at >= ordered.length - 1} onClick={() => go(ordered[at + 1])}>Següent →</button>
             </div>
+            <p className="cy-top"><button type="button" className="link" onClick={toTop}>↑ Torna al principi</button></p>
             </>
           )}
         </>

@@ -114,6 +114,12 @@ def insert(
     )
 
 
+@router.delete("/lines/{line_id}")
+def remove(line_id: int, _: User = Depends(admin_user), c: Container = Depends(container)):
+    c.cyrano.delete(line_id)
+    return {"ok": True}
+
+
 @router.get("/lines/{line_id}/history")
 def history(line_id: int, _: User = Depends(admin_user), c: Container = Depends(container)):
     return [

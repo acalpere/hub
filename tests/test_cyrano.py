@@ -287,3 +287,16 @@ def test_cyrano_insert_line_between_replies(client, container, admin):
         ).status_code
         == 404
     )
+
+
+def test_cyrano_delete_line(client, container, admin):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    lines = admin.get("/api/v1/cyrano/scenes/1/1").json()
+    target = next(x for x in lines if x["kind"] in ("speech", "stage", "text"))
+    assert admin.delete(f"/api/v1/cyrano/lines/{target['id']}").status_code == 200
+    after = admin.get("/api/v1/cyrano/scenes/1/1").json()
+    assert [x["id"] for x in after] == [x["id"] for x in lines if x["id"] != target["id"]]
+    assert admin.get(f"/api/v1/cyrano/lines/{target['id']}/history").json() == []
+    assert admin.delete(f"/api/v1/cyrano/lines/{target['id']}").status_code == 404
+    heading = next(x for x in container.cyrano.export_lines() if x.kind == "title")
+    assert admin.delete(f"/api/v1/cyrano/lines/{heading.id}").status_code == 404  # els títols no

@@ -1,31 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { NavLink } from "react-router";
 import type { User } from "../api";
 
 interface Props {
   user: User;
   hasCyrano: boolean;
-  pathname: string;
   open: boolean;
   onClose: () => void;
   onLogout: () => void;
 }
 
-const GESTIO = [
-  { to: "/gestio/hub", name: "Webs i agents" },
-  { to: "/gestio/usuaris", name: "Usuaris" },
-  { to: "/gestio/seguretat", name: "Seguretat" },
-];
-
-// Menú lateral per a pantalles petites: surt per l'esquerra i Gestió és un acordió.
-export function SideMenu({ user, hasCyrano, pathname, open, onClose, onLogout }: Props) {
-  const inGestio = pathname.startsWith("/gestio");
-  const [gestio, setGestio] = useState(inGestio);
+// Menú lateral per a pantalles petites: surt per l'esquerra.
+export function SideMenu({ user, hasCyrano, open, onClose, onLogout }: Props) {
   const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username;
-
-  useEffect(() => {
-    if (inGestio) setGestio(true);
-  }, [inGestio]);
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +31,7 @@ export function SideMenu({ user, hasCyrano, pathname, open, onClose, onLogout }:
       <div className={`drawer-backdrop${open ? " open" : ""}`} onClick={onClose} aria-hidden="true" />
       <aside id="side-menu" className={`drawer${open ? " open" : ""}`} aria-label="Menú" aria-hidden={!open}>
         <div className="drawer-head">
-          <span>Menú</span>
+          <span className="drawer-brand">acalpere<span className="tld">.cat</span></span>
           <button type="button" className="icon-btn" aria-label="Tanca el menú" onClick={onClose}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
@@ -53,25 +40,17 @@ export function SideMenu({ user, hasCyrano, pathname, open, onClose, onLogout }:
           <NavLink to="/" end className="drawer-link">Hub</NavLink>
           {hasCyrano && <NavLink to="/cyrano" className="drawer-link">Cyrano</NavLink>}
 
-          {user.role === "admin" && (
-            <div className={`acc${gestio ? " open" : ""}`}>
-              <button type="button" className={`drawer-link acc-btn${inGestio ? " active" : ""}`} aria-expanded={gestio} aria-controls="acc-gestio" onClick={() => setGestio((g) => !g)}>
-                Gestió
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" /></svg>
-              </button>
-              <div id="acc-gestio" className="acc-panel">
-                <div>
-                  {GESTIO.map((o) => (
-                    <NavLink key={o.to} to={o.to} className="drawer-sub">{o.name}</NavLink>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <NavLink to="/perfil" className="drawer-link">El meu perfil <small>{name}</small></NavLink>
-          <button type="button" className="drawer-link drawer-exit" onClick={onLogout}>Sortir</button>
+          {user.role === "admin" && <NavLink to="/gestio" className="drawer-link">Gestió</NavLink>}
         </nav>
+        <div className="drawer-foot">
+          <img src="/logo.svg" alt="" width={96} height={96} />
+        </div>
+        <div className="drawer-user">
+          <NavLink to="/perfil" className="drawer-me">
+            {name}
+          </NavLink>
+          <button type="button" className="exit" onClick={onLogout}>Sortir</button>
+        </div>
       </aside>
     </>
   );
