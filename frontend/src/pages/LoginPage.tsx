@@ -132,7 +132,7 @@ export function LoginPage() {
 
   return (
     <div className="login">
-      <div className="card">
+      <div className={`card${step === "mfa_required" || step === "mfa_setup" ? " mfa" : ""}`}>
         <img src="/logo.svg" alt="acalpere" width={56} height={56} />
         <h1>Som-hi</h1>
 
@@ -169,7 +169,6 @@ export function LoginPage() {
 
         {step === "mfa_required" && (
           <form className="stack" noValidate onSubmit={submitCode}>
-            <p className="muted">Escriu el codi de l'aplicació d'autenticació.</p>
             <CodeField />
             <button type="submit" disabled={busy}>Entrar</button>
           </form>
@@ -183,11 +182,27 @@ export function LoginPage() {
   );
 }
 
+// Sis xifres, amb un espai al mig (123 456): el camp és només tan ample com cal.
 function CodeField() {
+  const [code, setCode] = useState("");
   return (
-    <label>
-      Codi
-      <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,7}" maxLength={7} required autoFocus />
+    <label className="code-field">
+      MFA
+      <input
+        name="code"
+        value={code}
+        onChange={(e) => {
+          const d = e.target.value.replace(/\D/g, "").slice(0, 6);
+          setCode(d.length > 3 ? `${d.slice(0, 3)} ${d.slice(3)}` : d);
+        }}
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        pattern="[0-9]{3} ?[0-9]{3}"
+        maxLength={7}
+        placeholder="000 000"
+        required
+        autoFocus
+      />
     </label>
   );
 }

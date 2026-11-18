@@ -408,3 +408,9 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 .jump-chip:hover { border-color: var(--wine); filter: none; }
 .jump-chip.on { background: var(--wine); border-color: var(--wine); color: #fff; }
 .dlg.jump .dlg-actions { margin-top: 0.5rem; }
+
+/* Pantalla del segon factor: logo doble i un camp només per a sis xifres */
+.card.mfa > img { width: 112px; height: 112px; border-radius: 26px; }
+.card .code-field { align-self: center; align-items: center; width: 10.5rem; text-align: center; }
+.login .card .code-field input { width: 100%; padding: 0.2rem 0 0.4rem; text-align: center; font-size: 1.6rem; letter-spacing: 0.22em; font-variant-numeric: tabular-nums; }
+.card .code-field input::placeholder { color: color-mix(in srgb, var(--muted) 40%, transparent); }
