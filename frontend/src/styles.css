@@ -382,3 +382,29 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 .drawer-me { line-height: 1.25; }
 .top nav .who-box { display: grid; justify-items: center; gap: 0.15rem; flex: 0 0 auto; }
 .top nav .who-box > * { display: block; margin: 0; }
+
+/* Finestra de confirmació */
+.dlg-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(30, 24, 20, 0.45); backdrop-filter: blur(2px); animation: dlg-in 0.15s ease; }
+.dlg { width: min(24rem, 100%); padding: 1.75rem 1.75rem 1.4rem; border: 1px solid var(--rule); border-radius: 16px; background: var(--card); box-shadow: 0 24px 60px -20px rgba(30, 24, 20, 0.5); text-align: center; animation: dlg-pop 0.18s ease; }
+.dlg h2 { margin: 0 0 0.5rem; padding: 0; border: 0; border-image: none; font-size: 1.45rem; }
+.dlg p { margin: 0 0 1.5rem; color: var(--muted); font-size: 0.98rem; line-height: 1.45; }
+.dlg-actions { display: flex; justify-content: center; gap: 0.75rem; }
+.dlg-actions button { min-width: 7rem; padding: 0.55rem 1.2rem; }
+.dlg-actions button.no { background: transparent; border-color: #a1262b; color: #a1262b; }
+.dlg-actions button.no:hover { background: color-mix(in srgb, #a1262b 8%, transparent); filter: none; }
+@keyframes dlg-in { from { opacity: 0; } }
+@keyframes dlg-pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
+@media (prefers-reduced-motion: reduce) { .dlg-backdrop, .dlg { animation: none; } }
+@media (max-width: 40rem) { .cy-stamp { margin-left: 0; text-align: left; } }
+
+/* Botó rodó per saltar d'acte i escena, quan les barres ja no es veuen */
+.cy-jump-btn { position: fixed; right: 1rem; bottom: 1.25rem; z-index: 30; display: grid; place-items: center; min-width: 3.4rem; height: 3.4rem; padding: 0 0.5rem; border: 0; border-radius: 999px; background: var(--wine); color: #fff; font-family: var(--serif); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em; box-shadow: 0 10px 24px -10px rgba(60, 20, 20, 0.6); animation: dlg-pop 0.2s ease; }
+.cy-jump-btn:hover { filter: brightness(1.1); }
+.dlg.jump { text-align: left; }
+.dlg.jump h2 { text-align: center; }
+.jump-label { margin: 0.4rem 0 0.4rem; font-family: var(--sans); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.jump-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; max-height: 9rem; overflow-y: auto; }
+.jump-chip { min-width: 2.6rem; padding: 0.35rem 0.8rem; border: 1px solid var(--rule); border-radius: 999px; background: transparent; color: var(--fg); font-family: var(--serif); font-size: 1rem; }
+.jump-chip:hover { border-color: var(--wine); filter: none; }
+.jump-chip.on { background: var(--wine); border-color: var(--wine); color: #fff; }
+.dlg.jump .dlg-actions { margin-top: 0.5rem; }

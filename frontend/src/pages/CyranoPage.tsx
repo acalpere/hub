@@ -1,7 +1,9 @@
+import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { api, type CyranoKind, type CyranoLine, type CyranoOutline, type CyranoRevision } from "../api";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useAuth } from "../auth";
 import { highlight, roman, searchTerms, toSeconds, toStamp } from "../cyrano";
@@ -38,6 +40,8 @@ function when(iso: string | null): string {
   return iso ? new Date(iso).toLocaleString("ca", { dateStyle: "medium", timeStyle: "short" }) : "";
 }
 
+const NEW = "__nou__";
+
 function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; busy: boolean; onRestore: (r: CyranoRevision) => void }) {
   if (versions.length === 0) return <p className="muted small">Aquesta línia no s'ha editat mai.</p>;
   return (
@@ -55,6 +59,46 @@ function History({ versions, busy, onRestore }: { versions: CyranoRevision[]; bu
   );
 }
 
+// Finestra per saltar a un acte i una escena (surt del botó rodó que apareix en perdre de vista les barres).
+function Jump({ outline, from, onGo, onClose }: { outline: CyranoOutline; from: { act: number; scene: number }; onGo: (to: { act: number; scene: number }) => void; onClose: () => void }) {
+  const [pick, setPick] = useState(from);
+  const acts = [...outline.acts.filter((a) => a.act > 0), ...outline.acts.filter((a) => a.act === 0)];
+  const scenes = outline.acts.find((a) => a.act === pick.act)?.scenes ?? [];
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return createPortal(
+    <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="dlg jump" role="dialog" aria-modal="true" aria-label="Anar a un acte i una escena">
+        <h2>Anar a…</h2>
+        <p className="jump-label">Acte</p>
+        <div className="jump-chips">
+          {acts.map((a) => (
+            <button key={a.act} type="button" className={`jump-chip${a.act === pick.act ? " on" : ""}`} onClick={() => setPick({ act: a.act, scene: a.scenes[0] ?? 0 })}>
+              {a.act === 0 ? "Notes" : roman(a.act)}
+            </button>
+          ))}
+        </div>
+        <p className="jump-label">Escena</p>
+        <div className="jump-chips">
+          {scenes.map((sc) => (
+            <button key={sc} type="button" className={`jump-chip${sc === pick.scene ? " on" : ""}`} onClick={() => setPick({ ...pick, scene: sc })}>
+              {pick.act === 0 ? sceneLabel(0, sc) : roman(sc)}
+            </button>
+          ))}
+        </div>
+        <div className="dlg-actions">
+          <button type="button" className="no" onClick={onClose}>Tanca</button>
+          <button type="button" onClick={() => onGo(pick)}>Anar-hi</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDeleted, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
   // «edit»: canvia aquesta línia; «add»: n'afegeix una de nova just a sota.
   const [mode, setMode] = useState<"edit" | "add" | null>(null);
@@ -65,9 +109,18 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const stampInput = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const dirty = useRef(false);
+  const [ask, setAsk] = useState<"delete" | "discard" | null>(null);
+  const asking = useRef(false);
+  asking.current = ask !== null;
   // El tipus que es tria mostra o amaga el personatge. En afegir, es comença com la línia de sobre:
   // si és una rèplica, la nova és del mateix personatge.
   const [kind, setKind] = useState<CyranoKind>("text");
+  const [speaker, setSpeaker] = useState("");
+  const [newSpeaker, setNewSpeaker] = useState(false);
+  useEffect(() => {
+    setSpeaker(line.kind === "speech" ? line.speaker ?? "" : "");
+    setNewSpeaker(false);
+  }, [mode, line.kind, line.speaker]);
   useEffect(() => {
     if (mode === "edit") setKind(line.kind === "speech" || line.kind === "stage" ? line.kind : "text");
     else if (mode === "add") setKind(line.kind === "speech" || line.kind === "stage" ? line.kind : "text");
@@ -82,7 +135,8 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
     if (!mode) return;
     const close = () => {
       if (busy) return;
-      if (dirty.current && !window.confirm("Descartar els canvis d'aquesta línia?")) return;
+      if (asking.current) return;
+      if (dirty.current) return setAsk("discard");
       setMode(null);
     };
     const onKey = (e: KeyboardEvent) => {
@@ -90,7 +144,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
     };
     const onPress = (e: MouseEvent) => {
       const target = e.target as Element | null;
-      if (target?.closest(".cy-player") || formRef.current?.contains(target)) return;
+      if (target?.closest(".cy-player, .dlg-backdrop") || formRef.current?.contains(target)) return;
       close();
     };
     document.addEventListener("keydown", onKey);
@@ -128,7 +182,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   }, [focus]);
 
   async function remove() {
-    if (!window.confirm("Esborrar aquesta línia i el seu historial? No es pot desfer.")) return;
+    setAsk(null);
     setBusy(true);
     setError("");
     try {
@@ -148,7 +202,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
     setBusy(true);
     setError("");
     try {
-      const payload = { speaker: kind === "speech" ? String(f.get("speaker") ?? "") : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
+      const payload = { speaker: kind === "speech" ? speaker.trim() : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
       if (mode === "add") onInserted?.(await api.cyranoInsert(line.id, payload), line.id);
       else onSaved(await api.cyranoEdit(line.id, payload));
       setMode(null);
@@ -173,7 +227,12 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
           {kind === "speech" && (
             <label>
               Personatge
-              <input name="speaker" list="cy-speakers" defaultValue={line.kind === "speech" ? line.speaker ?? "" : ""} required />
+              <select name="speaker_pick" value={newSpeaker ? NEW : speaker} onChange={(e) => (e.target.value === NEW ? setNewSpeaker(true) : (setNewSpeaker(false), setSpeaker(e.target.value)))} required={!newSpeaker}>
+                <option value="" disabled>Tria un personatge…</option>
+                {[...new Set([speaker, ...speakers].filter(Boolean))].map((n) => <option key={n} value={n}>{n}</option>)}
+                <option value={NEW}>+ Un altre personatge…</option>
+              </select>
+              {newSpeaker && <input name="speaker_new" value={speaker} onChange={(e) => setSpeaker(e.target.value)} placeholder="Nom del personatge" required autoFocus />}
             </label>
           )}
         </div>
@@ -197,14 +256,13 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
             </button>
           )}
         </div>
-        <datalist id="cy-speakers">{speakers.map((s) => <option key={s} value={s} />)}</datalist>
         <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
         <ErrorMessage message={error} />
         <div className="cy-edit-actions">
           <button type="submit" disabled={busy}>{mode === "add" ? "Afegeix" : "Desa"}</button>
           <button type="button" className="ghost" onClick={() => setMode(null)}>Cancel·la</button>
           {mode === "edit" && onDeleted && (
-            <button type="button" className="link danger" disabled={busy} onClick={() => void remove()}>
+            <button type="button" className="link danger" disabled={busy} onClick={() => setAsk("delete")}>
               Esborra
             </button>
           )}
@@ -218,7 +276,15 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
       </form>
   );
 
-  if (mode === "edit") return editor;
+  const dialog = ask && (
+    ask === "delete" ? (
+      <ConfirmDialog title="Estàs segur?" text="S'esborrarà aquesta línia i el seu historial. No es pot desfer." yes="Sí" no="No" onYes={() => void remove()} onNo={() => setAsk(null)} />
+    ) : (
+      <ConfirmDialog title="Descartar els canvis?" text="Has fet canvis en aquesta línia que no s'han desat." yes="Sí" no="No" onYes={() => { setAsk(null); setMode(null); }} onNo={() => setAsk(null)} />
+    )
+  );
+
+  if (mode === "edit") return <>{editor}{dialog}</>;
 
   const body = <Marked text={line.text} terms={terms} />;
   return (
@@ -258,6 +324,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
       </div>
     </div>
     {mode === "add" && editor}
+    {dialog}
     </>
   );
 }
@@ -273,6 +340,10 @@ export function CyranoPage() {
   const [all, setAll] = useState<CyranoLine[] | null>(null);
   const [seen, setSeen] = useState<{ act: number; scene: number } | null>(null);
   const [error, setError] = useState("");
+  // Botó rodó que apareix quan les barres d'actes i escenes han sortit per dalt de la pantalla
+  const [navsEl, setNavsEl] = useState<HTMLDivElement | null>(null);
+  const [navsGone, setNavsGone] = useState(false);
+  const [jumping, setJumping] = useState(false);
 
   // Vídeo de l'obra (si s'ha pujat): reproductor flotant, i les marques de temps salten al vídeo.
   const [video, setVideo] = useState<string | null>(null);
@@ -461,6 +532,13 @@ export function CyranoPage() {
     setResults((r) => r && { ...r, list: r.list.map(swap) });
   }
 
+  useEffect(() => {
+    if (!navsEl) return setNavsGone(false);
+    const io = new IntersectionObserver(([e]) => e && setNavsGone(!e.isIntersecting && e.boundingClientRect.bottom < 0));
+    io.observe(navsEl);
+    return () => io.disconnect();
+  }, [navsEl]);
+
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
   const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
   const go = (to: { act: number; scene: number } | undefined) => {
@@ -555,7 +633,7 @@ export function CyranoPage() {
         </div>
       ) : (
         <>
-          <div className="cy-navs">
+          <div className="cy-navs" ref={setNavsEl}>
           <nav className="cy-nav" aria-label="Actes">
             <span className="cy-label">Actes:</span>
             {outline.acts.filter((a) => a.act > 0).map((a) => (
@@ -629,6 +707,23 @@ export function CyranoPage() {
             </>
           )}
         </>
+      )}
+      {outline && !searching && navsGone && (
+        <button type="button" className="cy-jump-btn" aria-label="Anar a un altre acte o escena" onClick={() => setJumping(true)}>
+          {viewAct === 0 ? "N" : `${roman(viewAct)}·${roman(viewScene)}`}
+        </button>
+      )}
+      {outline && jumping && (
+        <Jump
+          outline={outline}
+          from={{ act: viewAct, scene: viewScene }}
+          onClose={() => setJumping(false)}
+          onGo={(to) => {
+            setJumping(false);
+            go(to);
+            if (!continuous) window.scrollTo({ top: 0 });
+          }}
+        />
       )}
       {video && playerOpen && (
         <div className="cy-player">

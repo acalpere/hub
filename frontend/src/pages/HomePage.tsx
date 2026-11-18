@@ -48,7 +48,7 @@ export function HomePage() {
   const load = useCallback(async () => {
     try {
       const [m, s, a] = await Promise.all([api.menu(), api.sites(), api.agents()]);
-      setApps(m.filter((i) => i.url !== "/hub"));
+      setApps(m.filter((i) => i.url !== "/hub" && i.url !== "/cyrano"));
       setSites(s);
       setAgents(a);
     } catch (e) {
