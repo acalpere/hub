@@ -9,8 +9,10 @@ import { useAuth } from "../auth";
 import { getPasskey, isTouchDevice, passkeysSupported, rememberPasskey } from "../passkeys";
 
 // Només es redirigeix a camins interns (evita redireccions obertes a altres webs).
+// Després d'entrar es torna a la pàgina que es volia, però mai a Gestió (Seguretat, Usuaris…): s'entra pel Hub.
 export function safeNext(next: string | null): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
+  return next === "/gestio" || next.startsWith("/gestio/") || next === "/seguretat" ? "/" : next;
 }
 
 function message(err: unknown): string {

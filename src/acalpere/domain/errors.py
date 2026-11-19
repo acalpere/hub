@@ -25,3 +25,7 @@ class AuthError(DomainError):
 
 class Forbidden(DomainError):
     pass
+
+
+class Unavailable(DomainError):
+    """Un servei extern necessari no respon o no està configurat."""

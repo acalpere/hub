@@ -767,10 +767,10 @@ export function CyranoPage() {
           outline={outline}
           from={{ act: sceneAct, scene: viewAct > 0 ? viewScene : sceneInfo?.scenes[0] ?? 1 }}
           continuous={continuous}
-          onView={setView}
+          onView={(paged) => { setJumping(false); setView(paged); }}
           canSwitchMode={isAdmin}
           editing={canEdit}
-          onEditing={(on) => update({ mode: on ? "edicio" : null })}
+          onEditing={(on) => { setJumping(false); update({ mode: on ? "edicio" : null }); }}
           onClose={() => setJumping(false)}
           onGo={(to) => {
             setJumping(false);

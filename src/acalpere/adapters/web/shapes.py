@@ -174,6 +174,25 @@ def site(s: Site) -> dict:
     }  # fmt: skip
 
 
+def verse(v) -> dict:
+    return {"id": v.id, "text": v.text, "created_at": _dt(v.created_at)}
+
+
+def verse_settings(v) -> dict:
+    return {"max_length": v.max_length, "font_large": v.font_large, "font_small": v.font_small}
+
+
+def custom_need(n) -> dict:
+    return {
+        "id": n.id, "slug": f"x{n.id}", "name": n.name, "tagline": n.tagline, "what": n.what,
+        "services": n.services, "custom": True,
+    }  # fmt: skip
+
+
+def saved_answer(a) -> dict:
+    return {"id": a.id, "question": a.question, "answer": a.answer, "created_at": _dt(a.created_at)}
+
+
 def agent(a: Agent) -> dict:
     return {
         "id": a.id, "name": a.name, "kind": a.kind, "enabled": a.enabled, "site_id": a.site_id,

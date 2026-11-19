@@ -143,6 +143,23 @@ def mfa_enable(body: CodeIn, request: Request, c: Container = Depends(container)
     return _finish_login(request, user)
 
 
+@router.post("/auth/mfa/key")
+def mfa_key(
+    body: CodeIn,
+    request: Request,
+    user: User = Depends(current_user),
+    c: Container = Depends(container),
+):
+    """Torna a mostrar la clau del segon factor, per posar-la en un altre dispositiu.
+
+    Cal un codi vàlid: així una sessió oberta sola no basta per copiar el secret.
+    """
+    _count_try(request)
+    secret, uri = c.mfa.totp_key(user, body.code)
+    request.session.pop("mfa_tries", None)
+    return {"secret": secret, "uri": uri}
+
+
 @router.post("/auth/passkey/options")
 def passkey_login_options(request: Request, c: Container = Depends(container)):
     rp_id, _ = _origin(request, c)

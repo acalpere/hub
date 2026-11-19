@@ -5,13 +5,14 @@ import type { User } from "../api";
 interface Props {
   user: User;
   hasCyrano: boolean;
+  verse: string | null;
   open: boolean;
   onClose: () => void;
   onLogout: () => void;
 }
 
 // Menú lateral per a pantalles petites: surt per l'esquerra.
-export function SideMenu({ user, hasCyrano, open, onClose, onLogout }: Props) {
+export function SideMenu({ user, hasCyrano, verse, open, onClose, onLogout }: Props) {
   const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username;
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export function SideMenu({ user, hasCyrano, open, onClose, onLogout }: Props) {
       <div className={`drawer-backdrop${open ? " open" : ""}`} onClick={onClose} aria-hidden="true" />
       <aside id="side-menu" className={`drawer${open ? " open" : ""}`} aria-label="Menú" aria-hidden={!open}>
         <div className="drawer-head">
-          <span className="drawer-brand">acalpere<span className="tld">.cat</span></span>
+          <span className="drawer-brand">{verse ?? <>acalpere<span className="tld">.cat</span></>}</span>
           <button type="button" className="icon-btn" aria-label="Tanca el menú" onClick={onClose}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
@@ -40,6 +41,7 @@ export function SideMenu({ user, hasCyrano, open, onClose, onLogout }: Props) {
           <NavLink to="/" end className="drawer-link">Hub</NavLink>
           {hasCyrano && <NavLink to="/cyrano" className="drawer-link">Cyrano</NavLink>}
 
+          {user.role === "admin" && <NavLink to="/aws" className="drawer-link">AWS</NavLink>}
           {user.role === "admin" && <NavLink to="/gestio" className="drawer-link">Gestió</NavLink>}
         </nav>
         <div className="drawer-foot">

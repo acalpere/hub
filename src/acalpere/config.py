@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     # Vídeo de Cyrano: a AWS, un bucket d'S3 privat (enllaços signats); en local, una carpeta.
     media_bucket: str = ""
     media_dir: str = "data/media"
+    # Tutor d'AWS (apunts): model de Bedrock (perfil d'inferència de la UE) i la seva regió.
+    tutor_model_id: str = "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    tutor_region: str = "eu-west-1"
+    # En local (sense Bedrock): amb una clau de l'API d'Anthropic al .env, el tutor la fa servir.
+    anthropic_api_key: str | None = Field(
+        None, validation_alias=AliasChoices("ACALPERE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
+    )
+    tutor_api_model: str = "claude-haiku-4-5"
     # Mostra el frontend antic (calendari i herència) tal com era, sobre l'API nova.
     serve_legacy_ui: bool = True
 

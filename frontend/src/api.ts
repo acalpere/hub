@@ -7,6 +7,13 @@ export interface MenuItem { id: number; name: string; url: string }
 export interface Access {
   site_ids: number[]; agent_ids: number[]; work_agent_ids: number[]; content_ids: number[];
 }
+export interface Verse { id: number; text: string; created_at: string | null }
+export interface VerseSettings { max_length: number; font_large: number; font_small: number }
+export interface CustomNeed {
+  id: number; slug: string; name: string; tagline: string; what: string;
+  services: { name: string; why: string }[]; custom: true;
+}
+export interface SavedAnswer { id: number; question: string; answer: string; created_at: string | null }
 export interface Content { id: number; name: string; url: string; roles: string[] }
 export interface Site { id: number; name: string; url: string; status: string; notes: string }
 export interface Agent {
@@ -71,6 +78,29 @@ export const api = {
   passkeyRegister: (credential: unknown, label: string) =>
     request<Passkey>("POST", "/auth/passkeys", { credential, label }),
   passkeyDelete: (id: number) => request<void>("DELETE", `/auth/passkeys/${id}`),
+  awsTutor: (q: { service?: string; concept?: string; question: string; history: { role: "user" | "assistant"; text: string }[]; level?: string }) =>
+    request<{ answer: string }>("POST", "/aws/tutor", q),
+  awsExplain: (topic: string, level: string) =>
+    request<{ answer: string }>("POST", "/aws/explain", { topic, level }),
+  awsQuiz: (topic: string, level: string, count: number) =>
+    request<{ cards: { question: string; answer: string }[] }>("POST", "/aws/quiz", { topic, level, count }),
+  awsNeeds: () => request<CustomNeed[]>("GET", "/aws/needs"),
+  createAwsNeed: (name: string) => request<CustomNeed>("POST", "/aws/needs", { name }),
+  deleteAwsNeed: (id: number) => request<void>("DELETE", `/aws/needs/${id}`),
+  awsMarks: () => request<Record<string, number>>("GET", "/aws/marks"),
+  setAwsMark: (key: string, level: number) => request<Record<string, number>>("PUT", "/aws/marks", { key, level }),
+  awsSaved: () => request<SavedAnswer[]>("GET", "/aws/saved"),
+  saveAwsAnswer: (question: string, answer: string) => request<SavedAnswer>("POST", "/aws/saved", { question, answer }),
+  deleteAwsSaved: (id: number) => request<void>("DELETE", `/aws/saved/${id}`),
+  mfaKey: (code: string) => request<{ secret: string; uri: string }>("POST", "/auth/mfa/key", { code }),
+  randomVerse: (exclude?: number) =>
+    request<Verse | null>("GET", `/verses/random${exclude ? `?exclude=${exclude}` : ""}`),
+  verseSettings: () => request<VerseSettings>("GET", "/verses/settings"),
+  setVerseSettings: (s: VerseSettings) => request<VerseSettings>("PUT", "/verses/settings", s),
+  verses: () => request<Verse[]>("GET", "/verses"),
+  createVerse: (text: string) => request<Verse>("POST", "/verses", { text }),
+  updateVerse: (id: number, text: string) => request<Verse>("PUT", `/verses/${id}`, { text }),
+  deleteVerse: (id: number) => request<void>("DELETE", `/verses/${id}`),
   logout: () => request<void>("POST", "/auth/logout"),
   me: () => request<User>("GET", "/auth/me"),
   updateProfile: (profile: Profile) => request<User>("PUT", "/auth/profile", profile),

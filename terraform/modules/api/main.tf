@@ -11,6 +11,7 @@ terraform {
 }
 
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 resource "random_password" "secret_key" {
   length  = 64
@@ -83,6 +84,15 @@ resource "aws_iam_role_policy" "app" {
         Effect   = "Allow"
         Action   = ["bedrock:InvokeModel"]
         Resource = ["arn:aws:bedrock:eu-west-1::foundation-model/cohere.embed-multilingual-v3"]
+      },
+      {
+        # Tutor d'AWS (apunts): models Claude via un perfil d'inferència de la UE (Converse).
+        Effect = "Allow"
+        Action = ["bedrock:InvokeModel"]
+        Resource = [
+          "arn:aws:bedrock:*::foundation-model/anthropic.claude-*",
+          "arn:aws:bedrock:*:${data.aws_caller_identity.current.account_id}:inference-profile/eu.anthropic.claude-*",
+        ]
       },
     ])
   })

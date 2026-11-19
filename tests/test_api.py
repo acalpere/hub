@@ -559,3 +559,208 @@ def test_passkey_origin_accepts_the_domain_and_its_subdomains_only(settings, con
     ):
         r = options(origin)
         assert r.status_code == 401 and "acalpere.cat" in r.json()["error"]
+
+
+def test_verses_crud_and_random(admin, client):
+    assert client.get("/api/v1/verses/random").json() is None
+    a = client.post("/api/v1/verses", json={"text": "  El nas que quan arribo   ja fa un quart  "})
+    assert a.status_code == 201 and a.json()["text"] == "El nas que quan arribo ja fa un quart"
+    b = client.post("/api/v1/verses", json={"text": "Un petó de maduixa"}).json()
+    assert client.post("/api/v1/verses", json={"text": "  "}).status_code == 400
+    # amb dos versos, el que ja es veu no es repeteix
+    for _ in range(10):
+        assert client.get(f"/api/v1/verses/random?exclude={b['id']}").json()["id"] == a.json()["id"]
+    r = client.put(f"/api/v1/verses/{b['id']}", json={"text": "Canviat"})
+    assert r.json()["text"] == "Canviat"
+    assert len(client.get("/api/v1/verses").json()) == 2
+    assert client.delete(f"/api/v1/verses/{b['id']}").status_code == 204
+    assert client.delete(f"/api/v1/verses/{b['id']}").status_code == 404
+
+
+def test_verses_are_managed_only_by_admins(germa, client):
+    assert client.get("/api/v1/verses/random").status_code == 200  # el veu tothom
+    assert client.get("/api/v1/verses").status_code == 403
+    assert client.post("/api/v1/verses", json={"text": "x"}).status_code == 403
+
+
+def test_mfa_key_can_be_shown_again_with_a_valid_code(admin, client):
+    assert client.post("/api/v1/auth/mfa/key", json={"code": "000000"}).status_code == 401
+    r = client.post("/api/v1/auth/mfa/key", json={"code": Totp().code(TOTP_SECRET)})
+    assert r.status_code == 200
+    assert r.json()["secret"] == TOTP_SECRET and TOTP_SECRET in r.json()["uri"]
+
+
+class FakeTutor:
+    def __init__(self):
+        self.calls = []
+
+    reply = "Resposta"
+
+    def answer(self, service, concept, question, history, max_tokens=900):
+        self.calls.append((service, concept, question, history))
+        return self.reply
+
+
+def test_aws_tutor_answers_and_is_admin_only(admin, client, container):
+    tutor = FakeTutor()
+    container.tutor._tutor = tutor
+    body = {"service": "VPC", "concept": "Taules de rutes", "question": "", "history": []}
+    r = client.post("/api/v1/aws/tutor", json=body)
+    assert r.status_code == 200 and r.json() == {"answer": "Resposta"}
+    assert tutor.calls[0][2].startswith("Explica-ho amb més detall")  # pregunta per defecte
+    body = {**body, "question": "I amb NAT?", "history": [{"role": "assistant", "text": "x"}]}
+    assert client.post("/api/v1/aws/tutor", json=body).status_code == 200
+    assert tutor.calls[1][3] == [("assistant", "x")]
+    # sense concepte ni pregunta no hi ha res a respondre; amb pregunta és una consulta lliure
+    assert client.post("/api/v1/aws/tutor", json={"question": " "}).status_code == 400
+    free = {"question": "Què és un NAT?", "level": "basic"}
+    assert client.post("/api/v1/aws/tutor", json=free).status_code == 200
+    assert "bàsic" in tutor.calls[-1][2] and tutor.calls[-1][0] == "AWS"
+    assert client.post("/api/v1/aws/tutor", json={**free, "level": "x"}).status_code == 400
+
+
+def test_aws_tutor_unavailable_is_a_503(admin, client, container):
+    from acalpere.domain.errors import Unavailable
+
+    class Broken:
+        def answer(self, *a, **k):
+            raise Unavailable("no")
+
+    container.tutor._tutor = Broken()
+    body = {"service": "VPC", "concept": "x"}
+    assert client.post("/api/v1/aws/tutor", json=body).status_code == 503
+
+
+def test_aws_tutor_is_closed_to_non_admins(germa, client):
+    assert (
+        client.post("/api/v1/aws/tutor", json={"service": "a", "concept": "b"}).status_code == 403
+    )
+
+
+def test_verse_limit_and_font_sizes_are_configurable(admin, client):
+    cfg = client.get("/api/v1/verses/settings").json()
+    assert cfg == {"max_length": 70, "font_large": 1.05, "font_small": 0.8}
+    assert client.post("/api/v1/verses", json={"text": "a" * 70}).status_code == 201
+    r = client.post("/api/v1/verses", json={"text": "a" * 71})
+    assert r.status_code == 400 and "70" in r.json()["error"]
+    new = {"max_length": 120, "font_large": 1.2, "font_small": 0.7}
+    assert client.put("/api/v1/verses/settings", json=new).json() == new
+    assert client.get("/api/v1/verses/settings").json() == new
+    assert (
+        client.post("/api/v1/verses", json={"text": "a" * 120}).status_code == 201
+    )  # pren el camp
+    assert client.post("/api/v1/verses", json={"text": "a" * 121}).status_code == 400
+    for bad in ({**new, "max_length": 5}, {**new, "font_small": 9}, {**new, "font_large": 0.1}):
+        assert client.put("/api/v1/verses/settings", json=bad).status_code == 400
+
+
+def test_verse_settings_are_read_by_all_but_changed_by_admins(germa, client):
+    assert client.get("/api/v1/verses/settings").status_code == 200
+    body = {"max_length": 50, "font_large": 1, "font_small": 1}
+    assert client.put("/api/v1/verses/settings", json=body).status_code == 403
+
+
+def test_aws_explain_uses_the_chosen_level(admin, client, container):
+    tutor = FakeTutor()
+    container.tutor._tutor = tutor
+    r = client.post("/api/v1/aws/explain", json={"topic": "VPC", "level": "pro"})
+    assert r.status_code == 200 and r.json() == {"answer": "Resposta"}
+    assert "professional" in tutor.calls[0][2]
+    assert (
+        client.post("/api/v1/aws/explain", json={"topic": "VPC", "level": "x"}).status_code == 400
+    )
+    assert (
+        client.post("/api/v1/aws/explain", json={"topic": " ", "level": "pro"}).status_code == 400
+    )
+
+
+def test_aws_quiz_returns_question_and_answer_cards(admin, client, container):
+    tutor = FakeTutor()
+    tutor.reply = (
+        'Aquí tens:\n```json\n[{"pregunta": "P1", "resposta": "R1"},'
+        ' {"pregunta": "P2", "resposta": "R2"}, {"pregunta": "P3", "resposta": "R3"}]\n```'
+    )
+    container.tutor._tutor = tutor
+    body = {"topic": "S3", "level": "pro", "count": 2}
+    r = client.post("/api/v1/aws/quiz", json=body)
+    assert r.status_code == 200
+    assert r.json()["cards"] == [
+        {"question": "P1", "answer": "R1"},
+        {"question": "P2", "answer": "R2"},
+    ]
+    assert client.post("/api/v1/aws/quiz", json={**body, "count": 99}).status_code == 400
+    tutor.reply = "no és json"
+    assert client.post("/api/v1/aws/quiz", json=body).status_code == 503
+
+
+def test_tutor_messages_alternate_roles():
+    from acalpere.adapters.tutor import build_messages
+
+    msgs = build_messages("VPC", "Rutes", "I amb NAT?", [("assistant", "Resposta 1")])
+    assert [r for r, _ in msgs] == ["user", "assistant", "user"]
+    first = build_messages("VPC", "Rutes", "Q", [])  # context i pregunta, units en un sol missatge
+    assert len(first) == 1 and first[0][1].endswith("Q")
+    assert [r for r, _ in build_messages("a", "b", "c", [("user", "x"), ("assistant", "y")])] == [
+        "user",
+        "assistant",
+        "user",
+    ]
+
+
+NEED_JSON = (
+    '{"frase": "Poca latència", "explicacio": "Respondre ràpid.", "serveis": ['
+    '{"nom": "CloudFront", "per_que": "Cau a la vora."}, {"nom": "", "per_que": "x"}]}'
+)
+
+
+def test_aws_custom_needs_are_created_with_the_tutor(admin, client, container):
+    tutor = FakeTutor()
+    tutor.reply = "Aquí va:\n" + NEED_JSON
+    container.aws_notes._tutor = tutor
+    r = client.post("/api/v1/aws/needs", json={"name": "  Latència   extrema "})
+    assert r.status_code == 201
+    need = r.json()
+    assert need["name"] == "Latència extrema" and need["slug"] == f"x{need['id']}"
+    assert need["services"] == [{"name": "CloudFront", "why": "Cau a la vora."}]
+    assert client.get("/api/v1/aws/needs").json()[0]["id"] == need["id"]
+    assert client.post("/api/v1/aws/needs", json={"name": "latència EXTREMA"}).status_code == 409
+    assert client.post("/api/v1/aws/needs", json={"name": "ab"}).status_code == 400
+    tutor.reply = "res"
+    assert client.post("/api/v1/aws/needs", json={"name": "Una altra"}).status_code == 503
+    assert client.delete(f"/api/v1/aws/needs/{need['id']}").status_code == 204
+    assert client.delete(f"/api/v1/aws/needs/{need['id']}").status_code == 404
+
+
+def test_aws_marks_are_saved_per_user_and_validated(admin, client):
+    assert client.get("/api/v1/aws/marks").json() == {}
+    assert client.put("/api/v1/aws/marks", json={"key": "need:latencia", "level": 4}).json() == {
+        "need:latencia": 4
+    }
+    client.put("/api/v1/aws/marks", json={"key": "need:latencia", "level": 1})
+    assert client.get("/api/v1/aws/marks").json() == {"need:latencia": 1}
+    assert (
+        client.put("/api/v1/aws/marks", json={"key": "need:latencia", "level": 9}).status_code
+        == 400
+    )
+    assert client.put("/api/v1/aws/marks", json={"key": "altre", "level": 1}).status_code == 400
+    client.put("/api/v1/aws/marks", json={"key": "need:latencia", "level": 0})
+    assert client.get("/api/v1/aws/marks").json() == {}
+
+
+def test_aws_saved_answers_drawer(admin, client):
+    r = client.post(
+        "/api/v1/aws/saved", json={"question": "  Què és un NAT? ", "answer": "Tradueix adreces."}
+    )
+    assert r.status_code == 201 and r.json()["question"] == "Què és un NAT?"
+    saved = client.get("/api/v1/aws/saved").json()
+    assert [s["answer"] for s in saved] == ["Tradueix adreces."]
+    assert (
+        client.post("/api/v1/aws/saved", json={"question": " ", "answer": "x"}).status_code == 400
+    )
+    assert client.delete(f"/api/v1/aws/saved/{saved[0]['id']}").status_code == 204
+    assert client.delete(f"/api/v1/aws/saved/{saved[0]['id']}").status_code == 404
+    assert client.get("/api/v1/aws/saved").json() == []
+
+
+def test_aws_saved_answers_are_closed_to_non_admins(germa, client):
+    assert client.get("/api/v1/aws/saved").status_code == 403

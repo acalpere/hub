@@ -9,6 +9,7 @@ from datetime import date, datetime
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import sessionmaker
 
+from ...domain.aws import CustomNeed, SavedAnswer
 from ...domain.calendar import (
     Assignacio,
     Germa,
@@ -21,6 +22,7 @@ from ...domain.hub import Access, Agent, Site
 from ...domain.identity import Content, Passkey, Profile, User
 from ...domain.inheritance import Fill, Finca, Missatge, Parametres, Pis
 from ...domain.ports import Cipher
+from ...domain.verses import Verse, VerseSettings
 from . import models as m
 
 
@@ -455,6 +457,133 @@ class SqlSiteRepository:
         with self._sf.begin() as s:
             row = s.get(m.SiteRow, site_id)
             if row is None:
+                return False
+            s.delete(row)
+            return True
+
+
+class SqlVerseRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def list(self) -> list[Verse]:
+        with self._sf() as s:
+            return [_to(Verse, r) for r in s.scalars(select(m.VerseRow).order_by(m.VerseRow.id))]
+
+    def get(self, verse_id: int) -> Verse | None:
+        with self._sf() as s:
+            row = s.get(m.VerseRow, verse_id)
+            return _to(Verse, row) if row else None
+
+    def save(self, verse: Verse) -> Verse:
+        with self._sf.begin() as s:
+            row = s.get(m.VerseRow, verse.id) if verse.id else None
+            if row is None:
+                row = m.VerseRow()
+                s.add(row)
+            row.text = verse.text
+            s.flush()
+            return _to(Verse, row)
+
+    def settings(self) -> VerseSettings:
+        with self._sf() as s:
+            row = s.get(m.VerseSettingsRow, 1)
+            return _to(VerseSettings, row) if row else VerseSettings()
+
+    def save_settings(self, settings: VerseSettings) -> VerseSettings:
+        with self._sf.begin() as s:
+            row = s.get(m.VerseSettingsRow, 1)
+            if row is None:
+                row = m.VerseSettingsRow(id=1)
+                s.add(row)
+            row.max_length = settings.max_length
+            row.font_large = settings.font_large
+            row.font_small = settings.font_small
+        return settings
+
+    def delete(self, verse_id: int) -> bool:
+        with self._sf.begin() as s:
+            row = s.get(m.VerseRow, verse_id)
+            if row is None:
+                return False
+            s.delete(row)
+            return True
+
+
+class SqlNeedRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def list(self) -> list[CustomNeed]:
+        with self._sf() as s:
+            return [
+                _to(CustomNeed, r)
+                for r in s.scalars(select(m.AwsNeedRow).order_by(m.AwsNeedRow.id))
+            ]
+
+    def add(self, need: CustomNeed) -> CustomNeed:
+        with self._sf.begin() as s:
+            row = m.AwsNeedRow(
+                name=need.name, tagline=need.tagline, what=need.what, services=need.services
+            )
+            s.add(row)
+            s.flush()
+            return _to(CustomNeed, row)
+
+    def delete(self, need_id: int) -> bool:
+        with self._sf.begin() as s:
+            row = s.get(m.AwsNeedRow, need_id)
+            if row is None:
+                return False
+            s.delete(row)
+            return True
+
+
+class SqlMarkRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def for_user(self, user_id: int) -> dict[str, int]:
+        with self._sf() as s:
+            rows = s.scalars(select(m.AwsMarkRow).where(m.AwsMarkRow.user_id == user_id))
+            return {r.key: r.level for r in rows}
+
+    def set(self, user_id: int, key: str, level: int) -> None:
+        with self._sf.begin() as s:
+            row = s.get(m.AwsMarkRow, (user_id, key))
+            if level == 0:
+                if row is not None:
+                    s.delete(row)
+            elif row is None:
+                s.add(m.AwsMarkRow(user_id=user_id, key=key, level=level))
+            else:
+                row.level = level
+
+
+class SqlSavedRepository:
+    def __init__(self, sf: sessionmaker):
+        self._sf = sf
+
+    def for_user(self, user_id: int) -> list[SavedAnswer]:
+        with self._sf() as s:
+            rows = s.scalars(
+                select(m.AwsSavedRow)
+                .where(m.AwsSavedRow.user_id == user_id)
+                .order_by(m.AwsSavedRow.id.desc())
+            )
+            return [_to(SavedAnswer, r) for r in rows]
+
+    def add(self, user_id: int, saved: SavedAnswer) -> SavedAnswer:
+        with self._sf.begin() as s:
+            row = m.AwsSavedRow(user_id=user_id, question=saved.question, answer=saved.answer)
+            s.add(row)
+            s.flush()
+            return _to(SavedAnswer, row)
+
+    def delete(self, user_id: int, saved_id: int) -> bool:
+        with self._sf.begin() as s:
+            row = s.get(m.AwsSavedRow, saved_id)
+            if row is None or row.user_id != user_id:
                 return False
             s.delete(row)
             return True

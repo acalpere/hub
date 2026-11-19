@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -258,6 +259,62 @@ class SiteRow(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_now, server_default=func.now()
+    )
+
+
+class VerseRow(Base):
+    __tablename__ = "verses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_now, server_default=func.now()
+    )
+
+
+class VerseSettingsRow(Base):
+    __tablename__ = "verse_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    max_length: Mapped[int] = mapped_column(Integer, nullable=False)
+    font_large: Mapped[float] = mapped_column(Float, nullable=False)
+    font_small: Mapped[float] = mapped_column(Float, nullable=False)
+
+
+class AwsNeedRow(Base):
+    __tablename__ = "aws_needs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    tagline: Mapped[str] = mapped_column(Text, nullable=False)
+    what: Mapped[str] = mapped_column(Text, nullable=False)
+    services: Mapped[list] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_now, server_default=func.now()
+    )
+
+
+class AwsMarkRow(Base):
+    __tablename__ = "aws_marks"
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    level: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class AwsSavedRow(Base):
+    __tablename__ = "aws_saved"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    question: Mapped[str] = mapped_column(String(300), nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_now, server_default=func.now()
     )

@@ -10,15 +10,30 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from ...bootstrap import Container, build_container
 from ...config import Settings, get_settings
-from ...domain.errors import AuthError, Conflict, DomainError, Forbidden, InvalidInput, NotFound
+from ...domain.errors import (
+    AuthError,
+    Conflict,
+    DomainError,
+    Forbidden,
+    InvalidInput,
+    NotFound,
+    Unavailable,
+)
 from .poemes import mount_poemes
-from .routes import auth, calendar, cyrano, herencia, hub
+from .routes import auth, aws, calendar, cyrano, herencia, hub, versos
 
 CSRF_HEADER = "x-requested-with"
 CSRF_VALUE = "acalpere"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
-_STATUS = {AuthError: 401, Forbidden: 403, NotFound: 404, Conflict: 409, InvalidInput: 400}
+_STATUS = {
+    AuthError: 401,
+    Forbidden: 403,
+    NotFound: 404,
+    Conflict: 409,
+    InvalidInput: 400,
+    Unavailable: 503,
+}
 
 
 def _error(status: int, message: str) -> JSONResponse:
@@ -80,7 +95,15 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     def health():
         return {"status": "ok", "env": settings.env}
 
-    for router in (auth.router, calendar.router, cyrano.router, herencia.router, hub.router):
+    for router in (
+        auth.router,
+        aws.router,
+        calendar.router,
+        cyrano.router,
+        herencia.router,
+        hub.router,
+        versos.router,
+    ):
         app.include_router(router, prefix="/api/v1")
     mount_poemes(app)
     return app

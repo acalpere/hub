@@ -4,6 +4,10 @@ import { Layout } from "./Layout";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { HomePage } from "./pages/HomePage";
 import { AppFramePage } from "./pages/AppFramePage";
+import { AwsLayout } from "./components/AwsAskBar";
+import { AwsArchitecture, AwsArchitectures, AwsHome, AwsNeed, AwsNeeds, AwsService, AwsServices } from "./pages/AwsPage";
+import { AwsDrawer } from "./pages/AwsDrawerPage";
+import { AwsStudy } from "./pages/AwsStudyPage";
 import { CyranoPage } from "./pages/CyranoPage";
 import { GestioLayout } from "./pages/GestioPage";
 import { HubPage } from "./pages/HubPage";
@@ -11,6 +15,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SecurityPage } from "./pages/SecurityPage";
 import { UsersPage } from "./pages/UsersPage";
+import { VersesPage } from "./pages/VersesPage";
 import { VerifyPage } from "./pages/VerifyPage";
 
 function RequireAuth({ admin = false }: { admin?: boolean }) {
@@ -35,11 +40,23 @@ export function App() {
           <Route path="app/:slug" element={<AppFramePage />} />
         </Route>
         <Route element={<RequireAuth admin />}>
+          <Route path="aws" element={<AwsLayout />}>
+            <Route index element={<AwsHome />} />
+            <Route path="necessitats" element={<AwsNeeds />} />
+            <Route path="necessitats/:slug" element={<AwsNeed />} />
+            <Route path="quiz" element={<AwsStudy />} />
+            <Route path="calaix" element={<AwsDrawer />} />
+            <Route path="serveis" element={<AwsServices />} />
+            <Route path="serveis/:slug" element={<AwsService />} />
+            <Route path="arquitectures" element={<AwsArchitectures />} />
+            <Route path="arquitectures/:slug" element={<AwsArchitecture />} />
+          </Route>
           <Route path="seguretat" element={<Navigate to="/gestio/seguretat" replace />} />
           <Route path="gestio" element={<GestioLayout />}>
             <Route index element={<Navigate to="hub" replace />} />
             <Route path="hub" element={<HubPage />} />
             <Route path="usuaris" element={<UsersPage />} />
+            <Route path="versos" element={<VersesPage />} />
             <Route path="seguretat" element={<SecurityPage />} />
           </Route>
           <Route path="hub" element={<Navigate to="/gestio/hub" replace />} />

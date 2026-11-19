@@ -6,11 +6,13 @@ from datetime import date
 from pathlib import Path
 from typing import Protocol
 
+from .aws import CustomNeed, SavedAnswer
 from .calendar import Assignacio, Germa, HistoryEntry, LastModification, Modalitat
 from .cyrano import Line, Revision
 from .hub import Access, Agent, Site
 from .identity import Content, Passkey, PasskeyCredential, Profile, User
 from .inheritance import Fill, Finca, Missatge, Parametres, Pis
+from .verses import Verse, VerseSettings
 
 
 class PasswordHasher(Protocol):
@@ -223,3 +225,51 @@ class MediaStore(Protocol):
     def local_file(self, name: str) -> Path | None:
         """El fitxer, quan viu al disc (només en local); a AWS no."""
         ...
+
+
+class Tutor(Protocol):
+    def answer(
+        self,
+        service: str,
+        concept: str,
+        question: str,
+        history: list[tuple[str, str]],
+        max_tokens: int = 900,
+    ) -> str: ...
+
+
+class VerseRepository(Protocol):
+    def list(self) -> list[Verse]: ...
+
+    def get(self, verse_id: int) -> Verse | None: ...
+
+    def save(self, verse: Verse) -> Verse: ...
+
+    def delete(self, verse_id: int) -> bool: ...
+
+    def settings(self) -> VerseSettings: ...
+
+    def save_settings(self, settings: VerseSettings) -> VerseSettings: ...
+
+
+class NeedRepository(Protocol):
+    def list(self) -> list[CustomNeed]: ...
+
+    def add(self, need: CustomNeed) -> CustomNeed: ...
+
+    def delete(self, need_id: int) -> bool: ...
+
+
+class MarkRepository(Protocol):
+    def for_user(self, user_id: int) -> dict[str, int]: ...
+
+    def set(self, user_id: int, key: str, level: int) -> None:
+        """Nivell 0: treu la marca."""
+
+
+class SavedRepository(Protocol):
+    def for_user(self, user_id: int) -> list[SavedAnswer]: ...
+
+    def add(self, user_id: int, saved: SavedAnswer) -> SavedAnswer: ...
+
+    def delete(self, user_id: int, saved_id: int) -> bool: ...

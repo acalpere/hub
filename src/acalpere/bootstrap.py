@@ -19,17 +19,25 @@ from .adapters.persistence.repos import (
     SqlContentRepository,
     SqlCyranoRepository,
     SqlInheritanceRepository,
+    SqlMarkRepository,
+    SqlNeedRepository,
     SqlPasskeyRepository,
+    SqlSavedRepository,
     SqlSiteRepository,
     SqlUserRepository,
+    SqlVerseRepository,
 )
+from .adapters.tutor import AnthropicTutor, BedrockTutor
 from .application.auth import AuthService
+from .application.aws_notes import AwsNotesService
 from .application.calendar import CalendarService
 from .application.cyrano import CyranoService
 from .application.hub import HubService
 from .application.inheritance import InheritanceService
 from .application.menu import MenuService
 from .application.mfa import MfaService
+from .application.tutor import TutorService
+from .application.verses import VerseService
 from .config import Settings
 from .domain.ports import Cipher
 from .security import BcryptHasher, Totp
@@ -45,6 +53,9 @@ class Container:
     inheritance: InheritanceService
     cyrano: CyranoService
     hub: HubService
+    verses: VerseService
+    tutor: TutorService
+    aws_notes: AwsNotesService
     session_factory: sessionmaker
 
 
@@ -79,6 +90,12 @@ def make_cipher(settings: Settings) -> Cipher:
     raise RuntimeError("Falta la clau de xifratge de les dades (ACALPERE_DATA_KEY[_SSM_PARAM]).")
 
 
+def make_tutor(settings: Settings):
+    if settings.anthropic_api_key:  # local, sense Bedrock
+        return AnthropicTutor(settings.anthropic_api_key, settings.tutor_api_model)
+    return BedrockTutor(settings.tutor_model_id, settings.tutor_region)
+
+
 def build_container(settings: Settings) -> Container:
     settings = resolved_settings(settings)
     url = database_url(settings)
@@ -96,6 +113,7 @@ def build_container(settings: Settings) -> Container:
         if settings.media_bucket
         else LocalMediaStore(Path(settings.media_dir))
     )
+    tutor = make_tutor(settings)
     return Container(
         settings=settings,
         auth=AuthService(users, BcryptHasher()),
@@ -105,5 +123,10 @@ def build_container(settings: Settings) -> Container:
         inheritance=InheritanceService(SqlInheritanceRepository(sf, make_cipher(settings))),
         cyrano=CyranoService(SqlCyranoRepository(sf), PdfPlayRenderer(), media),
         hub=HubService(sites, SqlAgentRepository(sf), access, users, contents),
+        verses=VerseService(SqlVerseRepository(sf)),
+        tutor=TutorService(tutor),
+        aws_notes=AwsNotesService(
+            SqlNeedRepository(sf), SqlMarkRepository(sf), tutor, SqlSavedRepository(sf)
+        ),
         session_factory=sf,
     )

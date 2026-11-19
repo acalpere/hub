@@ -34,6 +34,11 @@ class MfaService:
         if not user.totp_secret or not self._totp.verify(user.totp_secret, code):
             raise AuthError("El codi no és correcte.")
 
+    def totp_key(self, user: User, code: str) -> tuple[str, str]:
+        """La clau actual (per afegir-la a un altre dispositiu), si es té accés al codi."""
+        self.check_totp(user, code)
+        return user.totp_secret, self._totp.uri(user.totp_secret, user.username)
+
     def reset_totp(self, username: str) -> None:
         user = self._users.by_username(username.strip())
         if user is None:
