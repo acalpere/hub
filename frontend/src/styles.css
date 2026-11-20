@@ -739,3 +739,14 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .study-note { margin: 0.2rem 0 1.2rem; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
 .study-form label { color: var(--wine); font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
 .study-form label select { font-family: var(--sans); font-weight: 400; color: var(--fg); }
+
+/* Mòbil: logo d'AWS centrat a dalt, ruta a sota (pot ocupar dues línies) i menys espai a sobre */
+@media (max-width: 40rem) {
+  .aws-shell { margin-top: -1.7rem; }
+  .aws-shell > .aws-crumbs { gap: 0.3rem 0.5rem; margin-bottom: 1.1rem; }
+  .aws-crumbs .aws-crumb-home { order: -1; flex: 1 1 100%; justify-content: center; }
+  .aws-crumbs .aws-crumb-home img { height: 28px; }
+  .aws-back-btn { width: 1.7rem; height: 1.7rem; }
+  .aws-back-btn svg { width: 0.95rem; height: 0.95rem; }
+  .aws-crumbs .aws-crumb { font-size: 1.02rem; }
+}

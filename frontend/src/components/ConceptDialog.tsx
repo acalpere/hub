@@ -28,7 +28,7 @@ export function ConceptDialog({ service, concept, onClose }: Props) {
           <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
           <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
         </div>
-        <p className="concept-service">{service}</p>
+        {service.trim().toUpperCase() !== "AWS" && <p className="concept-service">{service}</p>}
         <p className="concept-topic">{concept}</p>
         <TutorChat service={service} concept={concept} autoStart placeholder="Pregunta'n més…" />
       </div>
