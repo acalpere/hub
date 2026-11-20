@@ -3,6 +3,16 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "./api";
 import { SideMenu } from "./components/SideMenu";
 import { useAuth } from "./auth";
+import { FadingVerse } from "./components/FadingVerse";
+
+const VERSE_CACHE = "verse-last";
+function cachedVerse(): string | null {
+  try {
+    return localStorage.getItem(VERSE_CACHE);
+  } catch {
+    return null;
+  }
+}
 
 const VERSE_MINUTES = 10;
 
@@ -22,6 +32,14 @@ function useVerse(active: boolean): string | null {
   }, [active]);
   const [verse, setVerse] = useState<{ id: number; text: string } | null>(null);
   useEffect(() => {
+    if (!verse) return;
+    try {
+      localStorage.setItem(VERSE_CACHE, verse.text);
+    } catch {
+      /* sense emmagatzematge: simplement no es recorda el vers */
+    }
+  }, [verse]);
+  useEffect(() => {
     if (!active) return setVerse(null);
     let last: number | undefined;
     const next = () =>
@@ -30,11 +48,11 @@ function useVerse(active: boolean): string | null {
     const timer = window.setInterval(next, VERSE_MINUTES * 60_000);
     return () => window.clearInterval(timer);
   }, [active]);
-  return verse?.text ?? null;
+  return verse?.text ?? (active ? cachedVerse() : null);
 }
 
 export function Layout() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [hasCyrano, setHasCyrano] = useState(false);
@@ -43,6 +61,9 @@ export function Layout() {
     api.menu().then((m) => setHasCyrano(m.some((i) => i.url === "/cyrano"))).catch(() => setHasCyrano(false));
   }, [user]);
   const verse = useVerse(!!user);
+  // Un cop dins, mai es veu el nom del lloc: o el vers, o res fins que arriba. Només es mostra el nom a qui no ha entrat.
+  const showVerse = !!user || (loading && !!cachedVerse());
+  const cached = showVerse ? (verse ?? cachedVerse()) : null;
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => setMenuOpen(false), [pathname]); // en navegar, el menú es tanca
   const framed = pathname.startsWith("/app/");
@@ -57,7 +78,7 @@ export function Layout() {
         )}
         <Link to="/" className="brand">
           <img src="/logo.svg" alt="" width={40} height={40} />
-          {user && verse ? <span className="brand-verse">{verse}</span> : <span>acalpere<span className="tld">.cat</span></span>}
+          {showVerse ? <FadingVerse className="brand-verse" text={cached} /> : <span>acalpere<span className="tld">.cat</span></span>}
         </Link>
         {user && (
           <nav>
@@ -89,7 +110,7 @@ export function Layout() {
         <SideMenu
           user={user}
           hasCyrano={hasCyrano}
-          verse={verse}
+          verse={showVerse ? cached ?? "" : null}
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           onLogout={async () => {
@@ -106,15 +127,8 @@ export function Layout() {
           <div className="foot-in">
             <Link to="/" className="foot-brand">
               <img src="/logo.svg" alt="" width={32} height={32} />
-              {user && verse ? <span className="brand-verse">{verse}</span> : <span>acalpere<span className="tld">.cat</span></span>}
+              {showVerse ? <FadingVerse className="brand-verse" text={cached} /> : <span>acalpere<span className="tld">.cat</span></span>}
             </Link>
-            {user && (
-              <nav className="foot-nav" aria-label="Peu">
-                <Link to="/">Hub</Link>
-                {hasCyrano && <Link to="/cyrano">Cyrano</Link>}
-                <Link to="/perfil">El meu perfil</Link>
-              </nav>
-            )}
             <p>© {new Date().getFullYear()} acalpere.cat</p>
           </div>
         </footer>

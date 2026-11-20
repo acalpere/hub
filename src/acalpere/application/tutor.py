@@ -53,8 +53,14 @@ class TutorService:
         """Explicació d'un servei o una arquitectura sencera, al nivell de profunditat triat."""
         topic, level_text = self._topic(topic, level)
         question = (
-            f"Explica «{topic}» a nivell {level_text}. Estructura-ho en paràgrafs curts: què és, "
-            "com funciona, quan usar-lo i què vigilar. Pots passar de les 250 paraules."
+            f"Explica «{topic}» a nivell {level_text}. Comença amb la definició en una o dues "
+            "línies, sense títol (p. ex. «CloudWatch és el sistema de monitoratge, logging i "
+            "observabilitat natiu d'AWS»). Després, aquestes vuit seccions, cadascuna amb el títol "
+            "en una línia pròpia entre dos asteriscs i en aquest ordre: **Què és**, **Quan "
+            "usar-lo**, **Com funciona**, **Exemple concret**, **Avantatges**, **Inconvenients**, "
+            "**Decisions d'arquitecte**, **Governança i cost**. Exemple concret, Avantatges i "
+            "Inconvenients han de ser senzills i breus (2 o 3 línies o punts cadascun). Sota cada "
+            "títol, paràgrafs curts o punts amb guionet. Pots passar de les 350 paraules."
         )
         return self._tutor.answer(topic, "visió general", question, [], max_tokens=1800)
 

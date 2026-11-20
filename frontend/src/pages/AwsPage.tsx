@@ -1,39 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type CustomNeed } from "../api";
 import { ConceptDialog } from "../components/ConceptDialog";
 import { TutorChat } from "../components/TutorChat";
+import { BriefSection, ServiceBrief } from "../components/ServiceBrief";
 import { ARCHITECTURES, CATEGORIES, SERVICES, architectureBySlug, serviceBySlug } from "../aws/content";
 import { NEEDS, needsForService } from "../aws/needs";
+import { serviceIcon } from "../aws/icons";
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
-// Portada d'AWS: el logo, un camp per preguntar el que sigui i tres fitxes (Serveis, Arquitectura, Quiz).
+const ICONS: Record<string, string> = {
+  serveis: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+  arquitectura: "M12 3l9 5-9 5-9-5 9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5",
+  necessitats: "M12 4a8 8 0 100 16 8 8 0 000-16zM12 9a3 3 0 100 6 3 3 0 000-6z",
+  calaix: "M4 5h16v14H4zM4 13h5l1 2h4l1-2h5",
+  quiz: "M12 3a9 9 0 100 18 9 9 0 000-18zM9.6 9.6a2.4 2.4 0 114.2 1.6c-.8.8-1.8 1.2-1.8 2.4M12 17v.01",
+};
+
+function HomeTile({ to, kind, title, text, count }: { to: string; kind: keyof typeof ICONS; title: string; text: string; count?: number }) {
+  return (
+    <Link to={to} className={`tile tile-${kind}`}>
+      <span className="tile-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d={ICONS[kind]} /></svg>
+      </span>
+      <span className="tile-text">
+        <strong>{title}</strong>
+        <span>{text}</span>
+      </span>
+      {count !== undefined && <span className="tile-count">{count}</span>}
+    </Link>
+  );
+}
+
+// Portada d'AWS: títol amb el logo i, a sota, les seccions com a fitxes amb icona.
 export function AwsHome() {
   return (
     <section className="aws aws-home">
       <nav className="aws-tiles" aria-label="Seccions d'AWS">
-        <Link to="/aws/serveis" className="tile tile-serveis">
-          <strong>Serveis</strong>
-          <span>{SERVICES.length} serveis explicats, per categoria</span>
-        </Link>
-        <Link to="/aws/arquitectures" className="tile tile-arquitectura">
-          <strong>Arquitectura</strong>
-          <span>{ARCHITECTURES.length} patrons de disseny de referència</span>
-        </Link>
-        <Link to="/aws/necessitats" className="tile tile-necessitats">
-          <strong>Necessitats</strong>
-          <span>{NEEDS.length} necessitats (latència, RTO, pics…) i els serveis que hi ajuden</span>
-        </Link>
-        <Link to="/aws/calaix" className="tile tile-calaix">
-          <strong>Calaix de sastre</strong>
-          <span>Les respostes del tutor que has desat, amb la pregunta com a títol</span>
-        </Link>
-        <Link to="/aws/quiz" className="tile tile-quiz">
-          <strong>Quiz</strong>
-          <span>Explicacions per nivell i preguntes amb la resposta amagada</span>
-        </Link>
+        <HomeTile to="/aws/serveis" kind="serveis" title="Serveis" text="Què fa cada servei, per categoria" count={SERVICES.length} />
+        <HomeTile to="/aws/arquitectures" kind="arquitectura" title="Arquitectura" text="Patrons de disseny de referència" count={ARCHITECTURES.length} />
+        <HomeTile to="/aws/necessitats" kind="necessitats" title="Necessitats" text="Latència, RTO, pics… i els serveis que hi ajuden" count={NEEDS.length} />
+        <HomeTile to="/aws/quiz" kind="quiz" title="Quiz" text="Explicacions per nivell i preguntes" />
+        <HomeTile to="/aws/calaix" kind="calaix" title="Calaix de sastre" text="Les respostes del model que has desat" />
       </nav>
     </section>
   );
@@ -44,14 +54,19 @@ export function AwsServices() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
   const query = norm(q.trim());
+  const [params] = useSearchParams();
+  const openCat = CATEGORIES.find((c) => c === params.get("cat")) ?? null;
+  // Sense cerca ni categoria triada: fitxes de categories. Si no, les fitxes dels serveis (de la categoria o de la cerca).
+
   const services = useMemo(
     () => SERVICES.filter((s) => !query || norm(`${s.name} ${s.tagline} ${s.category}`).includes(query)),
     [query],
   );
+  const showCats = !query && !openCat;
+  const shown = services.filter((s) => query || s.category === openCat);
   return (
     <section className="aws">
-      <p className="aws-back"><Link to="/aws">← AWS</Link></p>
-      <h1>Serveis</h1>
+      <h1>{openCat && !query ? openCat : "Serveis"}</h1>
       <select
         className="aws-jump"
         aria-label="Tria un servei"
@@ -74,25 +89,28 @@ export function AwsServices() {
         onChange={(e) => setQ(e.target.value)}
       />
       {services.length === 0 && <p className="muted">Res no coincideix.</p>}
-      {CATEGORIES.map((cat) => {
-        const items = services.filter((s) => s.category === cat);
-        if (!items.length) return null;
-        return (
-          <details key={cat} className="aws-group" open={!!query}>
-            <summary>{cat} <span className="muted">({items.length})</span></summary>
-            <ul className="aws-list">
-              {items.map((s) => (
-                <li key={s.slug}>
-                  <Link to={`/aws/serveis/${s.slug}`}>
-                    <strong>{s.name}</strong>
-                    <span>{s.tagline}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </details>
-        );
-      })}
+      {showCats ? (
+        <ul className="mini-cards cat-cards">
+          {CATEGORIES.map((cat) => (
+            <li key={cat} className="mini-card">
+              <Link to={`/aws/serveis?cat=${encodeURIComponent(cat)}`}>{cat}</Link>
+              <span>{SERVICES.filter((s) => s.category === cat).length} serveis</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="mini-cards service-cards">
+          {shown.map((s) => (
+            <li key={s.slug} className="mini-card">
+              <Link to={`/aws/serveis/${s.slug}`}>
+                {serviceIcon(s.slug) && <img className="svc-icon" src={serviceIcon(s.slug)!} alt="" width={28} height={28} />}
+                {s.name}
+              </Link>
+              <span>{s.tagline}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
@@ -100,7 +118,6 @@ export function AwsServices() {
 export function AwsArchitectures() {
   return (
     <section className="aws">
-      <p className="aws-back"><Link to="/aws">← AWS</Link></p>
       <h1>Arquitectura</h1>
       <ul className="aws-list">
         {ARCHITECTURES.map((a) => (
@@ -113,19 +130,6 @@ export function AwsArchitectures() {
         ))}
       </ul>
     </section>
-  );
-}
-
-// Serveis del catàleg breu (sense apunts escrits): el tutor els explica quan es demana.
-function ExplainNow({ name }: { name: string }) {
-  const [on, setOn] = useState(false);
-  return on ? (
-    <TutorChat service={name} concept="visió general: què és, quan usar-lo, conceptes clau i límits" autoStart placeholder="Pregunta'n més…" />
-  ) : (
-    <p>
-      <span className="muted">Encara no hi ha apunts escrits d'aquest servei. </span>
-      <button type="button" onClick={() => setOn(true)}>Explica'm aquest servei</button>
-    </p>
   );
 }
 
@@ -230,15 +234,14 @@ export function AwsNeeds() {
 
   return (
     <section className="aws">
-      <p className="aws-back"><Link to="/aws">← AWS</Link></p>
       <h1>Necessitats</h1>
-      <p className="lead">Què demana el negoci → quins serveis hi ajuden i per què.</p>
+      <p className="lead">Què demana el negoci: quins serveis hi ajuden i per què.</p>
       <input type="search" className="aws-search need-search" placeholder="Cerca una necessitat" aria-label="Cerca una necessitat" value={q} onChange={(e) => setQ(e.target.value)} />
       <ErrorMessage message={error} />
       {needs.length === 0 && (
         <p className="muted">
           Cap necessitat coincideix.{" "}
-          {q.trim() && <button type="button" className="link" disabled={busy} onClick={() => void create(q)}>{busy ? "Preparant…" : `Crea «${q.trim()}» amb el tutor`}</button>}
+          {q.trim() && <button type="button" className="link" disabled={busy} onClick={() => void create(q)}>{busy ? "Preparant…" : `Crea «${q.trim()}» amb el model`}</button>}
         </p>
       )}
       <ul className="mini-cards">
@@ -254,7 +257,7 @@ export function AwsNeeds() {
         <input value={fresh} onChange={(e) => setFresh(e.target.value)} maxLength={80} placeholder="Crea una necessitat nova (p. ex. «baixa latència d'escriptura»)" aria-label="Nova necessitat" />
         <button type="submit" disabled={busy || fresh.trim().length < 3}>{busy ? "Preparant la fitxa…" : "Crea-la"}</button>
       </form>
-      <p className="muted small">El tutor omple la fitxa (explicació i serveis amb el motiu). Pot equivocar-se: revisa-la. Els punts de color de cada fitxa marquen com la domines: vermell, no en tens idea; verd, la domines.</p>
+      <p className="muted small">El model omple la fitxa (explicació i serveis amb el motiu). Pot equivocar-se: revisa-la. Els punts de color de cada fitxa marquen com la domines: vermell, no en tens idea; verd, la domines.</p>
     </section>
   );
 }
@@ -270,8 +273,7 @@ export function AwsNeed() {
   const key = `need:${n.slug}`;
   return (
     <section className="aws aws-page">
-      <p className="aws-back"><Link to="/aws/necessitats">← Necessitats</Link></p>
-      <p className="aws-cat">{n.custom ? "Necessitat pròpia" : "Necessitat"}</p>
+      {n.custom && <p className="aws-cat">Necessitat pròpia</p>}
       <h1>{n.name}</h1>
       <p className="lead">{n.tagline}</p>
       <p><Knowledge value={marks[key] ?? 0} onChange={(l) => setMark(key, l)} /></p>
@@ -317,6 +319,20 @@ function Related({ slugs = [] }: { slugs?: string[] }) {
   );
 }
 
+function RelatedChips({ slugs = [] }: { slugs?: string[] }) {
+  const items = slugs.map(serviceBySlug).filter((s) => !!s);
+  if (!items.length) return null;
+  return (
+    <BriefSection title="Serveis relacionats">
+      <p className="aws-chips">
+        {items.map((s) => (
+          <Link key={s!.slug} to={`/aws/serveis/${s!.slug}`} className="aws-chip">{s!.name}</Link>
+        ))}
+      </p>
+    </BriefSection>
+  );
+}
+
 // Llista de punts; cada un acaba amb un «?» que n'obre l'explicació més profunda (i preguntes) del tutor.
 function Bullets({ title, items, topic, onAsk }: { title: string; items?: string[]; topic: string; onAsk: (a: { service: string; concept: string }) => void }) {
   if (!items?.length) return null;
@@ -339,29 +355,54 @@ export function AwsService() {
   const { slug = "" } = useParams();
   const s = serviceBySlug(slug);
   const [asking, setAsking] = useState<{ service: string; concept: string } | null>(null);
+  const [more, setMore] = useState(false);
   if (!s) return <NotFound />;
   return (
     <section className="aws aws-page">
-      <p className="aws-back"><Link to="/aws/serveis">← Serveis</Link></p>
-      <p className="aws-cat">{s.category}</p>
-      <h1>{s.name}</h1>
+      <h1 className="svc-title">
+        {serviceIcon(s.slug) && <img className="svc-icon" src={serviceIcon(s.slug)!} alt="" width={40} height={40} />}
+        {s.name}
+      </h1>
       <p className="lead">{s.tagline}</p>
-      {s.what ? <p>{s.what}</p> : <ExplainNow name={s.name} />}
-      <Bullets title="Conceptes clau" items={s.concepts} topic={s.name} onAsk={setAsking} />
-      <Bullets title="Quan usar-lo" items={s.useWhen} topic={s.name} onAsk={setAsking} />
-      <Bullets title="Compte amb…" items={s.watch} topic={s.name} onAsk={setAsking} />
-      <p><Link to={`/aws/quiz?tema=${encodeURIComponent(s.name)}`} className="study-link">Quiz i explicació de {s.name} →</Link></p>
-      {needsForService(s.slug).length > 0 && (
-        <>
-          <h2>Necessitats que cobreix</h2>
-          <p className="aws-chips">
-            {needsForService(s.slug).map((n) => (
-              <Link key={n.slug} to={`/aws/necessitats/${n.slug}`} className="aws-chip">{n.name}</Link>
-            ))}
-          </p>
-        </>
+      <ServiceBrief name={s.name}>
+        {needsForService(s.slug).length > 0 && (
+          <BriefSection title="Necessitats que cobreix">
+            <p className="aws-chips">
+              {needsForService(s.slug).map((n) => (
+                <Link key={n.slug} to={`/aws/necessitats/${n.slug}`} className="aws-chip">{n.name}</Link>
+              ))}
+            </p>
+          </BriefSection>
+        )}
+        <RelatedChips slugs={s.related?.length ? s.related : SERVICES.filter((x) => x.category === s.category && x.slug !== s.slug).slice(0, 6).map((x) => x.slug)} />
+      </ServiceBrief>
+      <p>
+        <button type="button" className="ghost more-btn" aria-expanded={more} onClick={() => setMore(!more)}>
+          {more ? "Amaga els detalls" : "Més detalls"}
+        </button>
+      </p>
+      {more && (
+        <div className="more-details">
+          {s.what && (
+            <>
+              <Bullets title="Conceptes clau" items={s.concepts} topic={s.name} onAsk={setAsking} />
+              <Bullets title="Compte amb…" items={s.watch} topic={s.name} onAsk={setAsking} />
+            </>
+          )}
+          <TutorChat
+            service={s.name}
+            concept="ampliació en profunditat: límits i quotes, rendiment, seguretat, fallades habituals, integracions amb altres serveis i trucs d'operació; sense repetir la definició, quan usar-lo, els avantatges ni els inconvenients"
+            autoStart
+            placeholder="Pregunta'n més…"
+          />
+        </div>
       )}
-      <Related slugs={s.related} />
+      <p className="quiz-cta-wrap">
+        <Link to={`/aws/quiz?tema=${encodeURIComponent(s.name)}`} className="quiz-cta">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 100 18 9 9 0 000-18zM9.6 9.6a2.4 2.4 0 114.2 1.6c-.8.8-1.8 1.2-1.8 2.4M12 17v.01" /></svg>
+          Quiz de {s.name}
+        </Link>
+      </p>
       {asking && <ConceptDialog {...asking} onClose={() => setAsking(null)} />}
     </section>
   );
@@ -374,8 +415,6 @@ export function AwsArchitecture() {
   if (!a) return <NotFound />;
   return (
     <section className="aws aws-page">
-      <p className="aws-back"><Link to="/aws/arquitectures">← Arquitectura</Link></p>
-      <p className="aws-cat">Arquitectura</p>
       <h1>{a.name}</h1>
       <p className="lead">{a.tagline}</p>
       <h2>Recorregut</h2>
@@ -392,7 +431,6 @@ export function AwsArchitecture() {
 function NotFound() {
   return (
     <section className="aws">
-      <p className="aws-back"><Link to="/aws">← AWS</Link></p>
       <p className="muted">No hi ha aquesta pàgina.</p>
     </section>
   );

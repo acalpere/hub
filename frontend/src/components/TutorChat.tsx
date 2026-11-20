@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api } from "../api";
+import { RichText } from "./RichText";
 
 export interface Turn { role: "user" | "assistant"; text: string }
 
@@ -137,7 +138,7 @@ export function MicButton({ listening, onClick }: { listening: boolean; onClick:
 }
 
 export function Conversation({ turns, busy, error, onSave }: { turns: Turn[]; busy: boolean; error: string; onSave?: (question: string, answer: string) => Promise<void> }) {
-  const end = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<Set<number>>(new Set());
   async function save(i: number) {
     const question = turns[i - 1]?.role === "user" ? turns[i - 1]!.text : "";
@@ -145,14 +146,23 @@ export function Conversation({ turns, busy, error, onSave }: { turns: Turn[]; bu
     await onSave(question, turns[i]!.text);
     setSaved((s) => new Set(s).add(i));
   }
+  // Una resposta nova es mostra des del començament (no pel final); mentre es pensa, es veu el «Pensant…».
   useEffect(() => {
-    if (turns.length || busy || error) end.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const el = box.current;
+    if (!el) return;
+    const last = turns[turns.length - 1];
+    if (busy || error || last?.role !== "assistant") {
+      el.scrollTo({ top: el.scrollHeight });
+      return;
+    }
+    const answer = el.querySelector<HTMLElement>("[data-last-answer]");
+    el.scrollTo({ top: answer ? Math.max(0, answer.offsetTop - 4) : 0 });
   }, [turns, busy, error]);
   return (
-    <div className="concept-chat" aria-live="polite">
+    <div className="concept-chat" aria-live="polite" ref={box}>
       {turns.map((t, i) => (
-        <div key={i} className={t.role === "user" ? "me" : "bot-wrap"}>
-          <p className={t.role === "user" ? "" : "bot"}>{t.text}</p>
+        <div key={i} className={t.role === "user" ? "me" : "bot-wrap"} data-last-answer={t.role === "assistant" && i === turns.length - 1 ? "" : undefined}>
+          {t.role === "user" ? <p>{t.text}</p> : <div className="bot"><RichText text={t.text} /></div>}
           {t.role === "assistant" && onSave && turns[i - 1]?.role === "user" && (
             <button type="button" className="link save-answer" disabled={saved.has(i)} onClick={() => void save(i)}>
               {saved.has(i) ? "Desada al calaix ✓" : "Desa al calaix de sastre"}
@@ -162,7 +172,6 @@ export function Conversation({ turns, busy, error, onSave }: { turns: Turn[]; bu
       ))}
       {busy && <p className="bot muted">Pensant…</p>}
       {error && <p className="bot error">{error}</p>}
-      <div ref={end} />
     </div>
   );
 }

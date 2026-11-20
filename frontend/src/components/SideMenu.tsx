@@ -1,3 +1,4 @@
+import { FadingVerse } from "./FadingVerse";
 import { useEffect } from "react";
 import { NavLink } from "react-router";
 import type { User } from "../api";
@@ -32,7 +33,11 @@ export function SideMenu({ user, hasCyrano, verse, open, onClose, onLogout }: Pr
       <div className={`drawer-backdrop${open ? " open" : ""}`} onClick={onClose} aria-hidden="true" />
       <aside id="side-menu" className={`drawer${open ? " open" : ""}`} aria-label="Menú" aria-hidden={!open}>
         <div className="drawer-head">
-          <span className="drawer-brand">{verse ?? <>acalpere<span className="tld">.cat</span></>}</span>
+          {verse === null ? (
+            <span className="drawer-brand">acalpere<span className="tld">.cat</span></span>
+          ) : (
+            <FadingVerse className="drawer-brand" text={verse || null} />
+          )}
           <button type="button" className="icon-btn" aria-label="Tanca el menú" onClick={onClose}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>

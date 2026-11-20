@@ -24,3 +24,6 @@ Cyrano-*.odt
 Cyrano-*.json
 data/media/
 *.mp4
+
+# Paquet d'icones d'AWS baixat (en copiem només les que fem servir a frontend/public/aws-icons)
+logos_AWS/

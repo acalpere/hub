@@ -24,7 +24,10 @@ export function ConceptDialog({ service, concept, onClose }: Props) {
   return createPortal(
     <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dlg concept" role="dialog" aria-modal="true" aria-label={`Més detalls: ${service}`}>
-        <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
+        <div className="concept-head">
+          <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
+          <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
+        </div>
         <p className="concept-service">{service}</p>
         <p className="concept-topic">{concept}</p>
         <TutorChat service={service} concept={concept} autoStart placeholder="Pregunta'n més…" />

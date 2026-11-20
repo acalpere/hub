@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type SavedAnswer } from "../api";
 
@@ -18,7 +17,10 @@ function SavedDialog({ item, onClose, onDelete }: { item: SavedAnswer; onClose: 
   return createPortal(
     <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dlg concept" role="dialog" aria-modal="true" aria-label={item.question}>
-        <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
+        <div className="concept-head">
+          <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
+          <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
+        </div>
         <p className="concept-service">Calaix de sastre{item.created_at ? ` · ${item.created_at.slice(0, 10)}` : ""}</p>
         <p className="concept-topic">{item.question}</p>
         <div className="concept-chat"><p className="bot">{item.answer}</p></div>
@@ -49,11 +51,10 @@ export function AwsDrawer() {
 
   return (
     <section className="aws">
-      <p className="aws-back"><Link to="/aws">← AWS</Link></p>
       <h1>Calaix de sastre</h1>
       <p className="lead">Les respostes que has desat, amb la pregunta com a títol.</p>
       <ErrorMessage message={error} />
-      {items?.length === 0 && <p className="muted">El calaix és buit. A cada resposta del tutor hi ha «Desa al calaix de sastre».</p>}
+      {items?.length === 0 && <p className="muted">El calaix és buit. A cada resposta del model hi ha «Desa al calaix de sastre».</p>}
       <ul className="mini-cards">
         {items?.map((it) => (
           <li key={it.id} className="mini-card drawer-card">

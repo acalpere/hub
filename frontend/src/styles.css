@@ -35,7 +35,7 @@ main { flex: 1; width: 100%; }
 .brand .tld { color: var(--logo-red); font-weight: 400; }
 .brand img { border-radius: 10px; }
 .foot { margin-top: 2rem; color: var(--muted); font-family: var(--sans); font-size: 0.85rem; }
-.foot-in { width: min(var(--wide), calc(100% - 2.5rem)); margin: 0 auto; padding: 2rem clamp(0.75rem, 2.5vw, 2rem); border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem 2rem; }
+.foot-in { width: min(var(--wide), calc(100% - 2.5rem)); margin: 0 auto; padding: 2rem clamp(0.75rem, 2.5vw, 2rem); border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem 2rem; }
 .foot-brand { display: inline-flex; align-items: center; gap: 0.5rem; justify-self: start; color: var(--fg); text-decoration: none; font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
 .foot-brand .tld { color: var(--logo-red); font-weight: 400; }
 .foot-brand img { border-radius: 8px; }
@@ -449,7 +449,9 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 /* Vers: color vi, suau, i mida editable des de Gestió (--verse-lg / --verse-sm, en rem) */
 :root { --verse-lg: 1.05rem; --verse-sm: 0.8rem; }
 .brand-verse, .drawer-head .drawer-brand:not(:has(.tld)) { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: var(--verse-lg); line-height: 1.25; color: color-mix(in srgb, var(--wine) 82%, var(--bg)); max-width: 28rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.foot-brand .brand-verse { max-width: 20rem; font-weight: 400; }
+.foot-brand .brand-verse { max-width: none; font-weight: 400; }
+.foot-brand { min-width: 0; }
+.foot p { white-space: nowrap; }
 @media (max-width: 48rem) { .brand-verse, .drawer-head .drawer-brand:not(:has(.tld)) { font-size: var(--verse-sm); } }
 .verse-field { flex: 1 1 18rem; display: flex; flex-direction: column; gap: 0.2rem; }
 .verse-field textarea { flex: none; width: 100%; box-sizing: border-box; }
@@ -557,7 +559,7 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .aws-sub { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; padding: 0 0 0.2rem 4.4rem; font-size: 0.8rem; }
 .aws-sub .link { color: var(--muted); text-decoration: none; }
 .aws-sub .link:hover, .aws-sub .link[aria-expanded="true"] { color: var(--wine); }
-.aws-history { overflow-y: auto; max-height: min(52vh, 30rem); scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.aws-history { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
 .aws-hist-item { padding: 0.55rem 0; border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); }
 .aws-hist-item summary { cursor: pointer; font-weight: 600; line-height: 1.4; }
 .aws-hist-item p { margin: 0.5rem 0; white-space: pre-wrap; line-height: 1.65; font-size: 0.95rem; }
@@ -574,10 +576,16 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .aws-ask button[type="submit"] { background: transparent; border-color: transparent; color: var(--wine); font-weight: 600; padding: 0.4rem 0.6rem; }
 .aws-ask button[type="submit"]:disabled { opacity: 0.4; }
 .aws-answer { position: absolute; top: 100%; left: 1.5rem; right: 1.5rem; max-width: 44rem; max-height: min(65vh, 36rem); display: flex; flex-direction: column; padding: 0.6rem 1.1rem 0.9rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--card); box-shadow: 0 24px 50px -22px rgba(30, 24, 20, 0.55); animation: dlg-pop 0.18s ease; }
-.aws-answer .concept-chat { overflow-y: auto; }
+.aws-answer .concept-chat { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
+.aws-answer:has(.aws-history) { max-height: min(60vh, 32rem); }
+.aws-grip { flex: none; display: grid; place-items: center; height: 1.3rem; margin: 0.2rem -0.6rem -0.5rem; cursor: ns-resize; touch-action: none; }
+.aws-grip span { width: 2.6rem; height: 4px; border-radius: 4px; background: var(--rule); transition: background 0.15s; }
+.aws-grip:hover span, .aws-grip:active span { background: var(--wine); }
+.aws-ask .mic { width: 1.9rem; height: 1.9rem; }
+.aws-ask .mic svg { width: 1rem; height: 1rem; }
 .aws-answer-head { display: flex; justify-content: space-between; align-items: center; }
 .aws-answer-head .concept-x { position: static; }
-@media (max-width: 40rem) { .aws-sub { padding-left: 0; } .aws-shell { margin-left: -1.5rem; margin-right: -1.5rem; } .aws-bar { gap: 0.6rem; padding: 0.4rem 1rem; } .aws-bar-logo img { height: 28px; } .aws-answer { left: 0.5rem; right: 0.5rem; } }
+@media (max-width: 40rem) { .aws-bar-logo { flex: 1 1 100%; display: flex; justify-content: center; } .aws-ask { flex: 1 1 100%; gap: 0.3rem; } .aws-ask button[type="submit"] { padding: 0.3rem 0.35rem; } .aws-sub { padding-left: 0; } .aws-shell { margin-left: -1.5rem; margin-right: -1.5rem; } .aws-bar { gap: 0.6rem; padding: 0.4rem 1rem; } .aws-bar-logo img { height: 28px; } .aws-answer { left: 0.5rem; right: 0.5rem; } }
 
 /* Finestres més elegants: vora fina, ombra suau en capes, tipografia amb aire i una línia vi a dalt */
 .dlg-backdrop { background: rgba(38, 24, 22, 0.38); backdrop-filter: blur(5px) saturate(0.9); }
@@ -608,3 +616,126 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .mic.on { background: var(--wine); border-color: var(--wine); color: #fff; animation: mic-pulse 1.6s ease-out infinite; }
 @keyframes mic-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--wine) 45%, transparent); } 70%, 100% { box-shadow: 0 0 0 0.6rem transparent; } }
 @media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } }
+
+/* Pop-up del «?»: logo d'AWS petit a dalt a l'esquerra, i el text fa scroll dins la finestra */
+.concept-head { position: relative; display: flex; align-items: center; justify-content: center; min-height: 2rem; margin: -0.2rem 0 0.6rem; }
+.concept-head .concept-x { position: absolute; top: 0; right: -0.3rem; }
+.concept-logo { display: block; height: 30px; width: auto; }
+.dlg.concept { max-height: min(85vh, 40rem); }
+.dlg.concept .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.dlg.concept .concept-chat { min-height: 0; position: relative; }
+
+/* Assistent d'AWS: botó rodó negre amb interrogant groc a baix a la dreta i pop-up gran al centre */
+.aws-shell { margin: 0; }
+.aws-shell > .aws { margin: 0 auto; padding: 0; }
+.aws-fab-dock { position: sticky; bottom: 1rem; z-index: 50; height: 0; display: flex; justify-content: flex-end; align-items: flex-end; }
+.aws-fab { display: grid; place-items: center; flex: none; width: 2.2rem; height: 2.2rem; padding: 0; border: 0; border-radius: 50%; background: #16110f; color: #f5c518; font: 700 1.1rem/1 var(--serif); box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.55); cursor: pointer; transition: transform 0.15s; }
+.aws-fab:hover { transform: scale(1.07); filter: none; }
+.dlg.aws-assist { position: relative; display: flex; flex-direction: column; width: min(46rem, 100%); height: min(88vh, 46rem); padding: 1.4rem 1.5rem 1rem; text-align: left; }
+.aws-assist .concept-head { flex: none; }
+.aws-tabs { flex: none; display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; padding-bottom: 0.6rem; margin-bottom: 0.4rem; border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); font-size: 0.85rem; }
+.aws-tabs .link { color: var(--muted); text-decoration: none; }
+.aws-tabs .link:hover, .aws-tabs .link[aria-pressed="true"] { color: var(--wine); }
+.aws-tabs .link[aria-pressed="true"] { font-weight: 600; }
+.aws-tabs .aws-new { margin-left: auto; }
+.aws-assist-body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.aws-assist-body:not(.aws-history) { overflow: hidden; }
+.aws-assist-body .concept-chat { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
+.aws-assist-body.aws-history { display: block; overflow-y: auto; }
+.aws-hint { margin: 1rem 0 !important; }
+.aws-assist .aws-ask { flex: none; padding-top: 0.7rem; margin-top: 0.4rem; border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); }
+@media (max-width: 40rem) { .dlg.aws-assist { height: min(92vh, 46rem); padding: 1.1rem 1rem 0.8rem; } }
+
+/* Vers: crossfade elegant en canviar */
+.verse-fade { transition: opacity 0.65s ease, transform 0.65s ease, filter 0.65s ease; }
+.verse-fade.out { opacity: 0; transform: translateY(-4px); filter: blur(2px); }
+.verse-fade.in { opacity: 1; animation: verse-in 0.8s ease both; }
+@keyframes verse-in { from { opacity: 0; transform: translateY(5px); filter: blur(2px); } }
+@media (prefers-reduced-motion: reduce) { .verse-fade, .verse-fade.in { transition: opacity 0.3s; animation: none; transform: none; filter: none; } }
+
+/* Portada d'AWS: títol amb logo i fitxes modernes (icona tintada, text, recompte i fletxa) */
+.aws-title { display: flex; align-items: center; gap: 0.8rem; margin: 0 0 0.4rem; }
+.aws-title img { display: block; height: 34px; width: auto; }
+.aws-tiles { grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0.8rem; margin: 1.2rem 0 1rem; }
+.tile { --tint: #e8e1ee; flex-direction: row; align-items: center; gap: 0.95rem; min-height: 0; padding: 0.95rem 1.1rem; border: 1px solid var(--rule); background: var(--card); border-radius: 16px; }
+.tile-serveis { --tint: #dbe7d4; } .tile-arquitectura { --tint: #d5e2ee; } .tile-necessitats { --tint: #e3d9ee; } .tile-quiz { --tint: #f3dfc9; } .tile-calaix { --tint: #efd9dc; }
+.tile-serveis, .tile-arquitectura, .tile-necessitats, .tile-quiz, .tile-calaix { background: var(--card); }
+.tile-icon { flex: none; display: grid; place-items: center; width: 2.9rem; height: 2.9rem; border-radius: 13px; background: var(--tint); color: color-mix(in srgb, var(--wine) 85%, #000); transition: background 0.15s, color 0.15s; }
+.tile-icon svg { width: 1.45rem; height: 1.45rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tile-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.tile-text strong { font-size: 1.2rem; }
+.tile-text > span { color: var(--muted); font-size: 0.86rem; line-height: 1.35; }
+.tile-count { flex: none; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--tint); font-size: 0.82rem; font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; }
+.tile-go { flex: none; color: var(--muted); font-size: 1.1rem; transition: transform 0.15s, color 0.15s; }
+.tile:hover .tile-go, .tile:focus-visible .tile-go { transform: translateX(4px); color: var(--wine); }
+.tile:hover .tile-icon, .tile:focus-visible .tile-icon { background: var(--wine); color: #fff; }
+@media (max-width: 40rem) { .aws-tiles { grid-template-columns: 1fr; } }
+
+/* Ruta al costat del logo d'AWS */
+.aws-shell > .aws-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.55rem; margin: 0 auto 1.6rem; font-family: var(--serif); font-size: 1.55rem; font-weight: 600; line-height: 1.2; }
+.aws-crumbs a { color: var(--fg); text-decoration: none; }
+.aws-crumbs a:hover { color: var(--wine); }
+.aws-crumb-home { display: inline-flex; align-items: center; gap: 0.7rem; }
+.aws-crumb-home img { display: block; height: 34px; width: auto; }
+.aws-crumb { display: inline-flex; align-items: baseline; gap: 0.55rem; font-size: 1.15rem; font-weight: 500; }
+.aws-crumb-sep { color: var(--muted); font-weight: 400; }
+.aws-crumb > span:last-child { color: var(--wine); }
+.aws-crumb a { color: var(--muted); }
+@media (max-width: 40rem) { .aws-crumbs { font-size: 1.35rem; } .aws-crumb { font-size: 1rem; } }
+
+/* Serveis: fitxes petites de categories i de serveis, cadascuna amb el seu to pastel */
+.cat-cards, .service-cards { margin-top: 1.2rem; }
+.cat-cards { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
+.service-cards { grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
+.cat-cards .mini-card span { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em; }
+.service-cards .mini-card span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cat-cards .mini-card:nth-child(5n+1), .service-cards .mini-card:nth-child(5n+1) { background: #dbe7d4; }
+.cat-cards .mini-card:nth-child(5n+2), .service-cards .mini-card:nth-child(5n+2) { background: #d5e2ee; }
+.cat-cards .mini-card:nth-child(5n+3), .service-cards .mini-card:nth-child(5n+3) { background: #e3d9ee; }
+.cat-cards .mini-card:nth-child(5n+4), .service-cards .mini-card:nth-child(5n+4) { background: #f3dfc9; }
+.cat-cards .mini-card:nth-child(5n+5), .service-cards .mini-card:nth-child(5n+5) { background: #efd9dc; }
+
+/* Icona oficial del servei, a l'esquerra del nom */
+.service-cards .mini-card > a { display: flex; align-items: center; gap: 0.55rem; }
+.svc-icon { flex: none; display: block; border-radius: 6px; }
+.svc-title { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Explicació d'entrada d'un servei: quadre, definició destacada i títols en vi */
+.brief { margin: 1.1rem 0 1.2rem; padding: 1.2rem 1.35rem 1.1rem; border: 1px solid color-mix(in srgb, var(--wine) 28%, var(--rule)); border-radius: 16px; background: var(--card); box-shadow: 0 14px 30px -24px rgba(60, 30, 30, 0.45); }
+.brief p { margin: 0 0 0.6rem; line-height: 1.65; }
+.brief .brief-def { margin-bottom: 0.4rem; font-family: var(--serif); font-size: 1.12rem; line-height: 1.55; }
+.brief-title { margin: 1.2rem 0 0.35rem !important; padding: 0 !important; border: 0 !important; border-image: none !important; color: var(--wine); font-family: var(--sans); font-size: 0.74rem !important; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; }
+.brief .brief-li { position: relative; padding-left: 1.1rem; margin-bottom: 0.4rem; }
+.brief .brief-li::before { content: ""; position: absolute; left: 0.2rem; top: 0.75em; width: 0.35rem; height: 0.35rem; border-radius: 50%; background: var(--wine); opacity: 0.7; }
+
+/* Botó de més/menys detalls i enllaç al quiz */
+.more-btn { border-radius: 999px; padding: 0.45rem 1.3rem; }
+.more-details { margin: 0.4rem 0 1rem; }
+.quiz-cta-wrap { margin: 1.6rem 0 0.5rem; }
+.quiz-cta { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.6rem 1.25rem; border: 1px solid var(--wine); border-radius: 999px; background: color-mix(in srgb, var(--wine) 7%, var(--card)); color: var(--wine); font-weight: 600; text-decoration: none; transition: background 0.15s, color 0.15s, transform 0.15s; }
+.quiz-cta svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.quiz-cta:hover, .quiz-cta:focus-visible { background: var(--wine); color: #fff; transform: translateY(-1px); }
+
+/* Respostes del tutor amb format dins de les converses */
+.concept-chat .bot p { margin: 0 0 0.5rem; white-space: pre-wrap; }
+.concept-chat .bot p:last-child { margin-bottom: 0; }
+.concept-chat .bot .brief-li { position: relative; padding-left: 1.1rem; }
+.concept-chat .bot .brief-li::before { content: ""; position: absolute; left: 0.2rem; top: 0.75em; width: 0.35rem; height: 0.35rem; border-radius: 50%; background: var(--wine); opacity: 0.7; }
+.concept-chat .bot .brief-title { margin: 1rem 0 0.3rem !important; }
+.concept-chat .bot .brief-title:first-child { margin-top: 0 !important; }
+
+/* Botó d'enrere al costat de la ruta d'AWS */
+.aws-back-btn { display: grid; place-items: center; flex: none; width: 2.1rem; height: 2.1rem; padding: 0; border: 1px solid var(--rule); border-radius: 50%; background: var(--card); color: var(--wine); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.aws-back-btn svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.aws-back-btn:hover { background: var(--wine); color: #fff; filter: none; }
+
+/* Quiz: selectors amb l'ample del seu contingut i números ben centrats dins del cercle */
+.study-form { align-items: flex-start; }
+.study-form label { align-items: flex-start; max-width: 100%; }
+.study-form select { width: auto; max-width: 100%; }
+.card-qa .q { display: flex; gap: 0.7rem; align-items: flex-start; }
+.card-qa .n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; margin: -0.1rem 0 0; border-radius: 50%; background: var(--wine); color: #fff; font-family: var(--sans); font-size: 1rem; font-weight: 600; line-height: 1; font-variant-numeric: lining-nums tabular-nums; padding-top: 1px; box-sizing: border-box; }
+
+.study-note { margin: 0.2rem 0 1.2rem; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+.study-form label { color: var(--wine); font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
+.study-form label select { font-family: var(--sans); font-weight: 400; color: var(--fg); }
