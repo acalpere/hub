@@ -1,3 +1,4 @@
+import { AwsLogo } from "./AwsLogo";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { TutorChat } from "./TutorChat";
@@ -25,7 +26,7 @@ export function ConceptDialog({ service, concept, onClose }: Props) {
     <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dlg concept" role="dialog" aria-modal="true" aria-label={`Més detalls: ${service}`}>
         <div className="concept-head">
-          <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
+          <AwsLogo alt="AWS" className="concept-logo" height={30} />
           <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
         </div>
         {service.trim().toUpperCase() !== "AWS" && <p className="concept-service">{service}</p>}

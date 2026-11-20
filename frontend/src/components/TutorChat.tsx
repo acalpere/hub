@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api } from "../api";
 import { RichText } from "./RichText";
-import { LogoSpinner } from "./LoadingSpinner";
+import { CenterSpinner } from "./LoadingSpinner";
 
 export interface Turn { role: "user" | "assistant"; text: string }
 
@@ -171,7 +171,7 @@ export function Conversation({ turns, busy, error, onSave }: { turns: Turn[]; bu
           )}
         </div>
       ))}
-      {busy && <div className="bot thinking"><LogoSpinner small label="Pensant…" /></div>}
+      {busy && <CenterSpinner label="Pensant…" />}
       {error && <p className="bot error">{error}</p>}
     </div>
   );

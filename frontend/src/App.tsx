@@ -10,6 +10,7 @@ import { AwsDrawer } from "./pages/AwsDrawerPage";
 import { AwsStudy } from "./pages/AwsStudyPage";
 import { CyranoPage } from "./pages/CyranoPage";
 import { GestioLayout } from "./pages/GestioPage";
+import { GeneralPage } from "./pages/GeneralPage";
 import { HubPage } from "./pages/HubPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -56,6 +57,7 @@ export function App() {
             <Route index element={<Navigate to="hub" replace />} />
             <Route path="hub" element={<HubPage />} />
             <Route path="usuaris" element={<UsersPage />} />
+            <Route path="general" element={<GeneralPage />} />
             <Route path="versos" element={<VersesPage />} />
             <Route path="seguretat" element={<SecurityPage />} />
           </Route>

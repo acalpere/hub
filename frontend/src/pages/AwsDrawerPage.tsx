@@ -1,3 +1,4 @@
+import { AwsLogo } from "../components/AwsLogo";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -18,7 +19,7 @@ function SavedDialog({ item, onClose, onDelete }: { item: SavedAnswer; onClose: 
     <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dlg concept" role="dialog" aria-modal="true" aria-label={item.question}>
         <div className="concept-head">
-          <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
+          <AwsLogo alt="AWS" className="concept-logo" height={30} />
           <button type="button" className="concept-x" aria-label="Tanca" onClick={onClose}>×</button>
         </div>
         <p className="concept-service">Calaix de sastre{item.created_at ? ` · ${item.created_at.slice(0, 10)}` : ""}</p>

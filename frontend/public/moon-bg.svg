@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="w" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#f8dfb0"/>
+      <stop offset="0.55" stop-color="#dba969"/>
+      <stop offset="1" stop-color="#a87a45"/>
+    </linearGradient>
+    <mask id="m">
+      <rect width="120" height="120" fill="#000"/>
+      <g transform="rotate(-8 60 60)">
+        <circle cx="60" cy="60" r="52" fill="#fff"/>
+        <circle cx="80" cy="50" r="50" fill="#000"/>
+      </g>
+    </mask>
+    <pattern id="p" width="120" height="9" patternUnits="userSpaceOnUse">
+      <rect width="120" height="1.1" fill="#5a3814" opacity="0.4"/>
+      <rect y="1.1" width="120" height="0.8" fill="#fff3d6" opacity="0.18"/>
+    </pattern>
+  </defs>
+  <g mask="url(#m)">
+    <rect width="120" height="120" fill="url(#w)"/>
+    <rect width="120" height="120" fill="url(#p)"/>
+  </g>
+</svg>

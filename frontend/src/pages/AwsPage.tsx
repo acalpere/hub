@@ -4,7 +4,7 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { api, type CustomNeed } from "../api";
 import { ConceptDialog } from "../components/ConceptDialog";
 import { TutorChat } from "../components/TutorChat";
-import { LogoSpinner } from "../components/LoadingSpinner";
+import { CenterSpinner } from "../components/LoadingSpinner";
 import { BriefSection, ServiceBrief } from "../components/ServiceBrief";
 import { ARCHITECTURES, CATEGORIES, SERVICES, architectureBySlug, serviceBySlug } from "../aws/content";
 import { NEEDS, needsForService } from "../aws/needs";
@@ -242,7 +242,7 @@ export function AwsNeeds() {
       {needs.length === 0 && (
         <p className="muted">
           Cap necessitat coincideix.{" "}
-          {q.trim() && <button type="button" className="link" disabled={busy} onClick={() => void create(q)}>{busy ? <LogoSpinner small label="Preparant…" /> : `Crea «${q.trim()}» amb el model`}</button>}
+          {q.trim() && <button type="button" className="link" disabled={busy} onClick={() => void create(q)}>{busy ? "Preparant…" : `Crea «${q.trim()}» amb el model`}</button>}
         </p>
       )}
       <ul className="mini-cards">
@@ -256,7 +256,8 @@ export function AwsNeeds() {
       </ul>
       <form className="need-new" onSubmit={(e) => { e.preventDefault(); void create(fresh); }}>
         <input value={fresh} onChange={(e) => setFresh(e.target.value)} maxLength={80} placeholder="Crea una necessitat nova (p. ex. «baixa latència d'escriptura»)" aria-label="Nova necessitat" />
-        <button type="submit" disabled={busy || fresh.trim().length < 3}>{busy ? <LogoSpinner small label="Preparant la fitxa…" /> : "Crea-la"}</button>
+        <button type="submit" disabled={busy || fresh.trim().length < 3}>{busy ? "Preparant la fitxa…" : "Crea-la"}</button>
+        {busy && <CenterSpinner label="Preparant la fitxa…" />}
       </form>
       <p className="muted small">El model omple la fitxa (explicació i serveis amb el motiu). Pot equivocar-se: revisa-la. Els punts de color de cada fitxa marquen com la domines: vermell, no en tens idea; verd, la domines.</p>
     </section>

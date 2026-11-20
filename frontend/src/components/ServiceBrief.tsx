@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { api } from "../api";
 import { RichText } from "./RichText";
-import { LogoSpinner } from "./LoadingSpinner";
+import { CenterSpinner } from "./LoadingSpinner";
 
 const LEVEL = "pro";
 
@@ -48,7 +48,7 @@ export function ServiceBrief({ name, children }: { name: string; children?: Reac
 
   return (
     <div className="brief" aria-live="polite">
-      {!text && !error && <p className="thinking"><LogoSpinner small label="Preparant l'explicació…" /></p>}
+      {!text && !error && <CenterSpinner label="Preparant l'explicació…" />}
       {error && (
         <p className="error">
           {error} <button type="button" className="link" onClick={() => setTries((n) => n + 1)}>Torna-ho a provar</button>

@@ -6,6 +6,9 @@
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#7a2e2e" />
+    <script>
+      try { document.documentElement.dataset.theme = localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { document.documentElement.dataset.theme = "dark"; }
+    </script>
     <title>acalpere</title>
   </head>
   <body>

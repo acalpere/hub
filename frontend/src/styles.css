@@ -34,16 +34,15 @@ main { flex: 1; width: 100%; }
 .brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--fg); font-size: 1.35rem; font-weight: 600; letter-spacing: -0.01em; }
 .brand .tld { color: var(--logo-red); font-weight: 400; }
 .brand img { border-radius: 10px; }
-.foot { margin-top: 2rem; color: var(--muted); font-family: var(--sans); font-size: 0.85rem; }
-.foot-in { width: min(var(--wide), calc(100% - 2.5rem)); margin: 0 auto; padding: 2rem clamp(0.75rem, 2.5vw, 2rem); border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem 2rem; }
+.foot { margin-top: 3.5rem; color: var(--muted); font-family: var(--sans); font-size: 0.85rem; }
+.foot-in { width: min(var(--wide), calc(100% - 2.5rem)); margin: 0 auto; padding: 1rem clamp(0.75rem, 2.5vw, 2rem) 1.1rem; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr; align-items: center; gap: 1rem 2rem; }
 .foot-brand { display: inline-flex; align-items: center; gap: 0.5rem; justify-self: start; color: var(--fg); text-decoration: none; font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
 .foot-brand .tld { color: var(--logo-red); font-weight: 400; }
 .foot-brand img { border-radius: 8px; }
 .foot-nav { display: flex; gap: 1.5rem; }
 .foot-nav a { color: var(--muted); text-decoration: none; }
 .foot-nav a:hover { color: var(--wine); }
-.foot p { margin: 0; justify-self: end; text-align: right; }
-@media (max-width: 52rem) { .foot-in { grid-template-columns: 1fr; justify-items: center; text-align: center; } .foot-brand, .foot p { justify-self: center; text-align: center; } }
+@media (max-width: 52rem) { .foot-in { grid-template-columns: 1fr; justify-items: center; text-align: center; } .foot-brand { justify-self: center; text-align: center; } }
 .lead { color: var(--muted); margin: -0.5rem 0 0; }
 h3 { margin: 0 0 0.3rem; font-size: 1.2rem; font-weight: 600; }
 .projects { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
@@ -104,7 +103,8 @@ button.ghost { background: transparent; color: var(--accent); border-color: var(
 .error { color: #b00020; font-family: var(--sans); font-size: 0.9rem; font-weight: 600; margin: 0; }
 .status, .muted { color: var(--muted); font-family: var(--sans); font-size: 0.9rem; }
 
-.loading-screen { min-height: calc(100svh - 10rem); display: grid; place-items: center; }
+.loading-screen { min-height: calc(100svh - 10rem); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; }
+#root > .loading-screen { min-height: 100svh; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @keyframes spinner-turn { to { transform: rotate(360deg); } }
 
@@ -316,37 +316,15 @@ main h1 a { color: inherit; text-decoration: none; }
 h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none; font-size: 1.5rem; }
 
 /* Pantalla petita: menú lateral amb acordió, en lloc de la barra de dalt */
-.burger { display: none; margin-right: 0.6rem; }
-.drawer-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(30, 24, 20, 0.45); opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
-.drawer-backdrop.open { opacity: 1; visibility: visible; }
-.drawer { position: fixed; top: 0; bottom: 0; left: 0; z-index: 50; width: min(20rem, 86vw); display: flex; flex-direction: column; background: var(--bg); box-shadow: 12px 0 40px -18px rgba(0, 0, 0, 0.4); transform: translateX(-102%); visibility: hidden; transition: transform 0.25s ease, visibility 0.25s; --accent: var(--wine); }
-.drawer.open { transform: none; visibility: visible; }
-.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); }
-.drawer-brand { font-family: var(--serif); font-size: 1.35rem; font-weight: 600; letter-spacing: -0.01em; color: var(--fg); }
-.drawer-brand .tld { color: var(--logo-red); font-weight: 400; }
-.drawer-nav { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; padding: 1.5rem 0 1rem; overflow-y: auto; font-family: var(--serif); }
-.drawer-link { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; width: 100%; padding: 1rem 1.5rem; border: 0; border-radius: 0; border-left: 3px solid transparent; background: none; color: var(--fg); font-family: var(--serif); font-size: 1.3rem; letter-spacing: -0.005em; text-align: left; text-decoration: none; cursor: pointer; }
-.drawer-link:hover { background: color-mix(in srgb, var(--rule) 35%, transparent); filter: none; }
-.drawer-link.active { border-left-color: var(--wine); font-weight: 600; }
-.drawer-user { padding: 1rem 1.5rem 1.5rem; text-align: right; font-family: var(--sans); }
-.drawer-me { display: block; color: var(--fg); font-size: 1rem; font-weight: 600; text-decoration: none; }
-.drawer-me small { display: block; margin-bottom: 0.1rem; color: var(--muted); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
-.drawer .drawer-user .exit { display: inline-block; margin-top: 0.35rem; padding: 0; border: 0; background: none; color: var(--wine); font-family: var(--sans); font-size: 0.9rem; text-decoration: none; }
-.drawer .drawer-user .exit:hover { text-decoration: underline; filter: none; }
-.drawer .drawer-nav { gap: 0; padding-top: 0.75rem; }
-.drawer .drawer-link { padding: 1.35rem 1.5rem; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
-.drawer .drawer-foot { display: flex; justify-content: center; padding: 1.5rem 1.5rem 0.75rem; }
-.drawer-foot img { border-radius: 16px; }
-@media (min-width: 48.01rem) { .drawer, .drawer-backdrop { display: none; } }
 @media (max-width: 48rem) {
-  .burger { display: inline-grid; }
   .top nav { display: none; }
   .top { justify-content: flex-start; }
   .brand { flex: 1; }
-  .brand img { order: 2; margin-left: auto; } /* el logo passa a la dreta; l'hamburguesa ocupa l'esquerra */
+
+  /* el vers es centra a la capçalera: ocupa l'espai que deixa el logo i es compensa amb el seu ample perquè quedi al mig */
+  .top .brand .brand-verse { flex: 1; max-width: none; text-align: center; padding-right: calc(40px + 0.6rem); }
   .foot-nav { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .drawer, .drawer-backdrop { transition: none; } }
 .who-box { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
 .who-box .exit { padding: 0; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: var(--wine); }
 .who-box .exit:hover { text-decoration: underline; }
@@ -372,9 +350,6 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 }
 .cy-edit-row { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
 .cy-edit-row > label { min-width: 0; }
-.drawer-user { margin: 0.25rem 1.5rem 0; padding: 0.9rem 0 1.5rem; border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); }
-.drawer .drawer-user .exit { margin-top: 0.1rem; line-height: 1.2; }
-.drawer-me { line-height: 1.25; }
 .top nav .who-box { display: grid; justify-items: center; gap: 0.15rem; flex: 0 0 auto; }
 .top nav .who-box > * { display: block; margin: 0; }
 
@@ -446,11 +421,10 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 
 /* Vers: color vi, suau, i mida editable des de Gestió (--verse-lg / --verse-sm, en rem) */
 :root { --verse-lg: 1.05rem; --verse-sm: 0.8rem; }
-.brand-verse, .drawer-head .drawer-brand:not(:has(.tld)) { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: var(--verse-lg); line-height: 1.25; color: color-mix(in srgb, var(--wine) 82%, var(--bg)); max-width: 28rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.brand-verse { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: var(--verse-lg); line-height: 1.25; color: color-mix(in srgb, var(--wine) 82%, var(--bg)); max-width: 28rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .foot-brand .brand-verse { max-width: none; font-weight: 400; }
 .foot-brand { min-width: 0; }
-.foot p { white-space: nowrap; }
-@media (max-width: 48rem) { .brand-verse, .drawer-head .drawer-brand:not(:has(.tld)) { font-size: var(--verse-sm); } }
+@media (max-width: 48rem) { .brand-verse { font-size: var(--verse-sm); } }
 .verse-field { flex: 1 1 18rem; display: flex; flex-direction: column; gap: 0.2rem; }
 .verse-field textarea { flex: none; width: 100%; box-sizing: border-box; }
 .verse-count { align-self: flex-end; font-size: 0.78rem; color: var(--muted); }
@@ -568,8 +542,6 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .mini-open { padding: 0; border: 0; background: none; color: var(--fg); font-family: var(--serif); font-size: 1.05rem; font-weight: 600; text-align: left; line-height: 1.3; cursor: pointer; }
 .mini-open::after { content: ""; position: absolute; inset: 0; border-radius: 12px; }
 .mini-card:hover .mini-open { color: var(--wine); filter: none; }
-.drawer-card { background: #efe2e4; }
-.drawer-card span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 .aws-ask button[type="submit"] { background: transparent; border-color: transparent; color: var(--wine); font-weight: 600; padding: 0.4rem 0.6rem; }
 .aws-ask button[type="submit"]:disabled { opacity: 0.4; }
@@ -626,7 +598,7 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 /* Assistent d'AWS: botó rodó negre amb interrogant groc a baix a la dreta i pop-up gran al centre */
 .aws-shell { margin: 0; }
 .aws-shell > .aws { margin: 0 auto; padding: 0; }
-.aws-fab-dock { position: sticky; bottom: 1rem; z-index: 50; height: 0; display: flex; justify-content: flex-end; align-items: flex-end; }
+.aws-fab-dock { position: sticky; bottom: 1rem; z-index: 50; height: 0; max-width: 46rem; margin: 0 auto; display: flex; justify-content: flex-end; align-items: flex-end; }
 .aws-fab { display: grid; place-items: center; flex: none; width: 2.2rem; height: 2.2rem; padding: 0; border: 0; border-radius: 50%; background: #16110f; color: #f5c518; font: 700 1.1rem/1 var(--serif); box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.55); cursor: pointer; transition: transform 0.15s; }
 .aws-fab:hover { transform: scale(1.07); filter: none; }
 .dlg.aws-assist { position: relative; display: flex; flex-direction: column; width: min(46rem, 100%); height: min(88vh, 46rem); padding: 1.4rem 1.5rem 1rem; text-align: left; }
@@ -750,13 +722,290 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 }
 
 /* Spinner amb el logo (opció B): anell vi amb la lluna en òrbita */
-.logo-spin { position: relative; display: inline-grid; place-items: center; width: 3.4rem; height: 3.4rem; flex: none; vertical-align: middle; }
-.logo-spin.small { width: 1.7rem; height: 1.7rem; }
-.logo-spin img { width: 78%; height: 78%; border-radius: 50%; display: block; }
-.logo-spin::before, .logo-spin::after { content: ""; position: absolute; inset: 0; border-radius: 50%; animation: spinner-turn 1.1s linear infinite; }
-.logo-spin::before { border: 2px solid color-mix(in srgb, var(--wine) 14%, transparent); border-top-color: var(--wine); }
-.logo-spin::after { background: radial-gradient(circle at 50% 4%, #efbb67 0 9%, transparent 10%); }
-.logo-spin.small::before { border-width: 1.5px; }
 .concept-chat .bot.thinking { display: flex; align-items: center; margin: 0.2rem 0; }
-button .logo-spin.small { width: 1.2rem; height: 1.2rem; margin-right: 0.45rem; }
-@media (prefers-reduced-motion: reduce) { .logo-spin::before, .logo-spin::after { animation-duration: 2.4s; } }
+
+/* Menú de la lluna: s'obre amb el logo de la capçalera (a totes les mides) o, al mòbil, amb el botó del logo de baix */
+  .quick { display: block; }
+  .quick-veil { position: fixed; inset: 0; z-index: 60; overflow: hidden; background: radial-gradient(140% 90% at 60% 8%, rgba(58, 39, 22, 0.32) 0%, rgba(58, 39, 22, 0.14) 38%, transparent 85%), linear-gradient(180deg, #150f0a 0%, #0d0906 60%, #0a0604 100%); opacity: 0; visibility: hidden; transition: opacity 0.35s, visibility 0.35s; }
+  .quick.open .quick-veil { opacity: 1; visibility: visible; }
+  .quick:not(.home) .quick-fab { display: none; }
+  .q-close { position: absolute; top: 0.9rem; right: 1rem; width: 2.4rem; height: 2.4rem; padding: 0; border: 0; border-radius: 50%; background: none; color: rgba(236, 232, 224, 0.7); font-size: 1.7rem; line-height: 1; }
+  .quick-fab { position: fixed; left: 1rem; bottom: 1rem; z-index: 62; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; padding: 0; border: 0; border-radius: 50%; background: #16110f; box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.6); cursor: pointer; transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1); }
+  .quick-fab img { width: 2.8rem; height: 2.8rem; border-radius: 50%; display: block; }
+  .quick.open .quick-fab { transform: rotate(-20deg) scale(1.05); }
+  .quick-stack { position: fixed; left: 1rem; bottom: 5.2rem; z-index: 61; display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; pointer-events: none; }
+  .quick.open .quick-stack { pointer-events: auto; }
+  .quick-item { opacity: 0; transform: translateY(18px) scale(0.92); transform-origin: left bottom; transition: opacity 0.2s, transform 0.3s cubic-bezier(0.3, 1.3, 0.5, 1); transition-delay: 0s; }
+  .quick.open .quick-item { opacity: 1; transform: none; transition-delay: calc(var(--i) * 55ms); }
+  .quick-item { display: flex; align-items: center; gap: 0.6rem; min-width: 7.5rem; padding: 0.32rem 0.9rem 0.32rem 0.2rem; border: 0; border-bottom: 1px solid rgba(246, 228, 200, 0.14); border-radius: 0; background: none; color: rgba(246, 228, 200, 0.85); font-family: var(--sans); font-size: 0.86rem; font-weight: 400; letter-spacing: 0.06em; text-decoration: none; }
+  .quick-item.active { color: #f6e4c8; border-bottom-color: rgba(240, 200, 140, 0.6); }
+  .quick-ic { display: grid; place-items: center; width: 1.05rem; height: 1.05rem; color: rgba(240, 200, 140, 0.7); }
+  .quick-ic svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  /* Fons de nit amb la lluna del logo: sense res de la pàgina al darrere */
+  .q-stars { position: absolute; inset: 0; opacity: 0.5; background-repeat: no-repeat; background-image:
+    radial-gradient(2px 2px at 32.7% 15.8%, #fff, transparent),
+    radial-gradient(1px 1px at 8.1% 53.5%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 6.7% 50.7%, #fff, transparent),
+    radial-gradient(1px 1px at 43.5% 7.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 42.6% 82.0%, #fff, transparent),
+    radial-gradient(1px 1px at 62.8% 58.1%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 58.4% 5.9%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 55.6% 14.1%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 54.0% 56.9%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 18.7% 58.0%, #fff, transparent),
+    radial-gradient(1px 1px at 37.5% 54.7%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 6.8% 21.2%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 42.9% 31.8%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 36.4% 25.3%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 77.4% 9.0%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 49.5% 34.7%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 60.7% 8.2%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 17.2% 34.5%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 4.8% 66.5%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 78.3% 81.2%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 35.3% 49.7%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 83.3% 93.6%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 66.1% 6.9%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 64.4% 98.3%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 71.2% 87.9%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 93.2% 35.8%, #fff, transparent),
+    radial-gradient(1px 1px at 49.4% 22.4%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 73.4% 40.0%, #fff, transparent),
+    radial-gradient(1px 1px at 17.3% 40.4%, #fff, transparent),
+    radial-gradient(1px 1px at 81.3% 85.7%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 41.7% 36.2%, #fff, transparent),
+    radial-gradient(1px 1px at 15.8% 18.3%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 23.9% 48.5%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 26.7% 1.4%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 37.2% 56.5%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 85.2% 94.1%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 73.5% 45.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 39.5% 40.1%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 63.2% 7.1%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 44.2% 11.8%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 11.0% 56.5%, #fff, transparent),
+    radial-gradient(1px 1px at 94.0% 61.1%, #fff, transparent),
+    radial-gradient(1px 1px at 61.2% 15.6%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 60.0% 47.5%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 98.3% 46.7%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 9.4% 11.0%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 26.9% 82.2%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 3.3% 94.2%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 15.4% 54.2%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 30.2% 64.0%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 83.9% 51.8%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 76.6% 53.2%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 63.4% 61.1%, #fff, transparent),
+    radial-gradient(1px 1px at 81.2% 73.5%, #fff, transparent),
+    radial-gradient(1px 1px at 51.7% 35.8%, #fff, transparent),
+    radial-gradient(1px 1px at 78.4% 47.3%, #ffe9c9, transparent),
+    radial-gradient(2px 2px at 60.3% 34.7%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 94.6% 36.7%, #fff, transparent),
+    radial-gradient(1px 1px at 23.2% 20.3%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 62.2% 89.2%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 90.1% 34.7%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 82.8% 12.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 74.5% 47.8%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 78.3% 33.6%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 46.4% 73.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 16.6% 98.3%, #fff, transparent),
+    radial-gradient(2px 2px at 58.9% 46.6%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60.9% 59.4%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 92.9% 16.3%, #fff, transparent),
+    radial-gradient(2px 2px at 3.1% 79.3%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 11.1% 74.5%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 97.7% 20.1%, #fff, transparent),
+    radial-gradient(1px 1px at 25.7% 29.7%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 32.9% 54.3%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90.2% 35.7%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 58.2% 89.6%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 13.8% 15.9%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 86.5% 77.1%, #fff, transparent),
+    radial-gradient(1px 1px at 77.1% 15.7%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 61.7% 12.8%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 67.9% 53.0%, #fff, transparent),
+    radial-gradient(1px 1px at 87.6% 6.6%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 5.1% 10.6%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 3.7% 88.6%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 32.9% 96.4%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 20.5% 28.2%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 80.1% 50.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 52.3% 86.8%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 88.5% 20.9%, #fff, transparent),
+    radial-gradient(1px 1px at 41.8% 39.5%, #fff, transparent),
+    radial-gradient(1px 1px at 66.8% 43.0%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 30.7% 13.0%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 64.1% 36.9%, #fff, transparent),
+    radial-gradient(1px 1px at 95.8% 22.5%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 87.7% 17.0%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 16.8% 43.3%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 34.2% 20.2%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 71.8% 2.9%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 44.2% 2.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 62.1% 51.2%, #fff, transparent),
+    radial-gradient(1px 1px at 97.5% 78.3%, #fff, transparent),
+    radial-gradient(1px 1px at 27.0% 4.9%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 75.1% 81.3%, #f3e9dc, transparent),
+    radial-gradient(1.5px 1.5px at 40.8% 53.6%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 49.5% 33.1%, #fff, transparent),
+    radial-gradient(1px 1px at 79.4% 19.0%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 93.0% 63.2%, #fff, transparent),
+    radial-gradient(1px 1px at 60.6% 22.8%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 45.5% 34.2%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 91.8% 27.3%, #fff, transparent),
+    radial-gradient(1px 1px at 52.6% 24.4%, #fff, transparent),
+    radial-gradient(1px 1px at 26.7% 18.8%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 30.9% 75.4%, #f3e9dc, transparent),
+    radial-gradient(1px 1px at 50.0% 18.4%, #fff, transparent),
+    radial-gradient(1px 1px at 98.5% 4.6%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 50.6% 96.8%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 25.1% 44.8%, #ffe9c9, transparent),
+    radial-gradient(1.5px 1.5px at 43.4% 49.5%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 31.2% 22.1%, #f3e9dc, transparent),
+    radial-gradient(2px 2px at 20.5% 87.4%, #ffe9c9, transparent); animation: q-twinkle 4s ease-in-out infinite; }
+  .q-moon { position: absolute; top: 6.2rem; right: 0.8rem; width: 11rem; height: 11rem; filter: drop-shadow(0 0 1.4rem rgba(224, 170, 96, 0.38)); }
+  .q-verse { position: absolute; top: 1.9rem; left: 3.4rem; right: 3.4rem; text-align: center; color: rgba(246, 228, 200, 0.88); font: italic 1.08rem/1.5 var(--serif); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6); }
+  .q-verse::after { content: ""; display: block; width: 2.2rem; height: 1px; margin: 0.9rem auto 0; background: rgba(246, 228, 200, 0.35); }
+  .quick-user { position: fixed; right: 1.4rem; bottom: 1.2rem; z-index: 61; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; text-align: right; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .quick.open .quick-user { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
+  .quick-user a { color: rgba(246, 228, 200, 0.9); font-family: var(--serif); font-style: italic; font-size: 1.08rem; font-weight: 400; text-decoration: none; letter-spacing: 0.01em; }
+  .quick-exit { position: relative; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0 0.35rem 0.2rem; border: 0; background: none; color: rgba(246, 228, 200, 0.55); font-family: var(--sans); font-size: 0.66rem; letter-spacing: 0.32em; text-transform: uppercase; transition: color 0.25s; }
+  .quick-exit svg { width: 0.95rem; height: 0.95rem; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1); }
+  .quick-exit::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(240, 200, 140, 0.7)); transform: scaleX(0.35); transform-origin: right; transition: transform 0.4s ease; }
+  .quick-exit:hover, .quick-exit:focus-visible { color: #f0c88c; filter: none; }
+  .quick-exit:hover svg, .quick-exit:focus-visible svg { transform: rotate(-35deg); }
+  .quick-exit:hover::after, .quick-exit:focus-visible::after { transform: scaleX(1); }
+  .quick-fab { box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.08); }
+@media (max-width: 48rem) { body:has(.quick.home) main { padding-bottom: 5.5rem; } }
+@media (min-width: 48.01rem) { .quick-fab { display: none; } }
+@keyframes q-twinkle { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .q-stars { animation: none; } .quick-item, .quick-fab, .quick-veil { transition: opacity 0.15s; } }
+
+/* Fitxes del calaix de sastre */
+.drawer-card { background: #efe2e4; }
+.drawer-card span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Menú obert des del logo de dalt: cau cap avall, sota la capçalera, i la lluna passa a baix a la dreta */
+  .quick.from-top .quick-stack { left: max(1rem, calc((100vw - 76rem) / 2 + 1.5rem)); right: auto; bottom: auto; top: 7.4rem; flex-direction: column-reverse; align-items: flex-start; }
+  .quick.from-top .quick-item { transform: translateY(-18px) scale(0.92); transform-origin: left top; }
+  .quick.from-top.open .quick-item { transform: none; }
+  .quick.from-top .q-moon { top: auto; left: auto; bottom: 7rem; right: 0.6rem; }
+
+
+/* Tema fosc de tota la web: els colors del menú de la lluna de fusta (negre càlid, crema i ambre) */
+:root[data-theme="dark"] {
+  --bg: #120d09; --fg: #f3e6d0; --muted: #a99a85; --accent: #e0aa60; --btn: #c98f4e; --btn-fg: #1a0f06;
+  --wine: #c27a45; --logo-red: #e0775a; --rule: #3a2a1b; --card: #1c140d;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] a { color: var(--accent); }
+:root[data-theme="dark"] ::selection { background: rgba(224, 170, 96, 0.3); }
+:root[data-theme="dark"] input, :root[data-theme="dark"] select, :root[data-theme="dark"] textarea { background: var(--card); color: var(--fg); border-color: var(--rule); }
+:root[data-theme="dark"] .tile-icon { color: #f3e6d0; }
+:root[data-theme="dark"] .mini-card a, :root[data-theme="dark"] .mini-card .mini-open { color: var(--fg); }
+:root[data-theme="dark"] .mini-card span { color: color-mix(in srgb, var(--fg) 68%, transparent); }
+:root[data-theme="dark"] .mini-card:hover, :root[data-theme="dark"] .mini-card:focus-within { box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.8); }
+:root[data-theme="dark"] .alert, :root[data-theme="dark"] .error { color: #ee9a86; }
+:root[data-theme="dark"] .tile-serveis { background: color-mix(in srgb, #e4ebe0 22%, #1c140d); }
+:root[data-theme="dark"] .tile-arquitectura { background: color-mix(in srgb, #e1e8ef 22%, #1c140d); }
+:root[data-theme="dark"] .tile-quiz { background: color-mix(in srgb, #f3e4d4 22%, #1c140d); }
+:root[data-theme="dark"] .tile-necessitats { background: color-mix(in srgb, #e8e1ee 22%, #1c140d); }
+:root[data-theme="dark"] .mini-card { background: color-mix(in srgb, #e8e1ee 22%, #1c140d); }
+:root[data-theme="dark"] .lv-1 { --lv: color-mix(in srgb, #f4cdc8 22%, #1c140d); }
+:root[data-theme="dark"] .lv-2 { --lv: color-mix(in srgb, #f7dfbd 22%, #1c140d); }
+:root[data-theme="dark"] .lv-3 { --lv: color-mix(in srgb, #f3efba 22%, #1c140d); }
+:root[data-theme="dark"] .lv-4 { --lv: color-mix(in srgb, #d1e7c8 22%, #1c140d); }
+:root[data-theme="dark"] .tile-calaix { background: color-mix(in srgb, #efe2e4 22%, #1c140d); }
+:root[data-theme="dark"] .tile { --tint: color-mix(in srgb, #e8e1ee 22%, #1c140d); }
+:root[data-theme="dark"] .tile-serveis { --tint: color-mix(in srgb, #dbe7d4 22%, #1c140d); }
+:root[data-theme="dark"] .tile-arquitectura { --tint: color-mix(in srgb, #d5e2ee 22%, #1c140d); }
+:root[data-theme="dark"] .tile-necessitats { --tint: color-mix(in srgb, #e3d9ee 22%, #1c140d); }
+:root[data-theme="dark"] .tile-quiz { --tint: color-mix(in srgb, #f3dfc9 22%, #1c140d); }
+:root[data-theme="dark"] .tile-calaix { --tint: color-mix(in srgb, #efd9dc 22%, #1c140d); }
+:root[data-theme="dark"] .cat-cards .mini-card:nth-child(5n+1), :root[data-theme="dark"] .service-cards .mini-card:nth-child(5n+1) { background: color-mix(in srgb, #dbe7d4 22%, #1c140d); }
+:root[data-theme="dark"] .cat-cards .mini-card:nth-child(5n+2), :root[data-theme="dark"] .service-cards .mini-card:nth-child(5n+2) { background: color-mix(in srgb, #d5e2ee 22%, #1c140d); }
+:root[data-theme="dark"] .cat-cards .mini-card:nth-child(5n+3), :root[data-theme="dark"] .service-cards .mini-card:nth-child(5n+3) { background: color-mix(in srgb, #e3d9ee 22%, #1c140d); }
+:root[data-theme="dark"] .cat-cards .mini-card:nth-child(5n+4), :root[data-theme="dark"] .service-cards .mini-card:nth-child(5n+4) { background: color-mix(in srgb, #f3dfc9 22%, #1c140d); }
+:root[data-theme="dark"] .cat-cards .mini-card:nth-child(5n+5), :root[data-theme="dark"] .service-cards .mini-card:nth-child(5n+5) { background: color-mix(in srgb, #efd9dc 22%, #1c140d); }
+:root[data-theme="dark"] .drawer-card { background: color-mix(in srgb, #efe2e4 22%, #1c140d); }
+
+/* Opcions de tema a Gestió → General */
+.theme-cards { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.2rem 0 1rem; }
+.theme-card { display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; width: 14rem; padding: 1rem; border: 2px solid var(--rule); border-radius: 16px; background: var(--card); color: var(--fg); text-align: left; font-family: var(--serif); }
+.theme-card strong { font-size: 1.2rem; }
+.theme-card > span:last-child { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.theme-card.on { border-color: var(--wine); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wine) 22%, transparent); }
+.theme-card:hover { filter: none; border-color: var(--wine); }
+.theme-swatch { display: flex; gap: 0.3rem; margin-bottom: 0.3rem; }
+.theme-swatch i { width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 1px solid rgba(128, 128, 128, 0.35); }
+.theme-card.dark .theme-swatch i:nth-child(1) { background: #120d09; } .theme-card.dark .theme-swatch i:nth-child(2) { background: #f3e6d0; } .theme-card.dark .theme-swatch i:nth-child(3) { background: #c98f4e; }
+.theme-card.light .theme-swatch i:nth-child(1) { background: #faf8f3; } .theme-card.light .theme-swatch i:nth-child(2) { background: #1f1d1a; } .theme-card.light .theme-swatch i:nth-child(3) { background: #7a2e2e; }
+
+/* Tema fosc: capçalera, targetes del Hub, avisos i colors fixos que es veien massa clars o massa foscos */
+:root[data-theme="dark"] .top { background: rgba(18, 13, 9, 0.92); }
+:root[data-theme="dark"] .hub-tiles a, :root[data-theme="dark"] .hub-card, :root[data-theme="dark"] .hub-note { background: linear-gradient(155deg, #1f160e, #17100a); }
+:root[data-theme="dark"] .alert { background: #2a1512; border-color: #5a2a24; border-left-color: #d9534f; color: #f0b3a6; }
+:root[data-theme="dark"] .cy-edit textarea { background: var(--card); color: var(--fg); }
+:root[data-theme="dark"] .verse-count.near, :root[data-theme="dark"] .dlg-actions button.no { color: #ee9a86; border-color: #ee9a86; }
+:root[data-theme="dark"] .exit { color: var(--wine); }
+:root[data-theme="dark"] .success { color: #7cc79a; }
+:root[data-theme="dark"] .cy-edit-actions .link.danger, :root[data-theme="dark"] .concept-chat .error, :root[data-theme="dark"] button.danger { color: #ee9a86; }
+:root[data-theme="dark"] .login .alert, :root[data-theme="dark"] .verify .alert { background: transparent; border: 0; color: #ee9a86; }
+
+/* Fons fix de tota la web: la lluna de fusta del menú, molt subtil, sempre al seu lloc */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("/moon-bg.svg") no-repeat 42% 42% / min(80vmin, 46rem); opacity: 0.035; }
+:root[data-theme="dark"] body::before { opacity: 0.045; }
+@media (max-width: 48rem) { body::before { background-position: 43% 40%; background-size: 92vw; } }
+
+.top .brand img { cursor: pointer; }
+
+/* Menú de la lluna a pantalles grans: tot més gran, perquè ompli la pantalla */
+@media (min-width: 48.01rem) {
+  .q-moon { top: 12vh; right: 12vw; width: clamp(15rem, 44vh, 28rem); height: clamp(15rem, 44vh, 28rem); }
+  .quick.from-top .q-moon { top: auto; bottom: 9vh; right: 10vw; }
+  .q-verse { top: 2.8rem; left: 12vw; right: 12vw; font-size: 1.4rem; }
+  .q-verse::after { width: 3rem; margin-top: 1.1rem; }
+  .q-close { top: 1.4rem; right: 2rem; width: 2.8rem; height: 2.8rem; font-size: 2rem; }
+  .quick.from-top .quick-stack { top: 10rem; gap: 0.45rem; }
+  .quick-item { min-width: 11rem; padding: 0.5rem 1.2rem 0.5rem 0.3rem; font-size: 1.02rem; gap: 0.8rem; }
+  .quick-ic, .quick-ic svg { width: 1.25rem; height: 1.25rem; }
+  .quick-user { right: 2.6rem; bottom: 2.2rem; gap: 0.6rem; }
+  .quick-user a { font-size: 1.3rem; }
+  .quick-exit { font-size: 0.74rem; }
+  .quick-exit svg { width: 1.1rem; height: 1.1rem; }
+}
+
+/* Pantalles grans: més distància entre el logo i el vers (capçalera i peu) */
+@media (min-width: 48.01rem) { .brand { gap: 1.3rem; } .foot-brand { gap: 1.1rem; } }
+
+/* «Sortir» de la capçalera: discret, en cursiva, amb una línia fina que s'obre en passar-hi */
+.who-box .exit { position: relative; padding: 0 0 0.1rem; font-family: var(--serif); font-style: italic; font-size: 0.82rem; letter-spacing: 0.02em; text-transform: none; text-decoration: none; color: var(--muted); transition: color 0.25s; }
+.who-box .exit::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: 0; height: 1px; background: var(--wine); transition: left 0.3s ease, right 0.3s ease; }
+.who-box .exit:hover, .who-box .exit:focus-visible { color: var(--wine); text-decoration: none; filter: none; }
+.who-box .exit:hover::after, .who-box .exit:focus-visible::after { left: 0; right: 0; }
+:root[data-theme="dark"] .who-box .exit { color: var(--muted); }
+:root[data-theme="dark"] .who-box .exit:hover, :root[data-theme="dark"] .who-box .exit:focus-visible { color: var(--accent); }
+:root[data-theme="dark"] .who-box .exit::after { background: var(--accent); }
+
+/* Spinner de pàgina: gran, al centre, amb dues versions (clar i fosc) */
+.loading-caption { font-family: var(--serif); font-style: italic; letter-spacing: 0.08em; color: var(--muted); animation: caption-fade 2.6s ease-in-out infinite; }
+@keyframes caption-fade { 50% { opacity: 0.35; } }
+
+/* Spinner al centre de la pantalla mentre es prepara alguna cosa */
+.center-spin { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; pointer-events: none; background: color-mix(in srgb, var(--bg) 58%, transparent); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: center-in 0.25s ease both; }
+@keyframes center-in { from { opacity: 0; } }
+
+/* Spinner: el logo sense la lluna petita i, al voltant, la lluna de fusta (la del fons) fent voltes */
+
+/* Spinner: el Cyrano amb la seva lluna de fusta fixa i una llum de lluna que li il·lumina la cara i s'apaga molt a poc a poc */
+.logo-spin { position: relative; display: inline-block; width: 3rem; height: 3rem; flex: none; vertical-align: middle; }
+.logo-spin img { display: block; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0.35rem 0.9rem -0.45rem rgba(40, 20, 10, 0.4); animation: lsp-face 4s ease-in-out infinite alternate; }
+.lsp-light { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 80% 18%, rgba(255, 226, 170, 0.55), transparent 62%); mix-blend-mode: screen; animation: lsp-glow 4s ease-in-out infinite alternate; }
+.logo-spin .lsp-moon { position: absolute; top: -10%; right: -16%; width: 40%; height: 40%; overflow: visible; filter: drop-shadow(0 0 0.3rem rgba(224, 170, 96, 0.5)); }
+.lsp-cut { transform: translateX(-30px); }
+.logo-spin.small { width: 1.5rem; height: 1.5rem; }
+.logo-spin.big { width: clamp(6rem, 18vmin, 8rem); height: clamp(6rem, 18vmin, 8rem); margin: 0.6rem 1.3rem 0 0; }
+:root[data-theme="dark"] .logo-spin img { box-shadow: 0 0.4rem 1rem -0.4rem rgba(0, 0, 0, 0.75); }
+@keyframes lsp-face { from { filter: brightness(0.72); } to { filter: brightness(1); } }
+@keyframes lsp-glow { from { opacity: 0.15; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .logo-spin img, .lsp-light { animation: none; } }

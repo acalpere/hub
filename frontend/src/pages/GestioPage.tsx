@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router";
 
 const OPTIONS = [
+  { to: "/gestio/general", name: "General" },
   { to: "/gestio/hub", name: "Webs i agents" },
   { to: "/gestio/usuaris", name: "Usuaris" },
   { to: "/gestio/versos", name: "Versos" },

@@ -1,3 +1,4 @@
+import { AwsLogo } from "./AwsLogo";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from "react-router";
@@ -77,7 +78,7 @@ function AwsCrumbs() {
         </button>
       )}
       <Link to="/aws" className="aws-crumb-home" aria-label="AWS: portada" aria-current={crumbs.length ? undefined : "page"}>
-        <img src="/aws-logo.svg" alt="" height={34} />
+        <AwsLogo height={34} />
         {!crumbs.length && <span>AWS</span>}
       </Link>
       {crumbs.map((c, i) => (
@@ -146,7 +147,7 @@ export function AwsLayout() {
           <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
             <div className="dlg aws-assist" role="dialog" aria-modal="true" aria-label="Assistent d'AWS">
               <div className="concept-head">
-                <img src="/aws-logo.svg" alt="AWS" className="concept-logo" height={30} />
+                <AwsLogo alt="AWS" className="concept-logo" height={30} />
                 <button type="button" className="concept-x" aria-label="Tanca" onClick={() => setOpen(false)}>×</button>
               </div>
               <div className="aws-tabs">
