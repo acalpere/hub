@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { LogoSpinner } from "../components/LoadingSpinner";
 import { api } from "../api";
 import { ARCHITECTURES, CATEGORIES, SERVICES } from "../aws/content";
 
@@ -82,7 +83,7 @@ export function AwsStudy() {
           </select>
         </label>
         <div className="study-actions">
-          <button type="submit" disabled={busy}>{busy ? "Preparant…" : "Fes el quiz"}</button>
+          <button type="submit" disabled={busy}>{busy ? <LogoSpinner small label="Preparant…" /> : "Fes el quiz"}</button>
           <select value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Nombre de preguntes">
             {COUNTS.map((n) => <option key={n} value={n}>{n} preguntes</option>)}
           </select>

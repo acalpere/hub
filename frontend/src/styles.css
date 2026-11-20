@@ -105,8 +105,6 @@ button.ghost { background: transparent; color: var(--accent); border-color: var(
 .status, .muted { color: var(--muted); font-family: var(--sans); font-size: 0.9rem; }
 
 .loading-screen { min-height: calc(100svh - 10rem); display: grid; place-items: center; }
-.spinner { position: relative; width: 2.65rem; height: 2.65rem; border: 2px solid color-mix(in srgb, var(--accent) 14%, transparent); border-top-color: var(--accent); border-radius: 50%; animation: spinner-turn 0.8s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite; }
-.spinner::after { content: ""; position: absolute; width: 0.36rem; height: 0.36rem; top: 0.05rem; right: 0.28rem; border-radius: 50%; background: var(--logo-red); box-shadow: 0 0 0 0.22rem var(--bg); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @keyframes spinner-turn { to { transform: rotate(360deg); } }
 
@@ -129,7 +127,7 @@ form.inline input { flex: 1 1 10rem; }
 .alert { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.25rem 0; padding: 0.7rem 0.9rem; border: 1px solid #e8c4c4; border-left: 4px solid #b3261e; border-radius: 10px; background: #fdf1f0; color: #7a1f1a; font-family: var(--sans); font-size: 0.9rem; line-height: 1.4; animation: alert-in 0.18s ease-out; }
 .alert svg { flex: none; width: 1.2rem; height: 1.2rem; margin-top: 0.05rem; fill: none; stroke: #b3261e; stroke-width: 1.8; stroke-linecap: round; }
 @keyframes alert-in { from { opacity: 0; transform: translateY(-3px); } }
-@media (prefers-reduced-motion: reduce) { .alert { animation: none; } .spinner { animation-duration: 1.8s; } }
+@media (prefers-reduced-motion: reduce) { .alert { animation: none; } }
 .edit { display: flex; flex-direction: column; gap: 0.9rem; padding: 0.5rem 0 0.75rem; }
 .navlink.gestio { color: var(--accent); }
 .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1.25rem; align-items: start; }
@@ -750,3 +748,15 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
   .aws-back-btn svg { width: 0.95rem; height: 0.95rem; }
   .aws-crumbs .aws-crumb { font-size: 1.02rem; }
 }
+
+/* Spinner amb el logo (opció B): anell vi amb la lluna en òrbita */
+.logo-spin { position: relative; display: inline-grid; place-items: center; width: 3.4rem; height: 3.4rem; flex: none; vertical-align: middle; }
+.logo-spin.small { width: 1.7rem; height: 1.7rem; }
+.logo-spin img { width: 78%; height: 78%; border-radius: 50%; display: block; }
+.logo-spin::before, .logo-spin::after { content: ""; position: absolute; inset: 0; border-radius: 50%; animation: spinner-turn 1.1s linear infinite; }
+.logo-spin::before { border: 2px solid color-mix(in srgb, var(--wine) 14%, transparent); border-top-color: var(--wine); }
+.logo-spin::after { background: radial-gradient(circle at 50% 4%, #efbb67 0 9%, transparent 10%); }
+.logo-spin.small::before { border-width: 1.5px; }
+.concept-chat .bot.thinking { display: flex; align-items: center; margin: 0.2rem 0; }
+button .logo-spin.small { width: 1.2rem; height: 1.2rem; margin-right: 0.45rem; }
+@media (prefers-reduced-motion: reduce) { .logo-spin::before, .logo-spin::after { animation-duration: 2.4s; } }
