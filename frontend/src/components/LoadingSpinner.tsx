@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { createPortal } from "react-dom";
 
-// Spinner amb el logo: el Cyrano quiet, amb la seva lluna de fusta a dalt a la dreta, i una llum de lluna que li il·lumina la cara i s'apaga lentament.
+// Spinner amb el logo: el Cyrano quiet, amb la lluna de fusta al fons blau del cercle (dins del logo), que fa fases mentre carrega, i una llum de lluna que li il·lumina la cara al compàs.
 // `small` és la versió en línia (converses, botons); la gran és la de pantalla de càrrega.
 export function LogoSpinner({ small = false, big = false, label = "Carregant…" }: { small?: boolean; big?: boolean; label?: string }) {
   const uid = useId().replace(/:/g, "");
@@ -22,8 +22,8 @@ export function LogoSpinner({ small = false, big = false, label = "Carregant…"
           </pattern>
           <mask id={`${uid}m`}>
             <rect width="120" height="120" fill="#000" />
-            <circle cx="60" cy="60" r="52" fill="#fff" />
-            <circle className="lsp-cut" cx="60" cy="60" r="52" fill="#000" />
+            <circle cx="84" cy="32" r="11" fill="#fff" />
+            <circle className="lsp-cut" cx="84" cy="32" r="11" fill="#000" />
           </mask>
         </defs>
         <g mask={`url(#${uid}m)`}>

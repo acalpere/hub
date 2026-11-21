@@ -135,6 +135,22 @@ export function AwsLayout() {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) send(e);
   }
 
+  // Amb el teclat d'Android obert, el diàleg ocupa només la part visible: el cap es queda al lloc i el peu (el camp de text) puja amb el teclat.
+  const [vv, setVv] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const v = window.visualViewport;
+    if (!open || !v) return;
+    const sync = () => setVv({ top: v.offsetTop, height: v.height });
+    sync();
+    v.addEventListener("resize", sync);
+    v.addEventListener("scroll", sync);
+    return () => {
+      v.removeEventListener("resize", sync);
+      v.removeEventListener("scroll", sync);
+      setVv(null);
+    };
+  }, [open]);
+
   return (
     <div className="aws-shell">
       <AwsCrumbs />
@@ -144,7 +160,7 @@ export function AwsLayout() {
       </div>
       {open &&
         createPortal(
-          <div className="dlg-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
+          <div className="dlg-backdrop" style={vv ? { top: vv.top, height: vv.height, bottom: "auto" } : undefined} onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
             <div className="dlg aws-assist" role="dialog" aria-modal="true" aria-label="Assistent d'AWS">
               <div className="concept-head">
                 <AwsLogo alt="AWS" className="concept-logo" height={30} />

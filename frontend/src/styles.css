@@ -1007,18 +1007,19 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 
 /* Spinner: el logo sense la lluna petita i, al voltant, la lluna de fusta (la del fons) fent voltes */
 
-/* Spinner: el Cyrano amb la seva lluna de fusta fixa i una llum de lluna que li il·lumina la cara i s'apaga molt a poc a poc */
+/* Spinner: el Cyrano amb la lluna de fusta dins del cercle, que fa fases, i una llum de lluna que li il·lumina la cara al compàs */
 .logo-spin { position: relative; display: inline-block; width: 3rem; height: 3rem; flex: none; vertical-align: middle; }
 .logo-spin img { display: block; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0.35rem 0.9rem -0.45rem rgba(40, 20, 10, 0.4); animation: lsp-face 4s ease-in-out infinite alternate; }
-.lsp-light { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 80% 18%, rgba(255, 226, 170, 0.55), transparent 62%); mix-blend-mode: screen; animation: lsp-glow 4s ease-in-out infinite alternate; }
-.logo-spin .lsp-moon { position: absolute; top: -10%; right: -16%; width: 40%; height: 40%; overflow: visible; transform: rotate(180deg); filter: drop-shadow(0 0 0.3rem rgba(224, 170, 96, 0.5)); }
-.lsp-cut { transform: translateX(-30px); }
+.lsp-light { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 70% 27%, rgba(255, 226, 170, 0.55), transparent 62%); mix-blend-mode: screen; animation: lsp-glow 4s ease-in-out infinite alternate; }
+.logo-spin .lsp-moon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 0.25rem rgba(224, 170, 96, 0.5)); }
+.lsp-cut { transform: translateX(-6px); animation: lsp-phase 4s ease-in-out infinite alternate; }
 .logo-spin.small { width: 1.5rem; height: 1.5rem; }
-.logo-spin.big { width: clamp(6rem, 18vmin, 8rem); height: clamp(6rem, 18vmin, 8rem); margin: 0.6rem 1.3rem 0 0; }
+.logo-spin.big { width: clamp(6rem, 18vmin, 8rem); height: clamp(6rem, 18vmin, 8rem); }
 :root[data-theme="dark"] .logo-spin img { box-shadow: 0 0.4rem 1rem -0.4rem rgba(0, 0, 0, 0.75); }
 @keyframes lsp-face { from { filter: brightness(0.72); } to { filter: brightness(1); } }
 @keyframes lsp-glow { from { opacity: 0.15; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .logo-spin img, .lsp-light { animation: none; } }
+@keyframes lsp-phase { from { transform: translateX(24px); } to { transform: translateX(-6px); } }
+@media (prefers-reduced-motion: reduce) { .logo-spin img, .lsp-light, .lsp-cut { animation: none; } }
 
 /* Mòbil: només el logo de dalt; el de baix (botó flotant i peu) no cal */
 @media (max-width: 48rem) { .quick-fab { display: none !important; } body:has(.quick.home) main { padding-bottom: 0; } }
@@ -1142,3 +1143,7 @@ body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--
 
 /* Pantalles petites: el barret una mica més a la dreta */
 @media (max-width: 48rem) { .q-hat { left: calc(var(--bx) - var(--bh) * 0.12); } }
+
+/* Assistent d'AWS amb el teclat obert: l'alçada segueix l'àrea visible, no la finestra sencera */
+.dlg.aws-assist { height: min(88%, 46rem); max-height: 100%; }
+@media (max-width: 40rem) { .dlg.aws-assist { height: min(96%, 46rem); } }
