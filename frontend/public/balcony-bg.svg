@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 190">
+  <defs>
+    <linearGradient id="w" gradientUnits="userSpaceOnUse" x1="14" y1="0" x2="106" y2="190">
+      <stop offset="0" stop-color="#f8dfb0"/>
+      <stop offset="0.55" stop-color="#dba969"/>
+      <stop offset="1" stop-color="#a87a45"/>
+    </linearGradient>
+    <pattern id="p" width="120" height="9" patternUnits="userSpaceOnUse">
+      <rect width="120" height="1.1" fill="#5a3814" opacity="0.4"/>
+      <rect y="1.1" width="120" height="0.8" fill="#fff3d6" opacity="0.18"/>
+    </pattern>
+    <clipPath id="c">
+      <rect x="19" y="15" width="18" height="160"/>
+      <rect x="76" y="15" width="18" height="160"/>
+      <rect x="19" y="69" width="75" height="14"/>
+    </clipPath>
+  </defs>
+  <g>
+    <g stroke-linecap="butt" fill="none">
+      <line x1="42" y1="83" x2="60" y2="167" stroke="#c8935a" stroke-width="3.6"/>
+      <line x1="80" y1="83" x2="98" y2="167" stroke="#c8935a" stroke-width="3.6"/>
+      <line x1="40.6" y1="83" x2="58.6" y2="167" stroke="#f1cf98" stroke-width="0.7" opacity="0.9"/>
+      <line x1="78.6" y1="83" x2="96.6" y2="167" stroke="#f1cf98" stroke-width="0.7" opacity="0.9"/>
+    </g>
+    <g fill="#b98550">
+      <rect x="43" y="91" width="40" height="2.6"/>
+      <rect x="45.6" y="103" width="40" height="2.6"/>
+      <rect x="48.2" y="115" width="40" height="2.6"/>
+      <rect x="50.8" y="127" width="40" height="2.6"/>
+      <rect x="53.4" y="139" width="40" height="2.6"/>
+      <rect x="56" y="151" width="40" height="2.6"/>
+      <rect x="58.6" y="163" width="40" height="2.6"/>
+    </g>
+    <g fill="#fff3d6" opacity="0.3">
+      <rect x="43" y="91" width="40" height="0.7"/>
+      <rect x="45.6" y="103" width="40" height="0.7"/>
+      <rect x="48.2" y="115" width="40" height="0.7"/>
+      <rect x="50.8" y="127" width="40" height="0.7"/>
+      <rect x="53.4" y="139" width="40" height="0.7"/>
+      <rect x="56" y="151" width="40" height="0.7"/>
+      <rect x="58.6" y="163" width="40" height="0.7"/>
+    </g>
+    <rect x="37" y="83" width="39" height="12" fill="#3a2410" opacity="0.28"/>
+  </g>
+  <g clip-path="url(#c)">
+    <rect width="120" height="190" fill="url(#w)"/>
+    <rect width="120" height="190" fill="url(#p)"/>
+  </g>
+</svg>

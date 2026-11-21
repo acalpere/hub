@@ -64,6 +64,39 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
     <div className={`quick${open ? " open" : ""}${showFab ? " home" : ""} from-${from}`}>
       <div className="quick-veil" onClick={() => setOpen(false)} aria-hidden="true">
         <span className="q-stars" />
+        <svg className="q-stage" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="qs-floor" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#1b120a" />
+              <stop offset="0.5" stopColor="#6e4a28" />
+              <stop offset="1" stopColor="#b98550" />
+            </linearGradient>
+            <radialGradient id="qs-lit" cx="0.45" cy="0.55" r="0.6">
+              <stop offset="0" stopColor="#f6d6a0" stopOpacity="0.38" />
+              <stop offset="1" stopColor="#f6d6a0" stopOpacity="0" />
+            </radialGradient>
+            <clipPath id="qs-clip"><polygon points="28,0 172,0 212,48 -12,48" /></clipPath>
+          </defs>
+          <polygon points="28,0 172,0 212,48 -12,48" fill="url(#qs-floor)" />
+          <g clipPath="url(#qs-clip)">
+            {Array.from({ length: 14 }, (_, k) => {
+              const y0 = 48 * Math.pow(k / 14, 1.8);
+              const y1 = 48 * Math.pow((k + 1) / 14, 1.8);
+              return <rect key={k} x="-20" y={y0} width="240" height={y1 - y0} fill={k % 2 ? "#ffffff" : "#000000"} fillOpacity={k % 2 ? 0.035 : 0.05} />;
+            })}
+          </g>
+          <g clipPath="url(#qs-clip)" stroke="#24150a" strokeOpacity="0.6" strokeWidth="0.3" fill="none">
+            {Array.from({ length: 13 }, (_, k) => {
+              const y = 48 * Math.pow((k + 1) / 14, 1.8);
+              return <line key={k} x1="-20" y1={y} x2="220" y2={y} />;
+            })}
+          </g>
+          <polygon points="28,0 172,0 212,48 -12,48" fill="url(#qs-lit)" />
+          <rect x="-12" y="48" width="224" height="2" fill="#d9a766" />
+          <rect x="-12" y="49.3" width="224" height="0.7" fill="#8a5a2c" />
+        </svg>
+        <span className="q-bench" aria-hidden="true"><img src="/bench-bg.svg" alt="" /></span>
+        <span className="q-balc" aria-hidden="true"><img src="/balcony-bg.svg" alt="" /></span>
         <svg className="q-moon" viewBox="0 0 120 120" aria-hidden="true">
           <defs>
             <linearGradient id="qm-wood" x1="0.1" y1="0" x2="0.9" y2="1">
@@ -94,7 +127,7 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
       </div>
       <nav className="quick-stack" aria-label="Menú" aria-hidden={!open}>
         {[...items].reverse().map((it, i) => (
-          <NavLink key={it.to} to={it.to} end={it.end} tabIndex={open ? 0 : -1} className={`quick-item q${items.length - 1 - i}`} onClick={() => setEntered(true)} style={{ ["--i" as string]: items.length - 1 - i }}>
+          <NavLink key={it.to} to={it.to} end={it.end} tabIndex={open ? 0 : -1} className={`quick-item q${items.length - 1 - i}`} onClick={() => { setEntered(true); setOpen(false); }} style={{ ["--i" as string]: items.length - 1 - i }}>
             <span className="quick-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[it.icon]} /></svg></span>
             {it.label}
           </NavLink>

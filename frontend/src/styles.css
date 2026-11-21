@@ -322,7 +322,7 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
   .brand { flex: 1; }
 
   /* el vers es centra a la capçalera: ocupa l'espai que deixa el logo i es compensa amb el seu ample perquè quedi al mig */
-  .top .brand .brand-verse { flex: 1; max-width: none; text-align: center; padding-right: calc(40px + 0.6rem); }
+  .top .brand .brand-verse { flex: 1; max-width: none; text-align: center; padding-right: calc(52px + 0.6rem); }
   .foot-nav { display: none; }
 }
 .who-box { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
@@ -368,7 +368,7 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
 @media (max-width: 40rem) { .cy-stamp { margin-left: 0; text-align: left; } }
 
 /* Botó rodó per saltar d'acte i escena, quan les barres ja no es veuen */
-.cy-jump-btn { position: fixed; right: max(1.5rem, calc((100vw - 76rem) / 2 + 2rem)); bottom: 1.25rem; z-index: 30; display: grid; place-items: center; min-width: 3.4rem; height: 3.4rem; padding: 0 0.5rem; border: 0; border-radius: 999px; background: var(--wine); color: var(--bg); font-family: var(--serif); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em; box-shadow: 0 10px 24px -10px rgba(60, 20, 20, 0.6); animation: dlg-pop 0.2s ease; }
+.cy-jump-btn { position: fixed; right: calc((100vw - min(var(--wide), 100vw - 2.5rem)) / 2); bottom: 1.25rem; z-index: 30; display: grid; place-items: center; min-width: 3.4rem; height: 3.4rem; padding: 0 0.5rem; border: 0; border-radius: 999px; background: var(--wine); color: var(--bg); font-family: var(--serif); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em; box-shadow: 0 10px 24px -10px rgba(60, 20, 20, 0.6); animation: dlg-pop 0.2s ease; }
 .cy-jump-btn:hover { filter: brightness(1.1); }
 .dlg.jump { text-align: left; }
 .dlg.jump h2 { text-align: center; }
@@ -896,7 +896,7 @@ details.aws-group .aws-list { margin-bottom: 0.6rem; }
 .drawer-card span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Menú obert des del logo de dalt: cau cap avall, sota la capçalera, i la lluna passa a baix a la dreta */
-  .quick.from-top .quick-stack { left: max(1rem, calc((100vw - 76rem) / 2 + 1.5rem)); right: auto; bottom: auto; top: 7.4rem; flex-direction: column-reverse; align-items: flex-start; }
+  .quick.from-top .quick-stack { left: max(1rem, calc((100vw - 76rem) / 2 + 1.5rem)); right: auto; bottom: auto; top: 10rem; flex-direction: column-reverse; align-items: flex-start; }
   .quick.from-top .quick-item { transform: translateY(-18px) scale(0.92); transform-origin: left top; }
   .quick.from-top.open .quick-item { transform: none; }
   .quick.from-top .q-moon { top: auto; left: auto; bottom: 7rem; right: 0.6rem; }
@@ -1011,7 +1011,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 .logo-spin { position: relative; display: inline-block; width: 3rem; height: 3rem; flex: none; vertical-align: middle; }
 .logo-spin img { display: block; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0.35rem 0.9rem -0.45rem rgba(40, 20, 10, 0.4); animation: lsp-face 4s ease-in-out infinite alternate; }
 .lsp-light { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 80% 18%, rgba(255, 226, 170, 0.55), transparent 62%); mix-blend-mode: screen; animation: lsp-glow 4s ease-in-out infinite alternate; }
-.logo-spin .lsp-moon { position: absolute; top: -10%; right: -16%; width: 40%; height: 40%; overflow: visible; filter: drop-shadow(0 0 0.3rem rgba(224, 170, 96, 0.5)); }
+.logo-spin .lsp-moon { position: absolute; top: -10%; right: -16%; width: 40%; height: 40%; overflow: visible; transform: rotate(180deg); filter: drop-shadow(0 0 0.3rem rgba(224, 170, 96, 0.5)); }
 .lsp-cut { transform: translateX(-30px); }
 .logo-spin.small { width: 1.5rem; height: 1.5rem; }
 .logo-spin.big { width: clamp(6rem, 18vmin, 8rem); height: clamp(6rem, 18vmin, 8rem); margin: 0.6rem 1.3rem 0 0; }
@@ -1025,38 +1025,86 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 
 /* Unes quantes estrelles grogues al fons de tota la pàgina (ambre més fosc al tema clar, perquè es vegin) */
 body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 1; background-repeat: no-repeat; background-image:
-    radial-gradient(4px 4px at 6% 12%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 17% 46%, var(--star), transparent),
-    radial-gradient(4px 4px at 11% 78%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 27% 28%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 33% 90%, var(--star), transparent),
-    radial-gradient(4px 4px at 41% 8%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 48% 62%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 56% 35%, var(--star), transparent),
-    radial-gradient(4px 4px at 63% 84%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 71% 15%, var(--star), transparent),
-    radial-gradient(4px 4px at 78% 52%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 85% 28%, var(--star), transparent),
-    radial-gradient(4px 4px at 92% 70%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 95% 9%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 24% 60%, var(--star), transparent),
-    radial-gradient(3.5px 3.5px at 68% 40%, var(--star), transparent); }
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 6% 12%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 17% 46%, var(--star), transparent),
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 11% 78%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 27% 28%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 33% 90%, var(--star), transparent),
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 41% 8%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 48% 62%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 56% 35%, var(--star), transparent),
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 63% 84%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 71% 15%, var(--star), transparent),
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 78% 52%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 85% 28%, var(--star), transparent),
+    radial-gradient(calc(4px * var(--sk)) calc(4px * var(--sk)) at 92% 70%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 95% 9%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 24% 60%, var(--star), transparent),
+    radial-gradient(calc(3.5px * var(--sk)) calc(3.5px * var(--sk)) at 68% 40%, var(--star), transparent); }
 :root { --star: #d79a12; }
 :root[data-theme="dark"] { --star: #ffd23f; }
 :root[data-theme="dark"] body::after { opacity: 0.85; background-image:
-    radial-gradient(2.5px 2.5px at 6% 12%, var(--star), transparent),
-    radial-gradient(2px 2px at 17% 46%, var(--star), transparent),
-    radial-gradient(2.5px 2.5px at 11% 78%, var(--star), transparent),
-    radial-gradient(2px 2px at 27% 28%, var(--star), transparent),
-    radial-gradient(2px 2px at 33% 90%, var(--star), transparent),
-    radial-gradient(2.5px 2.5px at 41% 8%, var(--star), transparent),
-    radial-gradient(2px 2px at 48% 62%, var(--star), transparent),
-    radial-gradient(2px 2px at 56% 35%, var(--star), transparent),
-    radial-gradient(2.5px 2.5px at 63% 84%, var(--star), transparent),
-    radial-gradient(2px 2px at 71% 15%, var(--star), transparent),
-    radial-gradient(2.5px 2.5px at 78% 52%, var(--star), transparent),
-    radial-gradient(2px 2px at 85% 28%, var(--star), transparent),
-    radial-gradient(2.5px 2.5px at 92% 70%, var(--star), transparent),
-    radial-gradient(2px 2px at 95% 9%, var(--star), transparent),
-    radial-gradient(2px 2px at 24% 60%, var(--star), transparent),
-    radial-gradient(2px 2px at 68% 40%, var(--star), transparent); }
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 6% 12%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 17% 46%, var(--star), transparent),
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 11% 78%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 27% 28%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 33% 90%, var(--star), transparent),
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 41% 8%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 48% 62%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 56% 35%, var(--star), transparent),
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 63% 84%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 71% 15%, var(--star), transparent),
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 78% 52%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 85% 28%, var(--star), transparent),
+    radial-gradient(calc(2.5px * var(--sk)) calc(2.5px * var(--sk)) at 92% 70%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 95% 9%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 24% 60%, var(--star), transparent),
+    radial-gradient(calc(2px * var(--sk)) calc(2px * var(--sk)) at 68% 40%, var(--star), transparent); }
+
+/* Estrelles: més subtils en pantalles petites i una mica més evidents en les grans */
+:root { --sk: 1; }
+@media (max-width: 48rem) { :root { --sk: 0.7; } body::after { opacity: 0.6; } :root[data-theme="dark"] body::after { opacity: 0.5; } }
+@media (min-width: 90rem) { :root { --sk: 1; } body::after { opacity: 0.6; } :root[data-theme="dark"] body::after { opacity: 0.55; } }
+
+/* Cap estrella sobre la lluna: un forat al voltant de la lluna a la capa d'estrelles (mateixa mida i posició que la lluna de fons) */
+:root { --moon-s: min(80vmin, 46rem); --moon-x: calc(42vw + 0.08 * var(--moon-s)); --moon-y: calc(42vh + 0.08 * var(--moon-s)); }
+@media (max-width: 48rem) { :root { --moon-s: 92vw; --moon-x: calc(43vw + 0.07 * var(--moon-s)); --moon-y: calc(40vh + 0.1 * var(--moon-s)); } }
+body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent calc(var(--moon-s) * 0.47), #000 calc(var(--moon-s) * 0.47 + 1px)); mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent calc(var(--moon-s) * 0.47), #000 calc(var(--moon-s) * 0.47 + 1px)); }
+
+/* Logo de la capçalera i del peu més grans */
+.brand img { width: 52px; height: 52px; }
+.foot-brand img { width: 44px; height: 44px; }
+
+/* Mòbil: «Sortir» sense la lluna al costat */
+@media (max-width: 48rem) { .quick-exit svg { display: none; } }
+
+/* Balcó al menú de la lluna: del mateix to de fusta, a l'esquerra, al costat de les opcions del menú */
+.quick-veil { --mw: 11rem; --mr: 0.8rem; --mt: 6.2rem; --mb: 7rem; }
+.quick.from-top .quick-veil { --mr: 0.6rem; }
+@media (min-width: 48.01rem) {
+  .quick-veil { --mw: clamp(15rem, 44vh, 28rem); --mr: 12vw; --mt: 12vh; }
+  .quick.from-top .quick-veil { --mr: 10vw; --mb: 9vh; }
+}
+.q-balc { position: absolute; top: calc(var(--mt) - var(--mw) * 0.08); left: 9rem; right: auto; height: calc(var(--mw) * 1.3); aspect-ratio: 120 / 190; pointer-events: none; opacity: 0.92; }
+.quick.from-top .q-balc { top: auto; height: var(--mw); bottom: calc(var(--mb) + var(--mw) * 0.75); }
+.q-balc img { position: relative; display: block; width: 100%; height: 100%; filter: sepia(0.55) saturate(1.15) brightness(0.8) hue-rotate(-6deg); }
+
+/* Escena del menú: la lluna presideix el cel, a dalt a la dreta; a baix, un escenari de fusta en perspectiva amb el balcó a sobre */
+.quick .quick-veil { --stage: 17vh; }
+@media (min-width: 48.01rem) { .quick .quick-veil { --stage: 25vh; } }
+.q-stage { opacity: 0.88; position: absolute; left: 0; right: 0; bottom: 0; height: var(--stage); width: 100%; display: block; pointer-events: none; }
+.quick .quick-veil .q-moon { top: 6.2rem; bottom: auto; left: auto; right: 0.8rem; width: min(9.5rem, 30vw); height: min(9.5rem, 30vw); }
+.quick .quick-veil .q-balc { top: auto; right: auto; height: min(36vh, 22rem); bottom: calc(var(--stage) * 0.42 - min(36vh, 22rem) * 0.075); left: 30%; transform: translateX(-50%); }
+/* Ombra de contacte als peus: just a terra, una mica cap a la dreta (la llum ve de l'esquerra) */
+.q-balc::after { content: ""; position: absolute; left: 8%; right: -6%; bottom: 3.2%; height: 6%; border-radius: 50%; background: radial-gradient(ellipse at 45% 50%, rgba(0, 0, 0, 0.6), transparent 70%); z-index: -1; filter: blur(2px); }
+@media (min-width: 48.01rem) {
+  .quick .quick-veil .q-moon { top: 9vh; right: 12vw; width: clamp(11rem, 32vh, 22rem); height: clamp(11rem, 32vh, 22rem); }
+  .quick .quick-veil .q-balc { left: 33%; height: min(46vh, 28rem); bottom: calc(var(--stage) * 0.42 - min(46vh, 28rem) * 0.075); }
+}
+
+/* Banc a la tarima, a la dreta del balcó: la mateixa distància de la vora esquerra al balcó que del banc a la vora dreta */
+.quick .quick-veil { --bh: min(36vh, 22rem); --bx: 30%; }
+@media (min-width: 48.01rem) { .quick .quick-veil { --bh: min(46vh, 28rem); --bx: 33%; } }
+.q-bench { position: absolute; z-index: 0; pointer-events: none; height: calc(var(--bh) * 0.24); aspect-ratio: 160 / 76; right: calc(var(--bx) - var(--bh) * 0.316); bottom: calc(var(--stage) * 0.42 - var(--bh) * 0.01); }
+.q-bench img { display: block; width: 100%; height: 100%; filter: sepia(0.55) saturate(1.15) brightness(0.8) hue-rotate(-6deg); }
+.q-bench::after { content: ""; position: absolute; left: 0; right: -10%; bottom: -4%; height: 9%; border-radius: 50%; background: radial-gradient(ellipse at 45% 50%, rgba(0, 0, 0, 0.6), transparent 70%); z-index: -1; filter: blur(2px); }

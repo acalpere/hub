@@ -365,6 +365,7 @@ export function CyranoPage() {
   const [error, setError] = useState("");
   // Botó rodó que apareix quan les barres d'actes i escenes han sortit per dalt de la pantalla
   const [navsEl, setNavsEl] = useState<HTMLDivElement | null>(null);
+  const [jumpEl, setJumpEl] = useState<HTMLButtonElement | null>(null);
   const [navsGone, setNavsGone] = useState(false);
   const [jumping, setJumping] = useState(false);
 
@@ -563,6 +564,28 @@ export function CyranoPage() {
     return () => io.disconnect();
   }, [navsEl]);
 
+  // El botó flota sempre a baix de la pantalla; quan arriba la ratlla del peu, hi para a sobre en lloc de passar-hi per sobre.
+  useEffect(() => {
+    if (!jumpEl) return;
+    let raf = 0;
+    const place = () => {
+      raf = 0;
+      const line = document.querySelector(".foot-in");
+      const base = 1.25 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const lift = line ? window.innerHeight - line.getBoundingClientRect().top + 14 : 0;
+      jumpEl.style.bottom = `${Math.max(base, lift)}px`;
+    };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(place); };
+    place();
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    return () => {
+      window.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [jumpEl]);
+
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
   const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
   const go = (to: { act: number; scene: number } | undefined) => {
@@ -758,7 +781,7 @@ export function CyranoPage() {
         </>
       )}
       {outline && !searching && navsGone && (
-        <button type="button" className="cy-jump-btn" aria-label="Anar a un altre acte o escena" onClick={() => setJumping(true)}>
+        <button type="button" ref={setJumpEl} className="cy-jump-btn" aria-label="Anar a un altre acte o escena" onClick={() => setJumping(true)}>
           {viewAct === 0 ? "N" : `${roman(viewAct)}·${roman(viewScene)}`}
         </button>
       )}

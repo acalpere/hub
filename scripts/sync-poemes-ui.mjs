@@ -18,24 +18,20 @@ mkdirSync(target, { recursive: true });
 cpSync(source, target, { recursive: true });
 // Icona del hub a la còpia incrustada (el paquet independent no en porta).
 const page = resolve(target, "index.html");
+// El script és inline (així mai no queda una còpia antiga a la memòria cau del navegador).
+const THEME_JS = `(function () {
+  function read() { try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; } }
+  function apply() { document.documentElement.dataset.theme = read(); }
+  apply();
+  window.addEventListener("storage", apply);
+})();`;
 // Mode fosc/clar del hub (localStorage «site-theme», mateix origen): theme.js posa data-theme i theme.css el pinta.
 writeFileSync(
   page,
   readFileSync(page, "utf8").replace(
     "</head>",
-    '  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">\n    <script src="theme.js"></script>\n    <link rel="stylesheet" href="theme.css">\n  </head>',
+    `  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">\n    <script>${THEME_JS}</script>\n    <link rel="stylesheet" href="theme.css?v=${Date.now()}">\n  </head>`,
   ),
-);
-writeFileSync(
-  resolve(target, "theme.js"),
-  `// Generat per scripts/sync-poemes-ui.mjs: no editar.
-(function () {
-  function read() { try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; } }
-  function apply() { document.documentElement.dataset.theme = read(); }
-  apply();
-  window.addEventListener("storage", apply);
-})();
-`,
 );
 writeFileSync(
   resolve(target, "theme.css"),
@@ -63,6 +59,9 @@ writeFileSync(
 :root[data-theme="dark"] dialog::backdrop { background: rgba(0, 0, 0, .6); }
 :root[data-theme="dark"] .hub-home { background: rgba(28, 20, 13, .92); }
 .reference-field > span { font-size: 1rem; }
+:root[data-theme="dark"] .poem-list button.poem-item { color: #f3e6d0; }
+:root[data-theme="dark"] .dialog-close { color: #a99a85; }
+:root[data-theme="dark"] .dialog-close:hover { color: #f3e6d0; }
 :root[data-theme="dark"] .word-badge { color: #fff; border-color: #120d09; }
 :root[data-theme="dark"] .poem-gutter { color: #8a7352; background: #17100a; border-right-color: #2e2216; }
 :root[data-theme="dark"] .poem-title::placeholder, :root[data-theme="dark"] .poem-body::placeholder { color: #6b5a45; }
