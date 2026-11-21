@@ -1124,3 +1124,21 @@ body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--
   .q-foil { --fl: calc(var(--bh) * 0.7); right: auto; left: calc(54% - var(--fl) / 2); bottom: calc(var(--stage) * 0.83 - var(--fl) * 0.05); }
   .q-foil img { transform: translate(-50%, -50%) scaleY(0.45) rotate(79deg); }
 }
+
+/* Pantalles petites: tarima més ampla, lluna una mica més baixa i floret en segon pla (darrere, a la dreta del banc) */
+@media (max-width: 48rem) {
+  .q-stage { left: -14%; width: 128%; right: auto; }
+  .quick .quick-veil .q-moon { top: 8.6rem; }
+  .q-foil { --fl: calc(var(--bh) * 0.62); right: auto; left: calc(58% - var(--fl) / 2); bottom: calc(var(--stage) * 0.8 - var(--fl) * 0.05); }
+  .q-foil img { transform: translate(-50%, -50%) scaleY(0.45) rotate(79deg); }
+}
+
+/* Pantalles petites: l'espasa recolzada a la pota esquerra del balcó */
+@media (max-width: 48rem) {
+  .q-foil { --fl: calc(var(--bh) * 0.55); width: calc(var(--fl) * 0.182); height: var(--fl); right: auto; left: calc(var(--bx) - var(--bh) * 0.217 - var(--fl) * 0.2 - var(--fl) * 0.09); bottom: calc(var(--stage) * 0.42 - var(--bh) * 0.075 + var(--stage) * 0.02); transform: rotate(11deg); transform-origin: 50% 100%; }
+  .q-foil img { left: 0; top: 0; width: 100%; height: 100%; transform: rotate(180deg); }
+  .q-foil::after { left: -20%; right: -20%; top: auto; bottom: -3%; height: 8%; }
+}
+
+/* Pantalles petites: el barret una mica més a la dreta */
+@media (max-width: 48rem) { .q-hat { left: calc(var(--bx) - var(--bh) * 0.12); } }
