@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 46">
+  <defs>
+    <linearGradient id="w" gradientUnits="userSpaceOnUse" x1="30" y1="4" x2="170" y2="46">
+      <stop offset="0" stop-color="#f8dfb0"/>
+      <stop offset="0.55" stop-color="#dba969"/>
+      <stop offset="1" stop-color="#a87a45"/>
+    </linearGradient>
+    <clipPath id="t">
+      <polygon points="30,4 170,4 196,34 4,34"/>
+    </clipPath>
+    <clipPath id="f">
+      <rect x="4" y="34" width="192" height="9"/>
+    </clipPath>
+    <pattern id="p" width="200" height="9" patternUnits="userSpaceOnUse">
+      <rect width="200" height="1.1" fill="#5a3814" opacity="0.4"/>
+      <rect y="1.1" width="200" height="0.8" fill="#fff3d6" opacity="0.18"/>
+    </pattern>
+  </defs>
+  <g clip-path="url(#t)">
+    <rect width="200" height="46" fill="url(#w)"/>
+    <g fill="#5a3814" opacity="0.4">
+      <rect y="7" width="200" height="0.5"/>
+      <rect y="10.8" width="200" height="0.6"/>
+      <rect y="15.2" width="200" height="0.7"/>
+      <rect y="20.4" width="200" height="0.8"/>
+      <rect y="26.4" width="200" height="0.95"/>
+      <rect y="33" width="200" height="1.1"/>
+    </g>
+    <g fill="#fff3d6" opacity="0.18">
+      <rect y="7.5" width="200" height="0.4"/>
+      <rect y="11.4" width="200" height="0.5"/>
+      <rect y="15.9" width="200" height="0.55"/>
+      <rect y="21.2" width="200" height="0.65"/>
+      <rect y="27.35" width="200" height="0.75"/>
+    </g>
+    <g stroke="#5a3814" stroke-width="0.3" opacity="0.18">
+      <line x1="60" y1="4" x2="45.2" y2="34"/>
+      <line x1="80" y1="4" x2="72.6" y2="34"/>
+      <line x1="100" y1="4" x2="100" y2="34"/>
+      <line x1="120" y1="4" x2="127.4" y2="34"/>
+      <line x1="140" y1="4" x2="154.8" y2="34"/>
+    </g>
+  </g>
+  <g clip-path="url(#f)">
+    <rect width="200" height="46" fill="url(#w)"/>
+    <rect width="200" height="46" fill="url(#p)"/>
+    <rect y="34" width="200" height="9" fill="#3a2410" opacity="0.2"/>
+  </g>
+</svg>

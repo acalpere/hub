@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 76">
+  <defs>
+    <linearGradient id="w" gradientUnits="userSpaceOnUse" x1="10" y1="0" x2="150" y2="76">
+      <stop offset="0" stop-color="#f8dfb0"/>
+      <stop offset="0.55" stop-color="#dba969"/>
+      <stop offset="1" stop-color="#a87a45"/>
+    </linearGradient>
+    <pattern id="p" width="160" height="7" patternUnits="userSpaceOnUse">
+      <rect width="160" height="0.9" fill="#5a3814" opacity="0.4"/>
+      <rect y="0.9" width="160" height="0.6" fill="#fff3d6" opacity="0.18"/>
+    </pattern>
+    <g id="b">
+      <rect x="6" y="2" width="148" height="12"/>
+      <rect x="6" y="18" width="148" height="10"/>
+      <rect x="2" y="34" width="156" height="12"/>
+      <rect x="10" y="46" width="12" height="30"/>
+      <rect x="138" y="46" width="12" height="30"/>
+      <rect x="24" y="46" width="112" height="6"/>
+    </g>
+  </defs>
+  <use href="#b" fill="url(#w)"/>
+  <use href="#b" fill="url(#p)"/>
+</svg>
