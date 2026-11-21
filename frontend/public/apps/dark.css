@@ -1,0 +1,46 @@
+/* Tema fosc de les apps antigues (Calendari i Herència): els mateixos colors que la resta de la web.
+   common.js posa data-theme="dark" a <html> quan el tema de la web és fosc (per defecte). */
+:root[data-theme="dark"] { color-scheme: dark; --d-bg: #120d09; --d-fg: #f3e6d0; --d-muted: #a99a85; --d-card: #1c140d; --d-card2: #2a1d12; --d-rule: #3a2a1b; --d-rule2: #5a4430; --d-accent: #e0aa60; }
+:root[data-theme="dark"] body { background: var(--d-bg) !important; color: var(--d-fg); }
+:root[data-theme="dark"] input, :root[data-theme="dark"] select, :root[data-theme="dark"] textarea { background: var(--d-card) !important; color: var(--d-fg) !important; border-color: var(--d-rule2) !important; }
+:root[data-theme="dark"] option { background: var(--d-card); color: var(--d-fg); }
+
+/* ---------- Calendari ---------- */
+:root[data-theme="dark"] header, :root[data-theme="dark"] #current-month { color: var(--d-fg); }
+:root[data-theme="dark"] .controls, :root[data-theme="dark"] .calendar-container, :root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .info-modal-content, :root[data-theme="dark"] .multi-select-center, :root[data-theme="dark"] .multi-select-controls { background: var(--d-card); color: var(--d-fg); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+:root[data-theme="dark"] .brother-selector label, :root[data-theme="dark"] .mode-selector label, :root[data-theme="dark"] .legend-inline span, :root[data-theme="dark"] #selection-counter { color: #cdbfa8; }
+:root[data-theme="dark"] .modal-content h3, :root[data-theme="dark"] .info-modal h3 { color: var(--d-fg); }
+:root[data-theme="dark"] .modal-content p, :root[data-theme="dark"] .info-modal p, :root[data-theme="dark"] #last-modification-info, :root[data-theme="dark"] .spinner-text { color: var(--d-muted); }
+:root[data-theme="dark"] .last-modification, :root[data-theme="dark"] .multi-select-controls { border-color: var(--d-rule); }
+:root[data-theme="dark"] .calendar-header { background: var(--d-card2); color: #cdbfa8; }
+:root[data-theme="dark"] .calendar-day { background: var(--d-card); border-color: var(--d-rule); color: var(--d-fg); }
+:root[data-theme="dark"] .calendar-day.today { border-color: var(--d-accent); }
+:root[data-theme="dark"] .day-number { color: #8fb0ff; }
+:root[data-theme="dark"] .spinner-overlay { background: rgba(18, 13, 9, 0.88); }
+:root[data-theme="dark"] .spinner { border-color: var(--d-rule); border-top-color: var(--d-accent); }
+
+/* ---------- Herència ---------- */
+:root[data-theme="dark"] h1, :root[data-theme="dark"] h2 { color: var(--d-fg); }
+:root[data-theme="dark"] h3, :root[data-theme="dark"] .header-title h1, :root[data-theme="dark"] #nom-usuari { color: var(--d-accent) !important; }
+:root[data-theme="dark"] .grafica { background: var(--d-card); box-shadow: 0 2px 8px #0008; }
+:root[data-theme="dark"] .dropzone { background: #241810; border-color: var(--d-rule2); }
+:root[data-theme="dark"] .pis { background: var(--d-rule); color: var(--d-fg); }
+:root[data-theme="dark"] .pis-nom { color: #7fd87f; }
+:root[data-theme="dark"] .main-title { background: linear-gradient(90deg, var(--d-card2), var(--d-card)); color: var(--d-fg); }
+:root[data-theme="dark"] #xat-llista { background: var(--d-card); }
+:root[data-theme="dark"] .xat-missatge { background: var(--d-card2); color: var(--d-fg); }
+:root[data-theme="dark"] .xat-missatge .autor { color: var(--d-accent); }
+:root[data-theme="dark"] .xat-missatge .hora, :root[data-theme="dark"] .formula-grafica { color: var(--d-muted); }
+:root[data-theme="dark"] #xat-container { border-color: var(--d-rule2) !important; }
+:root[data-theme="dark"] #xat-enviar { background: linear-gradient(90deg, #c98f4e, #e0aa60); color: #1a0f06; }
+:root[data-theme="dark"] #login-overlay { background: rgba(18, 13, 9, 0.97) !important; }
+:root[data-theme="dark"] #login-form, :root[data-theme="dark"] #xat-modal > div, :root[data-theme="dark"] #comentari-modal > div { background: var(--d-card) !important; color: var(--d-fg); box-shadow: 0 4px 48px #000a !important; }
+:root[data-theme="dark"] #login-form h2, :root[data-theme="dark"] #xat-modal h2, :root[data-theme="dark"] #xat-modal h3 { color: var(--d-accent) !important; }
+:root[data-theme="dark"] #xat-modal-close, :root[data-theme="dark"] #comentari-modal-close { color: var(--d-fg); }
+:root[data-theme="dark"] .tab-btn { background: var(--d-rule) !important; color: var(--d-fg); }
+:root[data-theme="dark"] #spinner { background: rgba(18, 13, 9, 0.75) !important; }
+:root[data-theme="dark"] .grafic svg text { fill: #e8dcc8; }
+:root[data-theme="dark"] .grafic svg .domain, :root[data-theme="dark"] .grafic svg .tick line { stroke: var(--d-rule2); }
+:root[data-theme="dark"] .ui-widget-content, :root[data-theme="dark"] .ui-widget-header { background: var(--d-card); color: var(--d-fg); border-color: var(--d-rule2); }
+:root[data-theme="dark"] .ui-state-default, :root[data-theme="dark"] .ui-widget-content .ui-state-default { background: var(--d-card2); color: var(--d-fg); border-color: var(--d-rule2); }

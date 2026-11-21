@@ -10,6 +10,23 @@
   var topWin = framed ? window.top : window;
   var shell = /^\/apps\/([^/]+)/.exec(location.pathname);
   var returnPath = framed && shell ? "/app/" + shell[1] : location.pathname;
+
+  // Tema de la web (clar o fosc): el mateix que tria la plataforma a Gestió → General. Es guarda a localStorage
+  // ("site-theme"), compartit amb aquesta app perquè és del mateix origen; per defecte, fosc.
+  function siteTheme() {
+    try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; }
+  }
+  function applyTheme() {
+    document.documentElement.setAttribute("data-theme", siteTheme());
+  }
+  applyTheme();
+  var darkCss = document.createElement("link");
+  darkCss.rel = "stylesheet";
+  darkCss.href = "/apps/dark.css";
+  document.head.appendChild(darkCss);
+  // Canvi de tema des del marc de dalt (o des d'una altra pestanya): l'app el segueix a l'instant.
+  window.addEventListener("storage", function (e) { if (e.key === "site-theme" || e.key === null) applyTheme(); });
+  window.addEventListener("site-theme", applyTheme);
   var nativeFetch = window.fetch.bind(window);
   window.fetch = function (input, init) {
     init = init || {};
@@ -48,7 +65,7 @@
     back.textContent = "← acalpere";
     back.style.cssText =
       "position:fixed;left:10px;bottom:10px;z-index:20000;font:600 13px system-ui,sans-serif;" +
-      "color:#7a2e2e;background:#fffc;padding:4px 10px;border-radius:14px;text-decoration:none;" +
+      "color:" + (siteTheme() === "dark" ? "#e0aa60" : "#7a2e2e") + ";background:" + (siteTheme() === "dark" ? "#1c140dcc" : "#fffc") + ";padding:4px 10px;border-radius:14px;text-decoration:none;" +
       "box-shadow:0 1px 4px #0003";
     document.body.appendChild(back);
   });
