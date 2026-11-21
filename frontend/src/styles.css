@@ -1147,3 +1147,14 @@ body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--
 /* Assistent d'AWS amb el teclat obert: l'alçada segueix l'àrea visible, no la finestra sencera */
 .dlg.aws-assist { height: min(88%, 46rem); max-height: 100%; }
 @media (max-width: 40rem) { .dlg.aws-assist { height: min(96%, 46rem); } }
+
+/* Faltes d'ortografia a l'editor de línies (Cyrano) */
+.spell { margin: 0.5rem 0; padding: 0.6rem 0.8rem; border: 1px solid color-mix(in srgb, var(--wine) 45%, var(--rule)); border-radius: 10px; background: color-mix(in srgb, var(--wine) 8%, var(--card)); font-family: var(--sans); font-size: 0.9rem; }
+.spell ul { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+.spell li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+.spell-word { font-weight: 600; text-decoration: underline wavy var(--logo-red); text-underline-offset: 0.2em; }
+.spell-arrow, .spell-none { color: var(--muted); }
+.spell-fix { padding: 0.1rem 0.6rem; border-radius: 999px; border: 1px solid var(--rule); background: var(--card); color: var(--fg); font: inherit; cursor: pointer; }
+.spell-fix:hover { border-color: var(--accent); color: var(--accent); }
+.spell-ignore { margin-left: auto; }
+.spell-note { color: var(--muted); font-family: var(--sans); font-size: 0.85rem; margin: 0.4rem 0; }

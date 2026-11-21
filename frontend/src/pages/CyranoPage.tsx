@@ -7,6 +7,8 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useAuth } from "../auth";
 import { highlight, roman, searchTerms, toSeconds, toStamp } from "../cyrano";
+import { SpellIssues } from "../components/SpellIssues";
+import { findIssues, ignoreWord, type Issue } from "../spell";
 
 const actLabel = (act: number) => (act === 0 ? "Notes" : `Acte ${roman(act)}`);
 const sceneLabel = (act: number, scene: number) =>
@@ -132,6 +134,43 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const stampInput = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const dirty = useRef(false);
+  // Ortografia: el text es revisa mentre s'escriu i no es pot desar amb faltes (es corregeixen o s'ignoren).
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [checking, setChecking] = useState(false);
+  const spellTimer = useRef<number>();
+  const textField = () => formRef.current?.elements.namedItem("text") as HTMLTextAreaElement | null;
+  async function runSpell(): Promise<Issue[]> {
+    const el = textField();
+    if (!el) return [];
+    setChecking(true);
+    try {
+      const found = await findIssues(el.value, speakers);
+      setIssues(found);
+      return found;
+    } finally {
+      setChecking(false);
+    }
+  }
+  function scheduleSpell() {
+    window.clearTimeout(spellTimer.current);
+    spellTimer.current = window.setTimeout(() => void runSpell().catch(() => {}), 600);
+  }
+  function fixIssue(i: Issue, to: string) {
+    const el = textField();
+    if (!el || el.value.slice(i.index, i.index + i.word.length) !== i.word) return void runSpell().catch(() => {});
+    el.value = el.value.slice(0, i.index) + to + el.value.slice(i.index + i.word.length);
+    dirty.current = true;
+    void runSpell().catch(() => {});
+  }
+  function ignoreIssue(i: Issue) {
+    ignoreWord(i.word);
+    void runSpell().catch(() => {});
+  }
+  useEffect(() => () => window.clearTimeout(spellTimer.current), []);
+  useEffect(() => {
+    setIssues([]);
+    if (mode === "edit") scheduleSpell();
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const [ask, setAsk] = useState<"delete" | "discard" | null>(null);
   const asking = useRef(false);
   asking.current = ask !== null;
@@ -225,6 +264,17 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
     setBusy(true);
     setError("");
     try {
+      let bad: Issue[] = [];
+      try {
+        bad = await runSpell();
+      } catch {
+        /* sense corrector (no s'ha pogut descarregar el diccionari): es desa igualment */
+      }
+      if (bad.length > 0) {
+        setError("Hi ha faltes d'ortografia al text: corregeix-les o prem «Ignora» abans de desar.");
+        setBusy(false);
+        return;
+      }
       const payload = { speaker: kind === "speech" ? speaker.trim() : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
       if (mode === "add") onInserted?.(await api.cyranoInsert(line.id, payload), line.id);
       else onSaved(await api.cyranoEdit(line.id, payload));
@@ -237,7 +287,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   }
 
   const editor = mode && (
-    <form className="cy-edit" ref={formRef} onSubmit={save} onInput={() => { dirty.current = true; }} key={mode}>
+    <form className="cy-edit" ref={formRef} onSubmit={save} onInput={() => { dirty.current = true; scheduleSpell(); }} key={mode}>
         <div className="cy-edit-row">
           <label>
             Tipus
@@ -279,7 +329,8 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
             </button>
           )}
         </div>
-        <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus />
+        <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus lang="ca" spellCheck />
+        <SpellIssues issues={issues} checking={checking} onFix={fixIssue} onIgnore={ignoreIssue} />
         <ErrorMessage message={error} />
         <div className="cy-edit-actions">
           <button type="submit" disabled={busy}>{mode === "add" ? "Afegeix" : "Desa"}</button>
