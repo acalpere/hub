@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 330">
+  <defs>
+    <linearGradient id="cup" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a3e45"/>
+      <stop offset="0.22" stop-color="#d9dde3"/>
+      <stop offset="0.45" stop-color="#8d939c"/>
+      <stop offset="0.75" stop-color="#555a63"/>
+      <stop offset="1" stop-color="#23262b"/>
+    </linearGradient>
+    <linearGradient id="grip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#150e08"/>
+      <stop offset="0.35" stop-color="#4a3622"/>
+      <stop offset="0.7" stop-color="#2a1d11"/>
+      <stop offset="1" stop-color="#100a06"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2d3138"/>
+      <stop offset="0.45" stop-color="#c3c9d2"/>
+      <stop offset="0.55" stop-color="#6c727b"/>
+      <stop offset="1" stop-color="#2a2e34"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3b3f46"/>
+      <stop offset="0.35" stop-color="#e4e7ec"/>
+      <stop offset="0.7" stop-color="#8b919a"/>
+      <stop offset="1" stop-color="#32353b"/>
+    </linearGradient>
+    <radialGradient id="pom" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#f6f7f9"/>
+      <stop offset="0.5" stop-color="#9aa0a9"/>
+      <stop offset="1" stop-color="#3a3e45"/>
+    </radialGradient>
+    <radialGradient id="rosette" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#a7adb6"/>
+      <stop offset="1" stop-color="#4a4f57"/>
+    </radialGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1"/>
+    </filter>
+    <filter id="soft2" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+    <clipPath id="domeClip">
+      <path d="M7,143 C7,127 16,117 30,117 C44,117 53,127 53,143 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- fulla llarga -->
+  <polygon points="30,3 33,218 27,218" fill="url(#blade)"/>
+  <line x1="30" y1="6" x2="30" y2="218" stroke="#fff" stroke-width="0.4" opacity="0.45"/>
+  <line x1="28.8" y1="8" x2="28.5" y2="218" stroke="#1d2025" stroke-width="0.3" opacity="0.6"/>
+  <g stroke="#fff" stroke-width="0.15" opacity="0.4">
+    <line x1="30.8" y1="40" x2="30.9" y2="52"/>
+    <line x1="29.2" y1="92" x2="29.4" y2="101"/>
+    <line x1="31.2" y1="150" x2="31.3" y2="165"/>
+  </g>
+  <!-- ombra de la copa sobre la fulla -->
+  <rect x="26.5" y="208" width="7" height="12" fill="#000" opacity="0.35" filter="url(#soft)"/>
+
+  <g transform="translate(0,100)">
+    <!-- copa platejada -->
+    <path d="M7,143 C7,127 16,117 30,117 C44,117 53,127 53,143 Z" fill="url(#cup)"/>
+    <g clip-path="url(#domeClip)">
+      <!-- relleus: nervis meridians -->
+      <g fill="none" stroke="#2a2d33" stroke-width="0.6" opacity="0.55">
+        <path d="M30,117 C26,126 22,135 18,143"/>
+        <path d="M30,117 C34,126 38,135 42,143"/>
+        <path d="M30,117 C20,124 14,134 10,143"/>
+        <path d="M30,117 C40,124 46,134 50,143"/>
+        <path d="M30,117 L30,143"/>
+      </g>
+      <g fill="none" stroke="#f5f6f8" stroke-width="0.35" opacity="0.65">
+        <path d="M29.4,117 C25.4,126 21.4,135 17.4,143"/>
+        <path d="M29.4,117 L29.4,143"/>
+        <path d="M29.4,117 C19.4,124 13.4,134 9.4,143"/>
+      </g>
+      <!-- cinta en relleu prop de la vora -->
+      <path d="M7.5,134 C22,129 38,129 52.5,134" fill="none" stroke="#2a2d33" stroke-width="1.2" opacity="0.6"/>
+      <path d="M7.5,133 C22,128 38,128 52.5,133" fill="none" stroke="#f5f6f8" stroke-width="0.5" opacity="0.7"/>
+      <!-- rosetes -->
+      <g fill="url(#rosette)">
+        <circle cx="14" cy="137.5" r="1.1"/>
+        <circle cx="22" cy="135.2" r="1.1"/>
+        <circle cx="30" cy="134.6" r="1.1"/>
+        <circle cx="38" cy="135.2" r="1.1"/>
+        <circle cx="46" cy="137.5" r="1.1"/>
+      </g>
+      <!-- desgast: oxidació i taques -->
+      <g filter="url(#soft)">
+        <ellipse cx="38" cy="124" rx="5" ry="3" fill="#4b4a40" opacity="0.5"/>
+        <ellipse cx="17" cy="139" rx="4" ry="2.5" fill="#3f3d34" opacity="0.5"/>
+        <ellipse cx="45" cy="140" rx="3" ry="2" fill="#2e2c25" opacity="0.5"/>
+        <ellipse cx="26" cy="126" rx="3" ry="1.4" fill="#fff" opacity="0.4"/>
+      </g>
+      <!-- ratllades -->
+      <g stroke="#fff" stroke-width="0.18" opacity="0.5">
+        <line x1="20" y1="121" x2="27" y2="125"/>
+        <line x1="32" y1="140" x2="40" y2="137"/>
+        <line x1="12" y1="132" x2="17" y2="130"/>
+        <line x1="24" y1="130" x2="29" y2="128.5"/>
+      </g>
+      <g stroke="#1c1e22" stroke-width="0.2" opacity="0.6">
+        <line x1="36" y1="121" x2="43" y2="127"/>
+        <line x1="14" y1="141" x2="22" y2="139.5"/>
+      </g>
+    </g>
+    <!-- vora inferior platejada -->
+    <path d="M5.5,142 Q30,150 54.5,142 L54.5,139.6 Q30,147.6 5.5,139.6 Z" fill="url(#silver)"/>
+    <path d="M5.5,142 Q30,150 54.5,142" fill="none" stroke="#000" stroke-width="0.6" opacity="0.55"/>
+    <path d="M12,141.6 Q30,147 48,141.6" fill="none" stroke="#fff" stroke-width="0.3" opacity="0.55"/>
+    <ellipse cx="46" cy="144" rx="3" ry="0.8" fill="#4b4a40" opacity="0.5" filter="url(#soft2)"/>
+
+    <!-- virolla -->
+    <rect x="25.5" y="146" width="9" height="4.5" rx="1.2" fill="url(#silver)"/>
+    <line x1="25.8" y1="148.2" x2="34.2" y2="148.2" stroke="#2a2d33" stroke-width="0.3" opacity="0.6"/>
+
+    <!-- empunyadura -->
+    <path d="M26.5,150 C25.5,160 25.5,176 26.5,190 L33.5,190 C34.5,176 34.5,160 33.5,150 Z" fill="url(#grip)"/>
+    <g stroke="#cfd3da" stroke-width="0.55" opacity="0.7">
+      <line x1="26" y1="153" x2="34" y2="156"/>
+      <line x1="25.7" y1="158" x2="34.3" y2="161"/>
+      <line x1="25.7" y1="163" x2="34.3" y2="166"/>
+      <line x1="25.7" y1="168" x2="34.3" y2="171"/>
+      <line x1="25.7" y1="173" x2="34.3" y2="176"/>
+      <line x1="26" y1="178" x2="34" y2="181"/>
+      <line x1="26" y1="183" x2="34" y2="186"/>
+    </g>
+    <path d="M28,151 C27.3,162 27.3,176 28,189" fill="none" stroke="#a88356" stroke-width="0.8" opacity="0.3"/>
+
+    <!-- coll i pom platejat -->
+    <rect x="27.3" y="189" width="5.4" height="4.5" fill="url(#silver)"/>
+    <ellipse cx="30" cy="199.5" rx="7" ry="6.8" fill="url(#pom)"/>
+    <ellipse cx="27.6" cy="196.8" rx="2.4" ry="1.5" fill="#fff" opacity="0.6" transform="rotate(-30 27.6 196.8)"/>
+    <ellipse cx="33" cy="202" rx="2.5" ry="1.6" fill="#4b4a40" opacity="0.45" filter="url(#soft2)"/>
+    <path d="M24.5,199.5 C25,196 28,193.5 32,193.5" fill="none" stroke="#2a2d33" stroke-width="0.3" opacity="0.5"/>
+  </g>
+</svg>

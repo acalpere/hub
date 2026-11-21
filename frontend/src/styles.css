@@ -1108,3 +1108,19 @@ body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--
 .q-bench { position: absolute; z-index: 0; pointer-events: none; height: calc(var(--bh) * 0.24); aspect-ratio: 160 / 76; right: calc(var(--bx) - var(--bh) * 0.316); bottom: calc(var(--stage) * 0.42 - var(--bh) * 0.01); }
 .q-bench img { display: block; width: 100%; height: 100%; filter: sepia(0.55) saturate(1.15) brightness(0.8) hue-rotate(-6deg); }
 .q-bench::after { content: ""; position: absolute; left: 0; right: -10%; bottom: -4%; height: 9%; border-radius: 50%; background: radial-gradient(ellipse at 45% 50%, rgba(0, 0, 0, 0.6), transparent 70%); z-index: -1; filter: blur(2px); }
+
+/* Un floret caigut a terra, de costat, a la part de davant de la tarima (a la dreta) */
+.q-foil { --fl: calc(var(--bh) * 0.8); position: absolute; z-index: 0; pointer-events: none; width: var(--fl); height: calc(var(--fl) * 0.1); right: 4%; bottom: calc(var(--stage) * 0.1); }
+.q-foil img { position: absolute; left: 50%; top: 50%; width: calc(var(--fl) * 0.182); height: var(--fl); transform: translate(-50%, -50%) scaleY(0.55) rotate(80deg); filter: brightness(0.9) sepia(0.1) drop-shadow(0 0 1px rgba(0,0,0,0.6)); }
+.q-foil::after { content: ""; position: absolute; left: 4%; right: 2%; top: 55%; height: 55%; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.5), transparent 70%); filter: blur(2px); z-index: -1; }
+
+/* El barret amb el plomall, a terra davant del balcó, una mica a l'esquerra del centre */
+.q-hat { position: absolute; z-index: 0; pointer-events: none; height: calc(var(--bh) * 0.22); aspect-ratio: 200 / 150; left: calc(var(--bx) - var(--bh) * 0.3); bottom: max(calc(var(--stage) * 0.08), calc(var(--stage) * 0.42 - var(--bh) * 0.2)); transform: rotate(2deg); }
+.q-hat img { display: block; width: 100%; height: 100%; filter: brightness(1.1); }
+.q-hat::after { content: ""; position: absolute; left: 6%; right: 0; bottom: 8%; height: 14%; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.5), transparent 70%); filter: blur(2px); z-index: -1; }
+
+/* Floret caigut a la part de darrere de la tarima, a la dreta del banc (a pantalles grans); al mòbil es queda a davant */
+@media (min-width: 48.01rem) {
+  .q-foil { --fl: calc(var(--bh) * 0.7); right: auto; left: calc(54% - var(--fl) / 2); bottom: calc(var(--stage) * 0.83 - var(--fl) * 0.05); }
+  .q-foil img { transform: translate(-50%, -50%) scaleY(0.45) rotate(79deg); }
+}

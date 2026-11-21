@@ -95,6 +95,8 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
           <rect x="-12" y="48" width="224" height="2" fill="#d9a766" />
           <rect x="-12" y="49.3" width="224" height="0.7" fill="#8a5a2c" />
         </svg>
+        <span className="q-hat" aria-hidden="true"><img src="/hat-plume-bg.svg" alt="" /></span>
+        <span className="q-foil" aria-hidden="true"><img src="/foil-bg.svg" alt="" /></span>
         <span className="q-bench" aria-hidden="true"><img src="/bench-bg.svg" alt="" /></span>
         <span className="q-balc" aria-hidden="true"><img src="/balcony-bg.svg" alt="" /></span>
         <svg className="q-moon" viewBox="0 0 120 120" aria-hidden="true">
