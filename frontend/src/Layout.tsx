@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "./api";
 import { QuickMenu } from "./components/QuickMenu";
 import { useAuth } from "./auth";
@@ -89,7 +89,6 @@ export function Layout() {
     window.dispatchEvent(new Event("quick-menu-toggle"));
   };
   const framed = pathname.startsWith("/app/");
-  const inGestio = pathname.startsWith("/gestio");
   return (
     <div className={`shell${framed ? " framed" : ""}`}>
       <header className="top">
@@ -97,31 +96,6 @@ export function Layout() {
           <img src="/logo.svg" alt="" width={40} height={40} onClick={openMenu} />
           {showVerse ? <FadingVerse className="brand-verse" text={cached} /> : <span>acalpere<span className="tld">.cat</span></span>}
         </Link>
-        {user && (
-          <nav>
-            <NavLink to="/" end className="navlink">Hub</NavLink>
-            {hasCyrano && <NavLink to="/cyrano" className="navlink">Cyrano</NavLink>}
-            {user.role === "admin" && <NavLink to="/aws" className="navlink">AWS</NavLink>}
-            {user.role === "admin" && (
-              <NavLink to="/gestio" className={`navlink gestio${inGestio ? " active" : ""}`}>Gestió</NavLink>
-            )}
-            <div className="who-box">
-              <NavLink to="/perfil" className="who" title="El meu perfil">
-                {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username}
-              </NavLink>
-              <button
-                type="button"
-                className="link exit"
-                onClick={async () => {
-                  await logout();
-                  navigate("/login");
-                }}
-              >
-                Sortir
-              </button>
-            </div>
-          </nav>
-        )}
       </header>
       {user && (
         <QuickMenu

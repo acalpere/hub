@@ -18,12 +18,61 @@ mkdirSync(target, { recursive: true });
 cpSync(source, target, { recursive: true });
 // Icona del hub a la còpia incrustada (el paquet independent no en porta).
 const page = resolve(target, "index.html");
+// Mode fosc/clar del hub (localStorage «site-theme», mateix origen): theme.js posa data-theme i theme.css el pinta.
 writeFileSync(
   page,
   readFileSync(page, "utf8").replace(
     "</head>",
-    '  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">\n  </head>',
+    '  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">\n    <script src="theme.js"></script>\n    <link rel="stylesheet" href="theme.css">\n  </head>',
   ),
+);
+writeFileSync(
+  resolve(target, "theme.js"),
+  `// Generat per scripts/sync-poemes-ui.mjs: no editar.
+(function () {
+  function read() { try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; } }
+  function apply() { document.documentElement.dataset.theme = read(); }
+  apply();
+  window.addEventListener("storage", apply);
+})();
+`,
+);
+writeFileSync(
+  resolve(target, "theme.css"),
+  `/* Generat per scripts/sync-poemes-ui.mjs: no editar. */
+:root[data-theme="dark"] {
+  --ink: #f3e6d0; --muted: #a99a85; --paper: #120d09; --card: #1c140d; --accent: #e0aa60; --accent-soft: #2a1d10;
+  --action: #c98f4e; --action-dark: #dca565; --line: #3a2a1b; --sage: #a99a85;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] button { color: #1a0f06; }
+:root[data-theme="dark"] .synonyms-main, :root[data-theme="dark"] .secondary, :root[data-theme="dark"] .secondary-small,
+:root[data-theme="dark"] .mode-toggle, :root[data-theme="dark"] .mic-button { color: #e0aa60; border-color: #5a4630; background: transparent; }
+:root[data-theme="dark"] .synonyms-main:hover, :root[data-theme="dark"] .secondary-small:hover, :root[data-theme="dark"] .mode-toggle:hover,
+:root[data-theme="dark"] .mic-button:hover { color: #1a0f06; background: #c98f4e; }
+:root[data-theme="dark"] .view-mode, :root[data-theme="dark"] .segmented { background: #17100a; border-color: #3a2a1b; }
+:root[data-theme="dark"] .view-mode input:checked + span, :root[data-theme="dark"] .segmented input:checked + span { background: #2a1d10; color: #f3e6d0; box-shadow: none; }
+:root[data-theme="dark"] .badge, :root[data-theme="dark"] .synonym-list li, :root[data-theme="dark"] .word-dialog-content ul li { background: #2a1d10; color: #e0aa60; }
+:root[data-theme="dark"] .badge.finished { background: #3a2a1b; color: #e8c99a; }
+:root[data-theme="dark"] .badge.published { background: #c98f4e; color: #1a0f06; }
+:root[data-theme="dark"] .poem-list button.poem-item:hover, :root[data-theme="dark"] .poem-list button.poem-item.current, :root[data-theme="dark"] .dialog-close:hover { background: #2a1d10; }
+:root[data-theme="dark"] .synonym-list li:has(.synonym-link):hover, :root[data-theme="dark"] .word-dialog-content ul li:has(.synonym-link):hover { background: #3a2a1b; }
+:root[data-theme="dark"] .notice.error { background: #2e1512; color: #f0a99f; }
+:root[data-theme="dark"] .word-chip { border-color: #3a2a1b; }
+:root[data-theme="dark"] .reference-field > span { color: #e0aa60; }
+:root[data-theme="dark"] dialog::backdrop { background: rgba(0, 0, 0, .6); }
+:root[data-theme="dark"] .hub-home { background: rgba(28, 20, 13, .92); }
+.reference-field > span { font-size: 1rem; }
+:root[data-theme="dark"] .word-badge { color: #fff; border-color: #120d09; }
+:root[data-theme="dark"] .poem-gutter { color: #8a7352; background: #17100a; border-right-color: #2e2216; }
+:root[data-theme="dark"] .poem-title::placeholder, :root[data-theme="dark"] .poem-body::placeholder { color: #6b5a45; }
+:root[data-theme="dark"] textarea, :root[data-theme="dark"] select, :root[data-theme="dark"] .segmented,
+:root[data-theme="dark"] .definition-option .checkmark, :root[data-theme="dark"] .hub-home { background: #1c140d; color: var(--ink); }
+:root[data-theme="dark"] .segmented input:checked + span { background: #2a1d10; color: #f3e6d0; border-color: #3a2a1b; }
+:root[data-theme="dark"] input { border-bottom-color: #6b5a45; }
+:root[data-theme="dark"] .poem-editor, :root[data-theme="dark"] .status-field select, :root[data-theme="dark"] .view-mode input:checked + span { background: #1c140d; color: #f3e6d0; }
+:root[data-theme="dark"] .mode-toggle[aria-pressed="true"], :root[data-theme="dark"] .badge.published { color: #1a0f06; background: #c98f4e; border-color: #c98f4e; }
+`,
 );
 writeFileSync(
   resolve(target, "config.js"),

@@ -107,12 +107,6 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
           <span>Sortir</span>
         </button>
       </div>
-      <button type="button" className="quick-fab" aria-label={open ? "Tanca el menú" : "Obre el menú"} aria-expanded={open} onClick={() => {
-          setFrom("bottom");
-          setOpen(!open);
-        }}>
-        <img src="/logo.svg" alt="" />
-      </button>
     </div>
   );
 }
