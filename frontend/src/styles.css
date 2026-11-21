@@ -1148,6 +1148,30 @@ body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--
 .dlg.aws-assist { height: min(88%, 46rem); max-height: 100%; }
 @media (max-width: 40rem) { .dlg.aws-assist { height: min(96%, 46rem); } }
 
+/* Fons fix (lluna i estrelles): mida estable. En mòbil la barra d'adreces s'amaga i es mostra en fer scroll i canvia l'alçada de «inset: 0», i el fons es movia una mica */
+body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
+
+/* Logo de la capçalera i del peu: en tocar-lo no s'ha de ressaltar res (ni el text del vers del costat) */
+.brand, .foot-brand, .brand *, .foot-brand * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.brand:active, .brand:focus, .foot-brand:active, .foot-brand:focus, .brand:focus-visible, .foot-brand:focus-visible { background: none; outline: none; }
+.brand img, .foot-brand img { flex: none; }
+
+/* El vers s'allarga tot el que pot, segons l'ample de la pantalla */
+.top .brand { flex: 1; min-width: 0; }
+.top .brand .brand-verse, .foot-brand .brand-verse { flex: 1; min-width: 0; max-width: none; }
+.foot-in { justify-items: stretch; }
+.foot-brand { justify-self: stretch; min-width: 0; }
+@media (max-width: 52rem) {
+  .foot-in { justify-items: stretch; }
+  .foot-brand { justify-self: stretch; }
+  .foot-brand .brand-verse { text-align: center; padding-right: calc(44px + 0.5rem); }
+}
+
+/* Si el vers hi cap en una línia, que hi vagi: sense la compensació de l'ample del logo, que l'estrenyia */
+@media (max-width: 48rem) {
+  .top .brand .brand-verse, .foot-brand .brand-verse { padding-right: 0; }
+}
+
 /* Faltes d'ortografia a l'editor de línies (Cyrano) */
 .spell { margin: 0.5rem 0; padding: 0.6rem 0.8rem; border: 1px solid color-mix(in srgb, var(--wine) 45%, var(--rule)); border-radius: 10px; background: color-mix(in srgb, var(--wine) 8%, var(--card)); font-family: var(--sans); font-size: 0.9rem; }
 .spell ul { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
