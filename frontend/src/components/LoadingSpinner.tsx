@@ -16,14 +16,14 @@ export function LogoSpinner({ small = false, big = false, label = "Carregant…"
             <stop offset="0.55" stopColor="#dba969" />
             <stop offset="1" stopColor="#a87a45" />
           </linearGradient>
-          <pattern id={`${uid}p`} width="120" height="10" patternUnits="userSpaceOnUse">
-            <rect width="120" height="1.4" fill="#5a3814" opacity="0.4" />
-            <rect y="1.4" width="120" height="1" fill="#fff3d6" opacity="0.2" />
+          <pattern id={`${uid}p`} width="120" height="3.6" patternUnits="userSpaceOnUse" patternTransform="translate(0 0.4)">
+            <rect width="120" height="0.7" fill="#4a2c0e" opacity="0.75" />
+            <rect y="0.7" width="120" height="0.45" fill="#fff3d6" opacity="0.35" />
           </pattern>
           <mask id={`${uid}m`}>
             <rect width="120" height="120" fill="#000" />
-            <circle cx="84" cy="32" r="11" fill="#fff" />
-            <circle className="lsp-cut" cx="84" cy="32" r="11" fill="#000" />
+            <circle cx="97" cy="31" r="8.5" fill="#fff" />
+            <circle className="lsp-cut" cx="97" cy="31" r="8.5" fill="#000" />
           </mask>
         </defs>
         <g mask={`url(#${uid}m)`}>
