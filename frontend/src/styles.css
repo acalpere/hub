@@ -1182,3 +1182,13 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
 .spell-fix:hover { border-color: var(--accent); color: var(--accent); }
 .spell-ignore { margin-left: auto; }
 .spell-note { color: var(--muted); font-family: var(--sans); font-size: 0.85rem; margin: 0.4rem 0; }
+
+/* Mòbil en horitzontal (pantalla baixa): el menú a l'esquerra, centrat entre el vers de dalt i l'escenari de baix, sense trepitjar-los */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .quick .quick-stack, .quick.from-top .quick-stack { top: 6.6rem; bottom: calc(var(--stage-h, 20vh) + 0.4rem); justify-content: center; flex-direction: column-reverse; gap: 0.1rem; }
+  .quick .quick-item { min-width: 9rem; padding: 0.22rem 1rem 0.22rem 0.3rem; font-size: 0.9rem; gap: 0.6rem; }
+  .quick .quick-ic, .quick .quick-ic svg { width: 1.05rem; height: 1.05rem; }
+  .quick .quick-veil { --stage: 20vh; }
+  .quick .q-verse { top: 1.4rem; font-size: 1.05rem; }
+  .quick .q-verse::after { margin-top: 0.6rem; }
+}
