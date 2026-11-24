@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import type { User } from "../api";
+import { getTheme, setTheme, type Theme } from "../theme";
 
 interface Props {
   user: User;
@@ -20,17 +21,25 @@ const ICONS = {
 // des del logo de dalt a l'esquerra de la capçalera (a totes les pàgines). Sempre és fosc, sigui quin sigui el tema de la web.
 // Es plega tocant el logo, el fons, la × o triant una opció.
 export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
-  const [open, setOpen] = useState(false);
+  // En entrar al lloc (adreça d'inici) es mostra directament el menú, no el Hub.
+  const [open, setOpen] = useState(() => window.location.pathname === "/");
+  const [theme, setThemeState] = useState<Theme>(getTheme);
+  const pick = (t: Theme) => {
+    setTheme(t);
+    setThemeState(t);
+  };
   const [from, setFrom] = useState<"top" | "bottom">("bottom"); // des d'on s'ha obert: el logo de dalt o el de baix
   const { pathname } = useLocation();
   const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username;
   // El logo de baix només és a la pantalla d'entrada: en triar qualsevol opció, o en navegar, desapareix i queda el de dalt.
   const [entered, setEntered] = useState(false);
-  const first = useRef(true);
+  // Només es plega si la ruta canvia de debò (l'StrictMode executa els efectes dos cops en desenvolupament).
+  const lastPath = useRef(pathname);
   useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
     setOpen(false);
-    if (first.current) first.current = false;
-    else setEntered(true);
+    setEntered(true);
   }, [pathname]);
   const showFab = pathname === "/" && !entered;
   // El logo de dalt a la dreta (capçalera, al mòbil) també obre i tanca el menú.
@@ -126,6 +135,11 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
         </svg>
         <button type="button" className="q-close" aria-label="Tanca el menú" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>×</button>
         {verse && <span className="q-verse">{verse}</span>}
+      </div>
+      <div className="quick-theme" role="group" aria-label="Tema">
+        {(["dark", "light"] as const).map((t) => (
+          <button key={t} type="button" tabIndex={open ? 0 : -1} className={`qt-dot ${t}${theme === t ? " on" : ""}`} aria-pressed={theme === t} aria-label={t === "dark" ? "Tema fosc" : "Tema clar"} title={t === "dark" ? "Tema fosc" : "Tema clar"} onClick={() => pick(t)} />
+        ))}
       </div>
       <nav className="quick-stack" aria-label="Menú" aria-hidden={!open}>
         {[...items].reverse().map((it, i) => (

@@ -1192,3 +1192,13 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
   .quick .q-verse { top: 1.4rem; font-size: 1.05rem; }
   .quick .q-verse::after { margin-top: 0.6rem; }
 }
+
+/* Tema fosc/clar al menú: dos puntets discrets a dalt a l'esquerra */
+.quick-theme { position: fixed; top: 1.2rem; left: 1rem; z-index: 61; display: flex; gap: 0.7rem; padding: 0.4rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.quick.open .quick-theme { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
+.qt-dot { width: 0.85rem; height: 0.85rem; padding: 0; border-radius: 50%; border: 1px solid rgba(246, 228, 200, 0.45); cursor: pointer; opacity: 0.55; transition: opacity 0.2s, box-shadow 0.2s; }
+.qt-dot.dark { background: #1b120a; }
+.qt-dot.light { background: #f6e4c8; }
+.qt-dot.on, .qt-dot:hover, .qt-dot:focus-visible { opacity: 1; }
+.qt-dot.on { box-shadow: 0 0 0 2px rgba(240, 200, 140, 0.7); }
+@media (min-width: 48.01rem) { .quick-theme { top: 1.8rem; left: 2rem; } }
