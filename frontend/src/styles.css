@@ -198,7 +198,12 @@ mark { background: color-mix(in srgb, var(--btn) 70%, transparent); color: inher
   .cy-edit-row { grid-template-columns: 1fr; }
 }
 .cy-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.cy-title h1 { margin: 0; flex: 1 1 auto; }
+.cy-title h1 { margin: 0; }
+.cy-heading { flex: 1 1 auto; margin-top: -0.35rem; }
+.cy-heading-in { display: inline-block; }
+.cy-heading h1 { padding-bottom: 0.2rem; }
+.cy-rev { margin: 0.3rem 0 0; text-align: right; color: var(--wine); font: italic 400 0.82rem var(--serif); letter-spacing: 0.02em; }
+:root[data-theme="dark"] .cy-rev { color: #e0aa60; }
 .cy-modes { display: inline-flex; padding: 3px; border: 1px solid var(--rule); border-radius: 999px; background: var(--card); }
 .cy-modes button { padding: 0.3rem 1rem; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 0.82rem; }
 .cy-modes button.on { background: var(--btn); color: var(--btn-fg); font-weight: 600; }
@@ -300,7 +305,7 @@ button.cy-pdf[aria-pressed="true"] { color: var(--wine); border-color: var(--win
 .cy-stamp:hover, .cy-stamp:focus-visible { color: var(--wine); filter: none; text-decoration: underline; }
 .cy-line.is-playing { background: color-mix(in srgb, var(--btn) 28%, transparent); box-shadow: inset 3px 0 0 var(--wine); }
 .cy-player { position: fixed; right: 1rem; bottom: 1rem; z-index: 30; width: min(24rem, calc(100% - 2rem)); border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.45); }
-.cy-player video { display: block; width: 100%; aspect-ratio: 4 / 3; background: #000; }
+.cy-player video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
 .cy-player-close { position: absolute; top: 0.3rem; right: 0.4rem; z-index: 1; width: 1.7rem; height: 1.7rem; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 1.1rem; line-height: 1; }
 .cy-stamp-row { display: flex; align-items: end; gap: 0.7rem; flex-wrap: wrap; }
 .cy-stamp-row label { flex: 0 0 8.5rem; }
@@ -1224,10 +1229,45 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
 .cy-cap-hint kbd { padding: 0 0.35rem; border: 1px solid currentColor; border-radius: 4px; font: inherit; font-weight: 600; }
 .cy-cap-hint em { color: #ff8a7a; font-style: normal; }
 
-/* Botó gran de captura (mòbil): al costat del polze, a baix a l'esquerra */
-.cy-cap-pad { position: fixed; left: 1rem; bottom: 1rem; z-index: 31; display: flex; align-items: center; gap: 0.7rem; }
-.cy-cap-go { width: 5.2rem; height: 5.2rem; padding: 0; border-radius: 50%; border: 0; background: #c0392b; color: #fff; font: 700 1rem var(--sans); letter-spacing: 0.04em; box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.55); touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+/* Captura: «Marca» a l'esquerra; Enrere, ✓ i Salta enganxats a la dreta; la rèplica marcada queda a dalt de tot */
+.cy-cap-pad { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 31; display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; pointer-events: none; }
+.cy-cap-pad > * { pointer-events: auto; }
+.cy-cap-side { display: flex; align-items: center; gap: 0.5rem; }
+.cy-cap-go { width: 3.4rem; height: 3.4rem; padding: 0; border-radius: 50%; border: 0; background: #c0392b; color: #fff; font: 700 0.85rem var(--sans); letter-spacing: 0.04em; box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.55); touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
 .cy-cap-go:active { transform: scale(0.93); background: #a83023; }
-.cy-cap-skip { padding: 0.5rem 0.7rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: color-mix(in srgb, var(--bg) 88%, transparent); color: var(--fg); font: 500 0.78rem var(--sans); touch-action: manipulation; }
-@media (min-width: 48.01rem) { .cy-cap-pad { left: 2rem; bottom: 2rem; } }
-@media (max-width: 26rem) { .cy-cap-pad { bottom: calc((100vw - 2rem) * 0.75 + 1.8rem); } }
+.cy-cap-skip { padding: 0.42rem 0.7rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: color-mix(in srgb, var(--bg) 90%, transparent); color: var(--fg); font: 500 0.78rem var(--sans); touch-action: manipulation; }
+.cy-cap-check { color: #1e8e3e; border-color: #1e8e3e; font-weight: 700; }
+.cy-line { scroll-margin-top: 7.2rem; }
+@media (max-width: 26rem) { .cy-player { bottom: 0.6rem; } .cy-cap-pad { bottom: calc((100vw - 2rem) * 0.5625 + 2.7rem); } }
+@media (min-width: 48.01rem) { .cy-cap-pad { left: 2rem; right: 26rem; bottom: 2rem; } }
+.cy-step { display: flex; gap: 0.2rem; padding: 0.15rem 2.5rem 0.15rem 0.4rem; background: #1b120a; }
+.cy-step button { flex: 1; padding: 0.15rem 0.1rem; border: 1px solid rgba(246, 228, 200, 0.25); border-radius: 5px; background: transparent; color: #f6e4c8; font: 600 0.68rem var(--sans); }
+.cy-step button.on { background: #f6e4c8; color: #1b120a; }
+/* Xec verd de «revisada»: només en mode edició, discret */
+.cy-ok { position: absolute; top: 0.45rem; right: 0.5rem; z-index: 1; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: transparent; color: transparent; opacity: 0.55; transition: opacity 0.15s, background 0.15s; }
+.cy-ok svg { width: 0.9rem; height: 0.9rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.cy-ok:hover { opacity: 1; color: color-mix(in srgb, #1e8e3e 55%, transparent); }
+.cy-ok.on { opacity: 1; background: #1e8e3e; border-color: #1e8e3e; color: #fff; }
+.cy-editing .cy-line.is-ok { box-shadow: inset 3px 0 0 #1e8e3e; }
+.cy-editing .cy-line.is-target.is-ok { box-shadow: inset 4px 0 0 #c0392b; }
+
+/* Cerca de Cyrano: ocupa tot l'ample (ni més ni menys) i, si no hi cap, passa a una segona línia en lloc de tallar-se */
+.cy-search > * { min-width: 0; }
+.cy-search textarea { width: 100%; min-height: 0; padding: 0.55rem 0.1rem; font: inherit; font-size: 1rem; line-height: 1.3; border: 0; border-bottom: 1px solid var(--wine); border-radius: 0; background: transparent; resize: none; overflow: hidden; }
+.cy-search textarea:focus { outline: none; border-bottom-width: 2px; padding-bottom: calc(0.55rem - 1px); }
+.cy-search textarea::placeholder { color: var(--muted); opacity: 0.8; }
+.cy-search select { width: 100%; }
+/* Mòbil: els botons de vista, vídeo, PDF i mode, centrats */
+@media (max-width: 40rem) { .cy-switches { justify-content: center; } .cy-heading { text-align: center; flex-basis: 100%; } }
+
+.cy-cap-hint { color: #ff8a7a; }
+
+/* Revisió ortogràfica de tot el text */
+.dlg.spell-report { width: min(42rem, calc(100% - 2rem)); max-height: min(85vh, 46rem); display: flex; flex-direction: column; }
+.dlg.spell-report h2 { margin: 0 0 0.4rem; font-size: 1.3rem; border: 0; padding: 0; }
+.spell-verdict { margin: 0 0 0.6rem; font-family: var(--sans); font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+.spell-verdict.ok { color: #2f9e57; }
+.spell-verdict.bad { color: var(--logo-red); }
+.spell-rep-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; display: grid; gap: 0.7rem; align-content: start; }
+.spell-where { font-size: 0.78rem; color: var(--muted); }
+.spell-rep-list .spell { margin: 0.2rem 0 0; }

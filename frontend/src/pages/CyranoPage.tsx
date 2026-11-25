@@ -7,8 +7,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useAuth } from "../auth";
 import { highlight, roman, searchTerms, toSeconds, toStamp } from "../cyrano";
-import { SpellIssues } from "../components/SpellIssues";
-import { findIssues, ignoreWord, type Issue } from "../spell";
+import { SpellReport } from "../components/SpellReport";
 
 const actLabel = (act: number) => (act === 0 ? "Notes" : `Acte ${roman(act)}`);
 const sceneLabel = (act: number, scene: number) =>
@@ -72,11 +71,14 @@ interface JumpProps {
   canSwitchMode: boolean;
   editing: boolean;
   onEditing: (on: boolean) => void;
+  captureAvailable: boolean;
+  capturing: boolean;
+  onCapture: (on: boolean) => void;
   onGo: (to: { act: number; scene: number }) => void;
   onClose: () => void;
 }
 
-function Jump({ outline, from, continuous, onView, canSwitchMode, editing, onEditing, onGo, onClose }: JumpProps) {
+function Jump({ outline, from, continuous, onView, canSwitchMode, editing, onEditing, captureAvailable, capturing, onCapture, onGo, onClose }: JumpProps) {
   const [pick, setPick] = useState(from);
   const acts = outline.acts.filter((a) => a.act > 0);
   const scenes = outline.acts.find((a) => a.act === pick.act)?.scenes ?? [];
@@ -97,6 +99,11 @@ function Jump({ outline, from, continuous, onView, canSwitchMode, editing, onEdi
             <div className="cy-modes" role="group" aria-label="Mode">
               <button type="button" className={editing ? "" : "on"} aria-pressed={!editing} onClick={() => onEditing(false)}>Lectura</button>
               <button type="button" className={editing ? "on" : ""} aria-pressed={editing} onClick={() => onEditing(true)}>Edició</button>
+            </div>
+          )}
+          {captureAvailable && (
+            <div className="cy-modes" role="group" aria-label="Captura de vídeo">
+              <button type="button" className={capturing ? "on" : ""} aria-pressed={capturing} onClick={() => onCapture(!capturing)}>Captura de vídeo</button>
             </div>
           )}
         </div>
@@ -136,43 +143,6 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const stampInput = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const dirty = useRef(false);
-  // Ortografia: el text es revisa mentre s'escriu i no es pot desar amb faltes (es corregeixen o s'ignoren).
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [checking, setChecking] = useState(false);
-  const spellTimer = useRef<number>();
-  const textField = () => formRef.current?.elements.namedItem("text") as HTMLTextAreaElement | null;
-  async function runSpell(): Promise<Issue[]> {
-    const el = textField();
-    if (!el) return [];
-    setChecking(true);
-    try {
-      const found = await findIssues(el.value, speakers);
-      setIssues(found);
-      return found;
-    } finally {
-      setChecking(false);
-    }
-  }
-  function scheduleSpell() {
-    window.clearTimeout(spellTimer.current);
-    spellTimer.current = window.setTimeout(() => void runSpell().catch(() => {}), 600);
-  }
-  function fixIssue(i: Issue, to: string) {
-    const el = textField();
-    if (!el || el.value.slice(i.index, i.index + i.word.length) !== i.word) return void runSpell().catch(() => {});
-    el.value = el.value.slice(0, i.index) + to + el.value.slice(i.index + i.word.length);
-    dirty.current = true;
-    void runSpell().catch(() => {});
-  }
-  function ignoreIssue(i: Issue) {
-    ignoreWord(i.word);
-    void runSpell().catch(() => {});
-  }
-  useEffect(() => () => window.clearTimeout(spellTimer.current), []);
-  useEffect(() => {
-    setIssues([]);
-    if (mode === "edit") scheduleSpell();
-  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const [ask, setAsk] = useState<"delete" | "discard" | null>(null);
   const asking = useRef(false);
   asking.current = ask !== null;
@@ -266,17 +236,6 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
     setBusy(true);
     setError("");
     try {
-      let bad: Issue[] = [];
-      try {
-        bad = await runSpell();
-      } catch {
-        /* sense corrector (no s'ha pogut descarregar el diccionari): es desa igualment */
-      }
-      if (bad.length > 0) {
-        setError("Hi ha faltes d'ortografia al text: corregeix-les o prem «Ignora» abans de desar.");
-        setBusy(false);
-        return;
-      }
       const payload = { speaker: kind === "speech" ? speaker.trim() : null, kind, text: String(f.get("text")), stamp: String(f.get("stamp")).trim() || null };
       if (mode === "add") onInserted?.(await api.cyranoInsert(line.id, payload), line.id);
       else onSaved(await api.cyranoEdit(line.id, payload));
@@ -289,7 +248,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   }
 
   const editor = mode && (
-    <form className="cy-edit" ref={formRef} onSubmit={save} onInput={() => { dirty.current = true; scheduleSpell(); }} key={mode}>
+    <form className="cy-edit" ref={formRef} onSubmit={save} onInput={() => { dirty.current = true; }} key={mode}>
         <div className="cy-edit-row">
           <label>
             Tipus
@@ -331,9 +290,8 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
             </button>
           )}
         </div>
-        <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus lang="ca" spellCheck />
-        <SpellIssues issues={issues} checking={checking} onFix={fixIssue} onIgnore={ignoreIssue} />
-        <ErrorMessage message={error} />
+        <textarea name="text" defaultValue={mode === "add" ? "" : line.text} rows={mode === "add" ? 3 : Math.min(10, Math.max(3, Math.ceil(line.text.length / 70)))} required autoFocus lang="ca" spellCheck={false} />
+                <ErrorMessage message={error} />
         <div className="cy-edit-actions">
           <button type="submit" disabled={busy}>{mode === "add" ? "Afegeix" : "Desa"}</button>
           <button type="button" className="ghost" onClick={() => setMode(null)}>Cancel·la</button>
@@ -365,7 +323,19 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const body = <Marked text={line.text} terms={terms} />;
   return (
     <>
-    <div ref={ref} data-line={line.id} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}${target ? " is-target" : ""}`} onClick={onTarget}>
+    <div ref={ref} data-line={line.id} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}${target ? " is-target" : ""}${line.reviewed ? " is-ok" : ""}`} onClick={onTarget}>
+      {canEdit && line.kind !== "title" && (
+        <button
+          type="button"
+          className={`cy-ok${line.reviewed ? " on" : ""}`}
+          aria-pressed={!!line.reviewed}
+          aria-label={line.reviewed ? "Treu la marca de revisada" : "Marca com a revisada"}
+          title={line.reviewed ? "Revisada (clica per treure-ho)" : "Marca com a revisada: text i hora correctes"}
+          onClick={(e) => { e.stopPropagation(); void api.cyranoReviewed(line.id, !line.reviewed).then(onSaved).catch(() => undefined); }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+        </button>
+      )}
       {line.kind === "speech" ? (
         <>
           <div className="cy-who">
@@ -411,6 +381,7 @@ export function CyranoPage() {
   const [params, setParams] = useSearchParams();
   const canEdit = isAdmin && params.get("mode") === "edicio";
   const [outline, setOutline] = useState<CyranoOutline | null>(null);
+  const [toReview, setToReview] = useState<number | null>(null); // checks que falten (només es mostra en edició)
   const [lines, setLines] = useState<CyranoLine[]>([]);
   const [results, setResults] = useState<{ list: CyranoLine[]; truncated: boolean } | null>(null);
   const [all, setAll] = useState<CyranoLine[] | null>(null);
@@ -421,6 +392,7 @@ export function CyranoPage() {
   const [jumpEl, setJumpEl] = useState<HTMLButtonElement | null>(null);
   const [navsGone, setNavsGone] = useState(false);
   const [jumping, setJumping] = useState(false);
+  const [spelling, setSpelling] = useState(false);
 
   // Vídeo de l'obra (si s'ha pujat): reproductor flotant, i les marques de temps salten al vídeo.
   const [video, setVideo] = useState<string | null>(null);
@@ -457,6 +429,13 @@ export function CyranoPage() {
   const [capId, setCapId] = useState(0);
   const [capMsg, setCapMsg] = useState("");
   const capBusy = useRef(false);
+  const [capStep, setCapStep] = useState(() => {
+    try { return Number(localStorage.getItem("cy-step")) || 5; } catch { return 5; }
+  });
+  const stepVideo = (dir: 1 | -1) => {
+    const el = player.current;
+    if (el) el.currentTime = Math.max(0, el.currentTime + dir * capStep);
+  };
 
   function seek(seconds: number) {
     const el = player.current;
@@ -490,7 +469,7 @@ export function CyranoPage() {
   }
 
   useEffect(() => {
-    api.cyranoOutline().then(setOutline).catch((e) => setError((e as Error).message));
+    api.cyranoOutline().then((o) => { setOutline(o); setToReview(o.unreviewed); }).catch((e) => setError((e as Error).message));
   }, []);
 
   const first = outline?.acts.find((a) => a.act > 0) ?? outline?.acts[0];
@@ -579,7 +558,7 @@ export function CyranoPage() {
   function submitSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const text = String(f.get("q")).trim();
+    const text = String(f.get("q")).replace(/\s+/g, " ").trim();
     const person = String(f.get("personatge"));
     if (!text && !person) return update({ q: null, personatge: null, cerca: null, linia: null });
     update({ q: text || null, personatge: person || null, cerca: "1", linia: null });
@@ -610,6 +589,8 @@ export function CyranoPage() {
   }
 
   function saved(updated: CyranoLine) {
+    // Si ha canviat el check (o el text, que el treu), es torna a comptar els que falten
+    void api.cyranoOutline().then((o) => setToReview(o.unreviewed)).catch(() => undefined);
     const swap = (l: CyranoLine) => (l.id === updated.id ? updated : l);
     setLines((ls) => ls.map(swap));
     setAll((a) => a && a.map(swap));
@@ -657,7 +638,8 @@ export function CyranoPage() {
 
   useEffect(() => {
     if (!capture || !capId) return;
-    document.querySelector(`.cy-line[data-line="${capId}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    // La rèplica marcada es queda a dalt de tot (sota la capçalera): així es veu què ve a sota mentre es marca
+    document.querySelector(`.cy-line[data-line="${capId}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, [capture, capId]);
 
   function capMove(by: number) {
@@ -686,8 +668,19 @@ export function CyranoPage() {
       capBusy.current = false;
     }
   }
-  const captureFn = useRef({ captureNow, capMove });
-  captureFn.current = { captureNow, capMove };
+  async function toggleReviewedNow() {
+    const { capList: list, capId: id } = capRef.current;
+    const line = list.find((l) => l.id === id);
+    if (!line) return;
+    try {
+      saved(await api.cyranoReviewed(line.id, !line.reviewed));
+      if (!line.reviewed) capMove(1); // en donar-la per bona, passa a la següent
+    } catch (err) {
+      setCapMsg((err as Error).message);
+    }
+  }
+  const captureFn = useRef({ captureNow, capMove, toggleReviewedNow, stepVideo });
+  captureFn.current = { captureNow, capMove, toggleReviewedNow, stepVideo };
 
   useEffect(() => {
     if (!capture) return;
@@ -697,6 +690,8 @@ export function CyranoPage() {
       const key = e.key.toLowerCase();
       if (key === "s") return void (e.preventDefault(), captureFn.current.capMove(1));
       if (key === "z") return void (e.preventDefault(), captureFn.current.capMove(-1));
+      if (key === "v") return void (e.preventDefault(), void captureFn.current.toggleReviewedNow());
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") return void (e.preventDefault(), captureFn.current.stepVideo(e.key === "ArrowRight" ? 1 : -1));
       if (e.key !== "Tab" || e.shiftKey || e.repeat) return;
       e.preventDefault();
       void captureFn.current.captureNow();
@@ -755,7 +750,14 @@ export function CyranoPage() {
   return (
     <section className={`cy${canEdit ? " cy-editing" : ""}`}>
       <div className="cy-title">
-        <h1>Cyrano de Bergerac</h1>
+        <div className="cy-heading">
+          <div className="cy-heading-in">
+            <h1>Cyrano de Bergerac</h1>
+            {canEdit && toReview !== null && (
+              <p className="cy-rev">{toReview === 0 ? "Revisió: tot revisat ✓" : `Revisió: falt${toReview === 1 ? "a 1 check" : `en ${toReview.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} checks`}`}</p>
+            )}
+          </div>
+        </div>
         <div className="cy-switches">
           <div className="cy-modes" role="group" aria-label="Vista">
             <button type="button" className={continuous ? "" : "on"} aria-pressed={!continuous} onClick={() => setView(true)}>Paginada</button>
@@ -776,6 +778,12 @@ export function CyranoPage() {
               Captura
             </button>
           )}
+          {isAdmin && (
+            <button type="button" className="cy-pdf" onClick={() => setSpelling(true)} title="Revisa l'ortografia de tot el text">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l4-11 4 11M5.5 14h5M14 15l2.5 2.5L21 11" /></svg>
+              Revisió ortogràfica
+            </button>
+          )}
           <a className="cy-pdf" href="/api/v1/cyrano/pdf" download="Cyrano-de-Bergerac.pdf" title="Baixa l'obra en PDF">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 4v10M8 10.5l4 4 4-4M5 19h14" />
@@ -792,7 +800,17 @@ export function CyranoPage() {
       </div>
 
       <form className="cy-search" role="search" onSubmit={submitSearch}>
-        <input name="q" defaultValue={q} key={`q-${q}`} placeholder="Cerca una paraula, o una frase entre cometes…" aria-label="Cerca al text" />
+        <textarea
+          name="q"
+          rows={1}
+          defaultValue={q}
+          key={`q-${q}`}
+          placeholder="Cerca una paraula, o una frase entre cometes…"
+          aria-label="Cerca al text"
+          onInput={(e) => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
+          ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
+        />
         <select name="personatge" defaultValue={who} key={`p-${who}`} aria-label="Personatge">
           <option value="">Tots els personatges</option>
           {outline.speakers.map((s) => <option key={s.name} value={s.name}>{s.name} ({s.lines})</option>)}
@@ -910,6 +928,14 @@ export function CyranoPage() {
           {viewAct === 0 ? "N" : `${roman(viewAct)}·${roman(viewScene)}`}
         </button>
       )}
+      {spelling && (
+        <SpellReport
+          speakers={speakers}
+          onClose={() => setSpelling(false)}
+          onSaved={saved}
+          onOpen={(l) => { setSpelling(false); openLine(l); }}
+        />
+      )}
       {outline && jumping && (
         <Jump
           outline={outline}
@@ -918,7 +944,18 @@ export function CyranoPage() {
           onView={(paged) => { setJumping(false); setView(paged); }}
           canSwitchMode={isAdmin}
           editing={canEdit}
-          onEditing={(on) => { setJumping(false); update({ mode: on ? "edicio" : null }); }}
+          onEditing={(on) => { setJumping(false); if (!on) setCapture(false); update({ mode: on ? "edicio" : null }); }}
+          captureAvailable={!!video && isAdmin}
+          capturing={capture}
+          onCapture={(on) => {
+            setJumping(false);
+            setCapMsg("");
+            setCapture(on);
+            if (on) {
+              setPlayerOpen(true);
+              if (!canEdit) update({ mode: "edicio" });
+            }
+          }}
           onClose={() => setJumping(false)}
           onGo={(to) => {
             setJumping(false);
@@ -929,17 +966,27 @@ export function CyranoPage() {
       )}
       {video && playerOpen && capture && (
         <div className="cy-cap-pad">
-          <button type="button" className="cy-cap-skip" aria-label="Salta aquesta rèplica" onClick={() => capMove(1)}>Salta</button>
           <button type="button" className="cy-cap-go" onPointerDown={(e) => { e.preventDefault(); void captureNow(); }}>Marca</button>
-          <button type="button" className="cy-cap-skip" aria-label="Torna a la rèplica anterior" onClick={() => capMove(-1)}>Enrere</button>
+          <span className="cy-cap-side">
+            <button type="button" className="cy-cap-skip" aria-label="Torna a la rèplica anterior" onClick={() => capMove(-1)}>Enrere</button>
+            <button type="button" className="cy-cap-skip cy-cap-check" aria-label="Dona la rèplica per revisada i passa a la següent" onClick={() => void toggleReviewedNow()}>✓</button>
+            <button type="button" className="cy-cap-skip" aria-label="Salta aquesta rèplica" onClick={() => capMove(1)}>Salta</button>
+          </span>
         </div>
       )}
       {video && playerOpen && (
         <div className="cy-player">
           <button type="button" className="cy-player-close" aria-label="Tanca el vídeo" onClick={() => setPlayerOpen(false)}>×</button>
           {capture && (
-            <p className="cy-cap-hint"><strong>Captura:</strong> <kbd>Tab</kbd> o el botó «Marca» desa l'hora i passa a la següent · <kbd>S</kbd> salta · <kbd>Z</kbd> enrere · o clica una rèplica{capMsg && <em> — {capMsg}</em>}</p>
+            <div className="cy-step" role="group" aria-label="Salt del vídeo">
+              <button type="button" onClick={() => stepVideo(-1)} aria-label={`Enrere ${capStep} segons`}>−{capStep}s</button>
+              {[1, 5, 10, 30].map((n) => (
+                <button key={n} type="button" className={n === capStep ? "on" : ""} aria-pressed={n === capStep} onClick={() => { setCapStep(n); try { localStorage.setItem("cy-step", String(n)); } catch { /* sense emmagatzematge */ } }}>{n}</button>
+              ))}
+              <button type="button" onClick={() => stepVideo(1)} aria-label={`Endavant ${capStep} segons`}>+{capStep}s</button>
+            </div>
           )}
+          {capture && capMsg && <p className="cy-cap-hint">{capMsg}</p>}
           <video
             ref={player}
             src={video}

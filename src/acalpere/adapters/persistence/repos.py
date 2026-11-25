@@ -662,7 +662,9 @@ class SqlCyranoRepository:
 
     @staticmethod
     def _line(r: m.CyranoLineRow) -> Line:
-        return Line(r.id, r.act, r.scene, r.position, r.kind, r.speaker, r.stamp, r.text)
+        return Line(
+            r.id, r.act, r.scene, r.position, r.kind, r.speaker, r.stamp, r.text, bool(r.reviewed)
+        )
 
     def sections(self) -> list[tuple[int, int]]:
         with self._sf() as s:
@@ -744,6 +746,8 @@ class SqlCyranoRepository:
                     )
                 )
             now = _now()
+            if (row.speaker, row.kind, row.text, row.stamp) != (speaker, kind, text, stamp):
+                row.reviewed = False  # si canvia res, cal tornar-la a revisar
             row.speaker, row.kind, row.text, row.norm, row.stamp, row.updated_at = (
                 speaker,
                 kind,
@@ -763,6 +767,15 @@ class SqlCyranoRepository:
                     edited_at=now,
                 )
             )
+            s.flush()
+            return self._line(row)
+
+    def set_reviewed(self, line_id: int, reviewed: bool) -> Line | None:
+        with self._sf.begin() as s:
+            row = s.get(m.CyranoLineRow, line_id)
+            if row is None:
+                return None
+            row.reviewed = reviewed
             s.flush()
             return self._line(row)
 
@@ -849,6 +862,18 @@ class SqlCyranoRepository:
         with self._sf() as s:
             row = s.get(m.CyranoRevisionRow, revision_id)
             return self._revision(row) if row else None
+
+    def unreviewed_count(self) -> int:
+        """Línies (menys els títols) que encara no tenen el xec verd de revisada."""
+        with self._sf() as s:
+            return (
+                s.scalar(
+                    select(func.count())
+                    .select_from(m.CyranoLineRow)
+                    .where(m.CyranoLineRow.kind != "title", m.CyranoLineRow.reviewed.is_(False))
+                )
+                or 0
+            )
 
     def edited_count(self) -> int:
         with self._sf() as s:

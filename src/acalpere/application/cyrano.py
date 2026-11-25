@@ -103,6 +103,16 @@ class CyranoService:
             raise NotFound("Línia no trobada")
         return line
 
+    def unreviewed_count(self) -> int:
+        return self._repo.unreviewed_count()
+
+    def set_reviewed(self, line_id: int, reviewed: bool) -> Line:
+        """Marca o desmarca una línia com a revisada (no és una edició: no entra a l'historial)."""
+        line = self._repo.set_reviewed(line_id, reviewed)
+        if line is None:
+            raise NotFound("Línia no trobada")
+        return line
+
     def delete(self, line_id: int) -> None:
         """Esborra una rèplica, acotació o text (els títols i les notes no es toquen)."""
         if self._repo.delete(line_id, tuple(EDITABLE_KINDS)) is None:

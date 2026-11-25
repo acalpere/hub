@@ -29,6 +29,7 @@ class Line:
     speaker: str | None
     stamp: str | None  # marca temporal de l'enregistrament, "00:03:01"
     text: str
+    reviewed: bool = False  # revisada: text i sincronització del vídeo donats per bons
 
 
 @dataclass(frozen=True)

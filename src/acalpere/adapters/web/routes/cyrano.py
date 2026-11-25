@@ -16,6 +16,10 @@ class RestoreIn(BaseModel):
     revision_id: int
 
 
+class ReviewedIn(BaseModel):
+    reviewed: bool
+
+
 class LineIn(BaseModel):
     speaker: str | None = Field(default=None, max_length=80)
     kind: str = Field(max_length=10)
@@ -32,12 +36,17 @@ def _line(line: Line) -> dict:
         "speaker": line.speaker,
         "stamp": line.stamp,
         "text": line.text,
+        "reviewed": line.reviewed,
     }
 
 
 @router.get("/outline")
 def outline(c: Container = Depends(container)):
-    return {"acts": c.cyrano.outline(), "speakers": c.cyrano.speakers()}
+    return {
+        "acts": c.cyrano.outline(),
+        "speakers": c.cyrano.speakers(),
+        "unreviewed": c.cyrano.unreviewed_count(),
+    }
 
 
 @router.get("/text")
@@ -98,6 +107,16 @@ def edit(
     return _line(
         c.cyrano.edit(line_id, body.speaker, body.kind, body.text, body.stamp, user.username)
     )
+
+
+@router.put("/lines/{line_id}/reviewed")
+def reviewed(
+    line_id: int,
+    body: ReviewedIn,
+    _: User = Depends(admin_user),
+    c: Container = Depends(container),
+):
+    return _line(c.cyrano.set_reviewed(line_id, body.reviewed))
 
 
 @router.post("/lines/{line_id}/insert")

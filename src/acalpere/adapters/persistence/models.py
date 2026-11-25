@@ -395,6 +395,9 @@ class CyranoLineRow(Base):
     text: Mapped[str] = mapped_column(Text, nullable=False)
     norm: Mapped[str] = mapped_column(Text, nullable=False)  # text sense accents, per cercar
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reviewed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
 
 
 class CyranoRevisionRow(Base):

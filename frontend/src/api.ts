@@ -24,7 +24,7 @@ export interface Agent {
 export type CyranoKind = "speech" | "stage" | "text" | "title" | "note";
 export interface CyranoLine {
   id: number; act: number; scene: number; kind: CyranoKind;
-  speaker: string | null; stamp: string | null; text: string;
+  speaker: string | null; stamp: string | null; text: string; reviewed?: boolean;
 }
 export interface CyranoRevision {
   id: number; speaker: string | null; kind: CyranoKind; text: string; stamp: string | null;
@@ -33,6 +33,7 @@ export interface CyranoRevision {
 export interface CyranoOutline {
   acts: { act: number; title: string; scenes: number[] }[];
   speakers: { name: string; lines: number }[];
+  unreviewed: number; // línies que encara no tenen el xec verd
 }
 
 export class ApiError extends Error {
@@ -118,6 +119,8 @@ export const api = {
     request<CyranoLine>("PUT", `/cyrano/lines/${id}`, line),
   cyranoInsert: (afterId: number, line: { speaker: string | null; kind: CyranoKind; text: string; stamp: string | null }) =>
     request<CyranoLine>("POST", `/cyrano/lines/${afterId}/insert`, line),
+  cyranoReviewed: (id: number, reviewed: boolean) =>
+    request<CyranoLine>("PUT", `/cyrano/lines/${id}/reviewed`, { reviewed }),
   cyranoDelete: (id: number) => request<{ ok: boolean }>("DELETE", `/cyrano/lines/${id}`),
   cyranoHistory: (id: number) => request<CyranoRevision[]>("GET", `/cyrano/lines/${id}/history`),
   cyranoRestore: (id: number, revisionId: number) =>

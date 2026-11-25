@@ -300,3 +300,32 @@ def test_cyrano_delete_line(client, container, admin):
     assert admin.delete(f"/api/v1/cyrano/lines/{target['id']}").status_code == 404
     heading = next(x for x in container.cyrano.export_lines() if x.kind == "title")
     assert admin.delete(f"/api/v1/cyrano/lines/{heading.id}").status_code == 404  # els títols no
+
+
+def test_cyrano_reviewed_mark(client, container, admin):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    line = admin.get("/api/v1/cyrano/scenes/1/2").json()[0]
+    assert line["reviewed"] is False
+    url = f"/api/v1/cyrano/lines/{line['id']}"
+    assert admin.put(url + "/reviewed", json={"reviewed": True}).json()["reviewed"] is True
+    assert admin.get("/api/v1/cyrano/scenes/1/2").json()[0]["reviewed"] is True
+    assert admin.get(url + "/history").json() == []  # marcar no és una edició
+    body = {"speaker": line["speaker"], "kind": line["kind"], "text": line["text"], "stamp": None}
+    assert admin.put(url, json=body).json()["reviewed"] is True  # res no canvia: continua revisada
+    assert admin.put(url, json={**body, "stamp": "00:01:00"}).json()["reviewed"] is False
+    assert admin.put("/api/v1/cyrano/lines/999999/reviewed", json={"reviewed": True}).status_code == 404
+
+
+def test_cyrano_reviewed_only_admin(client, container, germa):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    r = germa.put("/api/v1/cyrano/lines/1/reviewed", json={"reviewed": True})
+    assert r.status_code in (401, 403)
+
+
+def test_cyrano_outline_counts_unreviewed(client, container, admin):
+    container.cyrano.import_transcript(PARAGRAPHS)
+    first = admin.get("/api/v1/cyrano/outline").json()["unreviewed"]
+    assert first > 0
+    line = admin.get("/api/v1/cyrano/scenes/1/2").json()[0]
+    admin.put(f"/api/v1/cyrano/lines/{line['id']}/reviewed", json={"reviewed": True})
+    assert admin.get("/api/v1/cyrano/outline").json()["unreviewed"] == first - 1
