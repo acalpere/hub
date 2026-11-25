@@ -92,10 +92,11 @@ export function Layout() {
   return (
     <div className={`shell${framed ? " framed" : ""}`}>
       <header className="top">
-        <Link to="/" className="brand">
-          <img src="/logo.svg" alt="" width={40} height={40} onClick={openMenu} />
+        {/* Només el logo és un enllaç (obre el menú); el vers de la capçalera és text, no porta enlloc */}
+        <div className="brand">
+          <img src="/logo.svg" alt="Menú" width={40} height={40} onClick={openMenu} role={user ? "button" : undefined} />
           {showVerse ? <FadingVerse className="brand-verse" text={cached} /> : <span>acalpere<span className="tld">.cat</span></span>}
-        </Link>
+        </div>
       </header>
       {user && (
         <QuickMenu

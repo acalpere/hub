@@ -45,3 +45,17 @@ def test_provisional_title_from_first_verse() -> None:
     assert provisional_title("\n  Com un mar de sal,\nsegon vers") == "Com un mar de sal"
     assert provisional_title("   \n") == "Sense títol"
     assert provisional_title("paraula " * 20).endswith("…")
+
+
+def test_marked_verses_are_saved_and_kept() -> None:
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        poems = ManagePoems(SqlAlchemyPoemRepository(session))
+        poem = poems.create("Mar", "a\nb\nc", PoemStatus.IN_PROGRESS, (3, 1, 3))
+        assert poem.marks == (1, 3)
+        # sense indicar marques, es conserven; amb una llista buida, s'esborren
+        assert poems.save(poem.id, "Mar", "a\nb\nc", PoemStatus.IN_PROGRESS).marks == (1, 3)
+        assert poems.save(poem.id, "Mar", "a\nb\nc", PoemStatus.IN_PROGRESS, ()).marks == ()

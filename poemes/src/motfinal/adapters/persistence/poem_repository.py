@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -16,6 +17,13 @@ def _aware(value: datetime | None) -> datetime | None:
     return value
 
 
+def _load_marks(raw: str | None) -> tuple[int, ...]:
+    try:
+        return tuple(sorted({int(n) for n in json.loads(raw or "[]")}))
+    except (ValueError, TypeError):
+        return ()
+
+
 def _to_domain(record: PoemRecord) -> Poem:
     return Poem(
         id=record.id,
@@ -27,6 +35,7 @@ def _to_domain(record: PoemRecord) -> Poem:
         status_changed_at=_aware(record.status_changed_at),  # type: ignore[arg-type]
         finished_at=_aware(record.finished_at),
         published_at=_aware(record.published_at),
+        marks=_load_marks(record.marks),
     )
 
 
@@ -39,6 +48,7 @@ def _fill(record: PoemRecord, poem: Poem) -> None:
     record.status_changed_at = poem.status_changed_at
     record.finished_at = poem.finished_at
     record.published_at = poem.published_at
+    record.marks = json.dumps(list(poem.marks))
 
 
 class SqlAlchemyPoemRepository:

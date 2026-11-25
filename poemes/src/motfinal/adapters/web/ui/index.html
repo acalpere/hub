@@ -23,12 +23,20 @@
         <div class="poem-card">
           <div class="poem-top">
             <p class="eyebrow" id="poem-heading">El poema</p>
-            <button id="new-poem" class="secondary-small" type="button">Nou</button>
+            <span class="poem-top-actions">
+              <button id="mark-mode" class="mark-toggle" type="button" aria-pressed="false" aria-label="Marcador: clica el número d'un vers per marcar-lo o desmarcar-lo" title="Marcador: clica el número d'un vers per marcar-lo o desmarcar-lo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h7M14.5 4.5l5 5L10 19l-5 .5.5-5z"/></svg>
+              </button>
+              <button id="new-poem" class="secondary-small" type="button">Nou</button>
+            </span>
           </div>
           <input id="poem-title" class="poem-title" placeholder="Títol" maxlength="200" aria-label="Títol del poema">
           <div class="poem-editor">
             <ol id="poem-gutter" class="poem-gutter" aria-hidden="true"><li>1</li></ol>
-            <textarea id="poem-body" class="poem-body" rows="14" spellcheck="true" lang="ca" placeholder="Escriu els versos…" aria-label="Versos"></textarea>
+            <div class="poem-text">
+              <div id="poem-marks" class="poem-marks" aria-hidden="true"></div>
+              <textarea id="poem-body" class="poem-body" rows="14" spellcheck="true" lang="ca" placeholder="Escriu els versos…" aria-label="Versos"></textarea>
+            </div>
           </div>
           <div class="poem-actions">
             <label class="status-field">

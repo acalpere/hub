@@ -187,7 +187,10 @@ def build_router(
 
     @poems_router.post("/poems", response_model=PoemResponse, status_code=201)
     def create_poem(payload: PoemInput, poems: PoemsUseCase) -> PoemResponse:
-        return _poem_response(poems.create(payload.title, payload.body, payload.status))
+        created = poems.create(
+            payload.title, payload.body, payload.status, tuple(payload.marks or ())
+        )
+        return _poem_response(created)
 
 
     @poems_router.get("/poems/{poem_id}", response_model=PoemResponse)
@@ -201,7 +204,9 @@ def build_router(
     @poems_router.put("/poems/{poem_id}", response_model=PoemResponse)
     def save_poem(poem_id: int, payload: PoemInput, poems: PoemsUseCase) -> PoemResponse:
         try:
-            return _poem_response(poems.save(poem_id, payload.title, payload.body, payload.status))
+            marks = None if payload.marks is None else tuple(payload.marks)
+            saved = poems.save(poem_id, payload.title, payload.body, payload.status, marks)
+            return _poem_response(saved)
         except PoemNotFound as exc:
             raise HTTPException(status_code=404, detail="Poema no trobat.") from exc
 

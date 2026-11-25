@@ -10,6 +10,10 @@ const newPoemButton = document.querySelector("#new-poem");
 
 const STATUS_LABELS = { in_progress: "En procés", finished: "Acabat", published: "Publicat" };
 let currentPoem = null;
+let marks = new Set(); // números dels versos marcats
+const markButton = document.querySelector("#mark-mode");
+const poemMarks = document.querySelector("#poem-marks");
+const poemEditor = document.querySelector(".poem-editor");
 
 const loginCard = document.querySelector("#login-card");
 const loginPassword = document.querySelector("#login-password");
@@ -105,12 +109,36 @@ function updateGutter() {
   // Numera els versos: línies no buides, i les estrofes (línies en blanc) no compten.
   const lines = poemBody.value.split("\n");
   let verse = 0;
+  const bars = [];
   poemGutter.innerHTML = lines
-    .map((line) => `<li>${line.trim() ? ++verse : "&nbsp;"}</li>`)
+    .map((line, i) => {
+      if (!line.trim()) return "<li>&nbsp;</li>";
+      const n = ++verse;
+      if (marks.has(n)) bars.push(i);
+      return `<li data-verse="${n}"${marks.has(n) ? ' class="marked"' : ""}>${n}</li>`;
+    })
     .join("");
   poemBody.style.height = "auto";
   poemBody.style.height = `${Math.max(320, poemBody.scrollHeight)}px`;
+  // Franges fluorescents darrere el text: una per vers marcat (cada línia fa sempre la mateixa alçada)
+  const style = getComputedStyle(poemBody);
+  const lineHeight = parseFloat(style.lineHeight) || 1.7 * parseFloat(style.fontSize);
+  const top = parseFloat(style.paddingTop) || 0;
+  poemMarks.innerHTML = bars.map((i) => `<i style="top:${top + i * lineHeight}px;height:${lineHeight}px"></i>`).join("");
 }
+
+markButton.addEventListener("click", () => {
+  const on = markButton.getAttribute("aria-pressed") !== "true";
+  markButton.setAttribute("aria-pressed", String(on));
+  poemEditor.classList.toggle("marking", on);
+});
+poemGutter.addEventListener("click", (event) => {
+  const item = event.target.closest("li[data-verse]");
+  if (!item || markButton.getAttribute("aria-pressed") !== "true") return;
+  const n = Number(item.dataset.verse);
+  if (!marks.delete(n)) marks.add(n);
+  updateGutter();
+});
 
 function showMessage(text, error = false) {
   poemMessage.hidden = !text;
@@ -150,6 +178,7 @@ function fill(poem) {
   poemTitle.value = poem?.title ?? "";
   poemBody.value = poem?.body ?? "";
   poemStatus.value = poem?.status ?? "in_progress";
+  marks = new Set(poem?.marks ?? []);
   updateGutter();
   renderDates();
   showMessage("");
@@ -168,7 +197,7 @@ async function loadList() {
 async function savePoem() {
   savePoemButton.disabled = true;
   try {
-    const payload = { title: poemTitle.value, body: poemBody.value, status: poemStatus.value };
+    const payload = { title: poemTitle.value, body: poemBody.value, status: poemStatus.value, marks: [...marks].sort((a, b) => a - b) };
     const response = await api(currentPoem ? `${window.MOTFINAL.api}/poems/${currentPoem.id}` : `${window.MOTFINAL.api}/poems`, {
       method: currentPoem ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },

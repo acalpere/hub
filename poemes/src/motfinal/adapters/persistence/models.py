@@ -50,5 +50,6 @@ class PoemRecord(Base):
     status_changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    marks: Mapped[str] = mapped_column(Text, nullable=False, default="[]", server_default="[]")
 
     __table_args__ = (Index("ix_poems_updated_at", "updated_at"),)

@@ -82,3 +82,4 @@ class Poem:
     finished_at: datetime | None = None
     published_at: datetime | None = None
     id: int | None = None
+    marks: tuple[int, ...] = ()  # números dels versos marcats (fluorescent)

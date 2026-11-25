@@ -322,7 +322,7 @@ h2.opt-title { margin: 1.5rem 0 1rem; padding: 0; border: 0; border-image: none;
   .brand { flex: 1; }
 
   /* el vers es centra a la capçalera: ocupa l'espai que deixa el logo i es compensa amb el seu ample perquè quedi al mig */
-  .top .brand .brand-verse { flex: 1; max-width: none; text-align: center; padding-right: calc(52px + 0.6rem); }
+  .top .brand .brand-verse { flex: 1; max-width: none; text-align: center; padding-right: calc(64px + 0.6rem); }
   .foot-nav { display: none; }
 }
 .who-box { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
@@ -1073,7 +1073,8 @@ body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-event
 body::after { -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent calc(var(--moon-s) * 0.47), #000 calc(var(--moon-s) * 0.47 + 1px)); mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent calc(var(--moon-s) * 0.47), #000 calc(var(--moon-s) * 0.47 + 1px)); }
 
 /* Logo de la capçalera i del peu més grans */
-.brand img { width: 52px; height: 52px; }
+.brand img { width: 64px; height: 64px; }
+.brand .brand-verse { cursor: default; }
 .foot-brand img { width: 44px; height: 44px; }
 
 /* Mòbil: «Sortir» sense la lluna al costat */
@@ -1215,3 +1216,10 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
   .quick .quick-stack, .quick.from-top .quick-stack { left: 3rem; right: auto; bottom: auto; top: max(10rem, calc(var(--verse-b, 6rem) + 2.5rem)); flex-direction: column-reverse; align-items: flex-start; }
   .quick .quick-item, .quick.from-top .quick-item { transform-origin: left top; }
 }
+
+/* Mode captura de temps */
+.cy-line.is-target { background: color-mix(in srgb, var(--btn) 40%, transparent); box-shadow: inset 4px 0 0 #c0392b; }
+.cy-editing .cy-line.is-target { cursor: pointer; }
+.cy-cap-hint { margin: 0; padding: 0.4rem 2.2rem 0.4rem 0.7rem; background: #1b120a; color: #f6e4c8; font-size: 0.75rem; line-height: 1.4; }
+.cy-cap-hint kbd { padding: 0 0.35rem; border: 1px solid currentColor; border-radius: 4px; font: inherit; font-weight: 600; }
+.cy-cap-hint em { color: #ff8a7a; font-style: normal; }

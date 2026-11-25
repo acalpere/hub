@@ -52,6 +52,7 @@ class PoemInput(BaseModel):
     title: str = Field(default="", max_length=200)
     body: str = Field(default="", max_length=50_000)
     status: PoemStatus = PoemStatus.IN_PROGRESS
+    marks: list[int] | None = Field(default=None, max_length=5_000)  # None: no es toca
 
 
 class PoemResponse(BaseModel):
@@ -64,6 +65,7 @@ class PoemResponse(BaseModel):
     status_changed_at: datetime
     finished_at: datetime | None
     published_at: datetime | None
+    marks: list[int] = []
 
 
 class WordInfo(BaseModel):

@@ -219,3 +219,17 @@ form.rhymes-off .primary-fields { grid-template-columns: 1fr; }
 .login-card { display: grid; gap: 12px; }
 .login-password { font-size: 1.1rem; }
 .logout { margin-top: 12px; }
+
+/* Marcador: versos tatxats en fluorescent */
+.poem-top-actions { display: inline-flex; align-items: center; gap: 8px; }
+.mark-toggle { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 50%; opacity: .75; }
+.mark-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.mark-toggle:hover { color: var(--ink); background: transparent; opacity: 1; transform: none; }
+.mark-toggle[aria-pressed="true"] { color: #5a4a00; background: #fff176; border-color: #e6d84a; opacity: 1; }
+.poem-text { position: relative; flex: 1; min-width: 0; align-self: stretch; }
+.poem-text .poem-body { position: relative; display: block; width: 100%; background: transparent; }
+.poem-marks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.poem-marks i { position: absolute; left: 0; right: 0; background: rgba(255, 238, 0, .5); }
+.marking .poem-gutter li[data-verse] { cursor: pointer; }
+.marking .poem-gutter li[data-verse]:hover { color: var(--ink); background: rgba(255, 238, 0, .3); }
+.poem-gutter li.marked { color: #4d4200; background: rgba(255, 238, 0, .75); }

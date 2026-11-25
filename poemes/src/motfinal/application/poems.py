@@ -43,7 +43,9 @@ class ManagePoems:
             raise PoemNotFound(poem_id)
         return poem
 
-    def create(self, title: str, body: str, status: PoemStatus) -> Poem:
+    def create(
+        self, title: str, body: str, status: PoemStatus, marks: tuple[int, ...] = ()
+    ) -> Poem:
         now = self._clock()
         poem = Poem(
             title=title.strip() or provisional_title(body),
@@ -54,10 +56,18 @@ class ManagePoems:
             status_changed_at=now,
             finished_at=now if status is PoemStatus.FINISHED else None,
             published_at=now if status is PoemStatus.PUBLISHED else None,
+            marks=tuple(sorted(set(marks))),
         )
         return self._repository.add(poem)
 
-    def save(self, poem_id: int, title: str, body: str, status: PoemStatus) -> Poem:
+    def save(
+        self,
+        poem_id: int,
+        title: str,
+        body: str,
+        status: PoemStatus,
+        marks: tuple[int, ...] | None = None,
+    ) -> Poem:
         current = self.get(poem_id)
         now = self._clock()
         changes: dict[str, object] = {
@@ -65,6 +75,8 @@ class ManagePoems:
             "body": body,
             "updated_at": now,
         }
+        if marks is not None:
+            changes["marks"] = tuple(sorted(set(marks)))
         if status is not current.status:
             changes["status"] = status
             changes["status_changed_at"] = now

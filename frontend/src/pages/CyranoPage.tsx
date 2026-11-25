@@ -35,6 +35,8 @@ interface LineProps {
   onOpen?: () => void;
   onSeek?: (seconds: number) => void;
   playing?: boolean;
+  target?: boolean; // mode captura: la rèplica que rebrà la propera hora
+  onTarget?: () => void;
   videoTime?: () => number | null; // hora actual del vídeo (null: el reproductor és tancat)
 }
 
@@ -124,7 +126,7 @@ function Jump({ outline, from, continuous, onView, canSwitchMode, editing, onEdi
   );
 }
 
-function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDeleted, showPlace, onOpen, onSeek, playing, videoTime }: LineProps) {
+function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDeleted, showPlace, onOpen, onSeek, playing, target, onTarget, videoTime }: LineProps) {
   // «edit»: canvia aquesta línia; «add»: n'afegeix una de nova just a sota.
   const [mode, setMode] = useState<"edit" | "add" | null>(null);
   const [error, setError] = useState("");
@@ -363,7 +365,7 @@ function Line({ line, terms, focus, canEdit, speakers, onSaved, onInserted, onDe
   const body = <Marked text={line.text} terms={terms} />;
   return (
     <>
-    <div ref={ref} data-line={line.id} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}`}>
+    <div ref={ref} data-line={line.id} className={`cy-line cy-${line.kind}${focus ? " is-focus" : ""}${playing ? " is-playing" : ""}${target ? " is-target" : ""}`} onClick={onTarget}>
       {line.kind === "speech" ? (
         <>
           <div className="cy-who">
@@ -449,6 +451,12 @@ export function CyranoPage() {
 
   // Hora actual del reproductor, per posar-la a una rèplica des de l'editor.
   const currentTime = () => (playerOpen && player.current ? player.current.currentTime : null);
+
+  // Mode captura: el vídeo va sonant i, cada cop que premes Tab, la rèplica marcada rep l'hora actual i la marca salta a la següent.
+  const [capture, setCapture] = useState(false);
+  const [capId, setCapId] = useState(0);
+  const [capMsg, setCapMsg] = useState("");
+  const capBusy = useRef(false);
 
   function seek(seconds: number) {
     const el = player.current;
@@ -637,6 +645,59 @@ export function CyranoPage() {
     };
   }, [jumpEl]);
 
+  const capList = useMemo(() => ((continuous ? all : lines) ?? []).filter((l) => l.kind !== "title"), [continuous, all, lines]);
+  const capRef = useRef({ capList, capId });
+  capRef.current = { capList, capId };
+
+  useEffect(() => {
+    if (capture && capList.length && !capList.some((l) => l.id === capId)) {
+      setCapId((capList.find((l) => !l.stamp) ?? capList[0])?.id ?? 0);
+    }
+  }, [capture, capList, capId]);
+
+  useEffect(() => {
+    if (!capture || !capId) return;
+    document.querySelector(`.cy-line[data-line="${capId}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [capture, capId]);
+
+  useEffect(() => {
+    if (!capture) return;
+    const move = (by: number) => {
+      const { capList: list, capId: id } = capRef.current;
+      const i = list.findIndex((l) => l.id === id);
+      const next = list[i + by];
+      if (next) setCapId(next.id);
+      else setCapMsg(by > 0 ? "Final d'aquesta escena: passa a la següent." : "Ets a la primera rèplica.");
+    };
+    const onKey = async (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey || t?.closest("input, textarea, select, [contenteditable]")) return;
+      const key = e.key.toLowerCase();
+      if (key === "s") return void (e.preventDefault(), move(1));
+      if (key === "z") return void (e.preventDefault(), move(-1));
+      if (e.key !== "Tab" || e.shiftKey || e.repeat) return;
+      e.preventDefault();
+      const el = player.current;
+      const { capList: list, capId: id } = capRef.current;
+      const line = list.find((l) => l.id === id);
+      if (!el || !line || capBusy.current) return;
+      capBusy.current = true;
+      setCapMsg("");
+      try {
+        const updated = await api.cyranoEdit(line.id, { speaker: line.speaker, kind: line.kind, text: line.text, stamp: toStamp(el.currentTime) });
+        saved(updated);
+        move(1);
+      } catch (err) {
+        setCapMsg((err as Error).message);
+      } finally {
+        capBusy.current = false;
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capture]);
+
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
   const at = ordered.findIndex((x) => x.act === act && x.scene === scene);
   const go = (to: { act: number; scene: number } | undefined) => {
@@ -700,6 +761,12 @@ export function CyranoPage() {
                 <path d="M10 9.5v5l4.5-2.5z" />
               </svg>
               Vídeo
+            </button>
+          )}
+          {video && canEdit && (
+            <button type="button" className="cy-pdf" aria-pressed={capture} onClick={() => { setCapture((c) => !c); setCapMsg(""); setPlayerOpen(true); }} title="Mode captura: prem Tab al vídeo per posar l'hora a la rèplica marcada">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.5" /></svg>
+              Captura
             </button>
           )}
           <a className="cy-pdf" href="/api/v1/cyrano/pdf" download="Cyrano-de-Bergerac.pdf" title="Baixa l'obra en PDF">
@@ -802,7 +869,7 @@ export function CyranoPage() {
                       )}
                     </header>
                     {sec.lines.filter((l) => !(sec.act > 0 && sec.scene === 0 && l.kind === "title")).map((l) => (
-                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                      <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} target={capture && l.id === capId} onTarget={capture ? () => setCapId(l.id) : undefined} videoTime={video ? currentTime : undefined} />
                     ))}
                   </section>
                 ))}
@@ -818,7 +885,7 @@ export function CyranoPage() {
 
             <div className="cy-scene">
               {lines.map((l) => (
-                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} videoTime={video ? currentTime : undefined} />
+                <Line key={l.id} line={l} terms={terms} focus={l.id === focusId} canEdit={canEdit} speakers={speakers} onSaved={saved} onInserted={inserted} onDeleted={deleted} onSeek={video ? seek : undefined} playing={l.id === playingId} target={capture && l.id === capId} onTarget={capture ? () => setCapId(l.id) : undefined} videoTime={video ? currentTime : undefined} />
               ))}
             </div>
 
@@ -856,6 +923,9 @@ export function CyranoPage() {
       {video && playerOpen && (
         <div className="cy-player">
           <button type="button" className="cy-player-close" aria-label="Tanca el vídeo" onClick={() => setPlayerOpen(false)}>×</button>
+          {capture && (
+            <p className="cy-cap-hint"><strong>Captura:</strong> <kbd>Tab</kbd> marca i passa a la següent · <kbd>S</kbd> salta · <kbd>Z</kbd> torna enrere · o clica una rèplica{capMsg && <em> — {capMsg}</em>}</p>
+          )}
           <video
             ref={player}
             src={video}

@@ -1,7 +1,7 @@
 // Copia la interfície del paquet poemes/ a frontend/public/apps/poemes i hi posa la configuració
 // del hub (API sota /api/v1/poemes, sessió del hub). El resultat no es versiona (.gitignore).
 // Si poemes/ es separa del repositori, indica on és amb POEMES_UI_DIR.
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,14 +13,18 @@ if (!existsSync(source)) {
   console.warn(`sync-poemes-ui: no trobo ${source}; s'omet.`);
   process.exit(0);
 }
-rmSync(target, { recursive: true, force: true });
+// Es buida el contingut però no la carpeta: així el servidor de desenvolupament (Vite) no perd de vista els fitxers.
 mkdirSync(target, { recursive: true });
+for (const name of readdirSync(target)) rmSync(resolve(target, name), { recursive: true, force: true });
 cpSync(source, target, { recursive: true });
 // Icona del hub a la còpia incrustada (el paquet independent no en porta).
 const page = resolve(target, "index.html");
 // El script és inline (així mai no queda una còpia antiga a la memòria cau del navegador).
 const THEME_JS = `(function () {
-  function read() { try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; } }
+  function read() {
+    try { var t = window.parent !== window && window.parent.document.documentElement.dataset.theme; if (t === "light" || t === "dark") return t; } catch (e) { /* altre origen */ }
+    try { return localStorage.getItem("site-theme") === "light" ? "light" : "dark"; } catch (e) { return "dark"; }
+  }
   function apply() { document.documentElement.dataset.theme = read(); }
   apply();
   window.addEventListener("storage", apply);
@@ -62,6 +66,13 @@ writeFileSync(
 :root[data-theme="dark"] .poem-list button.poem-item { color: #f3e6d0; }
 :root[data-theme="dark"] .dialog-close { color: #a99a85; }
 :root[data-theme="dark"] .dialog-close:hover { color: #f3e6d0; }
+:root[data-theme="dark"] .poem-body { background: transparent; }
+:root[data-theme="dark"] .poem-marks i { background: rgba(255, 238, 0, .3); }
+:root[data-theme="dark"] .poem-gutter li.marked { color: #1a1500; background: rgba(255, 238, 0, .7); }
+:root[data-theme="dark"] .marking .poem-gutter li[data-verse]:hover { background: rgba(255, 238, 0, .22); color: #f3e6d0; }
+:root[data-theme="dark"] .mark-toggle { color: #a99a85; background: transparent; }
+:root[data-theme="dark"] .mark-toggle:hover { color: #f3e6d0; }
+:root[data-theme="dark"] .mark-toggle[aria-pressed="true"] { color: #1a1500; background: #ffe94d; border-color: #ffe94d; }
 :root[data-theme="dark"] .word-badge { color: #fff; border-color: #120d09; }
 :root[data-theme="dark"] .poem-gutter { color: #8a7352; background: #17100a; border-right-color: #2e2216; }
 :root[data-theme="dark"] .poem-title::placeholder, :root[data-theme="dark"] .poem-body::placeholder { color: #6b5a45; }
