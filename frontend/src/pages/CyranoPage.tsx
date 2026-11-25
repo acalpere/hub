@@ -660,42 +660,49 @@ export function CyranoPage() {
     document.querySelector(`.cy-line[data-line="${capId}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [capture, capId]);
 
+  function capMove(by: number) {
+    const { capList: list, capId: id } = capRef.current;
+    const i = list.findIndex((l) => l.id === id);
+    const next = list[i + by];
+    if (next) setCapId(next.id);
+    else setCapMsg(by > 0 ? "Final d'aquesta escena: passa a la següent." : "Ets a la primera rèplica.");
+  }
+
+  // Desa l'hora actual del vídeo a la rèplica marcada i passa a la següent (Tab a l'ordinador, botó gran al mòbil).
+  async function captureNow() {
+    const el = player.current;
+    const { capList: list, capId: id } = capRef.current;
+    const line = list.find((l) => l.id === id);
+    if (!el || !line || capBusy.current) return;
+    capBusy.current = true;
+    setCapMsg("");
+    try {
+      const updated = await api.cyranoEdit(line.id, { speaker: line.speaker, kind: line.kind, text: line.text, stamp: toStamp(el.currentTime) });
+      saved(updated);
+      capMove(1);
+    } catch (err) {
+      setCapMsg((err as Error).message);
+    } finally {
+      capBusy.current = false;
+    }
+  }
+  const captureFn = useRef({ captureNow, capMove });
+  captureFn.current = { captureNow, capMove };
+
   useEffect(() => {
     if (!capture) return;
-    const move = (by: number) => {
-      const { capList: list, capId: id } = capRef.current;
-      const i = list.findIndex((l) => l.id === id);
-      const next = list[i + by];
-      if (next) setCapId(next.id);
-      else setCapMsg(by > 0 ? "Final d'aquesta escena: passa a la següent." : "Ets a la primera rèplica.");
-    };
-    const onKey = async (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (e.ctrlKey || e.metaKey || e.altKey || t?.closest("input, textarea, select, [contenteditable]")) return;
       const key = e.key.toLowerCase();
-      if (key === "s") return void (e.preventDefault(), move(1));
-      if (key === "z") return void (e.preventDefault(), move(-1));
+      if (key === "s") return void (e.preventDefault(), captureFn.current.capMove(1));
+      if (key === "z") return void (e.preventDefault(), captureFn.current.capMove(-1));
       if (e.key !== "Tab" || e.shiftKey || e.repeat) return;
       e.preventDefault();
-      const el = player.current;
-      const { capList: list, capId: id } = capRef.current;
-      const line = list.find((l) => l.id === id);
-      if (!el || !line || capBusy.current) return;
-      capBusy.current = true;
-      setCapMsg("");
-      try {
-        const updated = await api.cyranoEdit(line.id, { speaker: line.speaker, kind: line.kind, text: line.text, stamp: toStamp(el.currentTime) });
-        saved(updated);
-        move(1);
-      } catch (err) {
-        setCapMsg((err as Error).message);
-      } finally {
-        capBusy.current = false;
-      }
+      void captureFn.current.captureNow();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [capture]);
 
   const ordered = outline?.acts.flatMap((a) => a.scenes.map((s) => ({ act: a.act, scene: s }))) ?? [];
@@ -920,11 +927,18 @@ export function CyranoPage() {
           }}
         />
       )}
+      {video && playerOpen && capture && (
+        <div className="cy-cap-pad">
+          <button type="button" className="cy-cap-skip" aria-label="Salta aquesta rèplica" onClick={() => capMove(1)}>Salta</button>
+          <button type="button" className="cy-cap-go" onPointerDown={(e) => { e.preventDefault(); void captureNow(); }}>Marca</button>
+          <button type="button" className="cy-cap-skip" aria-label="Torna a la rèplica anterior" onClick={() => capMove(-1)}>Enrere</button>
+        </div>
+      )}
       {video && playerOpen && (
         <div className="cy-player">
           <button type="button" className="cy-player-close" aria-label="Tanca el vídeo" onClick={() => setPlayerOpen(false)}>×</button>
           {capture && (
-            <p className="cy-cap-hint"><strong>Captura:</strong> <kbd>Tab</kbd> marca i passa a la següent · <kbd>S</kbd> salta · <kbd>Z</kbd> torna enrere · o clica una rèplica{capMsg && <em> — {capMsg}</em>}</p>
+            <p className="cy-cap-hint"><strong>Captura:</strong> <kbd>Tab</kbd> o el botó «Marca» desa l'hora i passa a la següent · <kbd>S</kbd> salta · <kbd>Z</kbd> enrere · o clica una rèplica{capMsg && <em> — {capMsg}</em>}</p>
           )}
           <video
             ref={player}

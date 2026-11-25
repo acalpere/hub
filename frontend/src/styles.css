@@ -1223,3 +1223,11 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
 .cy-cap-hint { margin: 0; padding: 0.4rem 2.2rem 0.4rem 0.7rem; background: #1b120a; color: #f6e4c8; font-size: 0.75rem; line-height: 1.4; }
 .cy-cap-hint kbd { padding: 0 0.35rem; border: 1px solid currentColor; border-radius: 4px; font: inherit; font-weight: 600; }
 .cy-cap-hint em { color: #ff8a7a; font-style: normal; }
+
+/* Botó gran de captura (mòbil): al costat del polze, a baix a l'esquerra */
+.cy-cap-pad { position: fixed; left: 1rem; bottom: 1rem; z-index: 31; display: flex; align-items: center; gap: 0.7rem; }
+.cy-cap-go { width: 5.2rem; height: 5.2rem; padding: 0; border-radius: 50%; border: 0; background: #c0392b; color: #fff; font: 700 1rem var(--sans); letter-spacing: 0.04em; box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.55); touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+.cy-cap-go:active { transform: scale(0.93); background: #a83023; }
+.cy-cap-skip { padding: 0.5rem 0.7rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: color-mix(in srgb, var(--bg) 88%, transparent); color: var(--fg); font: 500 0.78rem var(--sans); touch-action: manipulation; }
+@media (min-width: 48.01rem) { .cy-cap-pad { left: 2rem; bottom: 2rem; } }
+@media (max-width: 26rem) { .cy-cap-pad { bottom: calc((100vw - 2rem) * 0.75 + 1.8rem); } }
