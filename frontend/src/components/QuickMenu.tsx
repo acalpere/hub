@@ -51,6 +51,23 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
     window.addEventListener("quick-menu-toggle", toggle);
     return () => window.removeEventListener("quick-menu-toggle", toggle);
   }, []);
+  // Mesura on acaba el vers per posar el menú just a sota, al cel buit (variable --verse-b)
+  const root = useRef<HTMLDivElement>(null);
+  const verseEl = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = verseEl.current;
+    const box = root.current;
+    if (!box) return;
+    const measure = () => box.style.setProperty("--verse-b", el ? `${el.getBoundingClientRect().bottom}px` : "5rem");
+    measure();
+    window.addEventListener("resize", measure);
+    const ro = el ? new ResizeObserver(measure) : null;
+    if (el) ro?.observe(el);
+    return () => {
+      window.removeEventListener("resize", measure);
+      ro?.disconnect();
+    };
+  }, [verse]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -70,7 +87,7 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
   ];
 
   return (
-    <div className={`quick${open ? " open" : ""}${showFab ? " home" : ""} from-${from}`}>
+    <div ref={root} className={`quick${open ? " open" : ""}${showFab ? " home" : ""} from-${from}`}>
       <div className="quick-veil" onClick={() => setOpen(false)} aria-hidden="true">
         <span className="q-stars" />
         <svg className="q-stage" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
@@ -134,7 +151,7 @@ export function QuickMenu({ user, hasCyrano, verse, onLogout }: Props) {
           </g>
         </svg>
         <button type="button" className="q-close" aria-label="Tanca el menú" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>×</button>
-        {verse && <span className="q-verse">{verse}</span>}
+        {verse && <span ref={verseEl} className="q-verse">{verse}</span>}
       </div>
       <div className="quick-theme" role="group" aria-label="Tema">
         {(["dark", "light"] as const).map((t) => (

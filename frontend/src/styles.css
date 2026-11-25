@@ -1202,3 +1202,10 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
 .qt-dot.on, .qt-dot:hover, .qt-dot:focus-visible { opacity: 1; }
 .qt-dot.on { box-shadow: 0 0 0 2px rgba(240, 200, 140, 0.7); }
 @media (min-width: 48.01rem) { .quick-theme { top: 1.8rem; left: 2rem; } }
+
+/* Mòbil en vertical: el menú a l'esquerra, dins del cel buit entre el vers (mesurat) i el balcó; si no hi cap, s'encongeix */
+@media (max-width: 48rem) and (orientation: portrait) {
+  .quick .quick-stack, .quick.from-top .quick-stack { top: calc(var(--verse-b, 10rem) + 0.7rem); bottom: calc(17vh * 0.42 + min(36vh, 22rem) * 0.925 + 0.7rem); justify-content: center; flex-direction: column-reverse; gap: 0; }
+  .quick .quick-item { padding-top: clamp(0.08rem, 0.9vh, 0.4rem); padding-bottom: clamp(0.08rem, 0.9vh, 0.4rem); font-size: clamp(0.8rem, 2.2vh, 0.95rem); }
+  .quick .q-verse { font-size: clamp(0.8rem, 2.5vh, 1.08rem); }
+}
