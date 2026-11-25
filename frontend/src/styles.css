@@ -1209,3 +1209,9 @@ body::before, body::after { inset: 0 0 auto 0; height: 100lvh; }
   .quick .quick-item { padding-top: clamp(0.08rem, 0.9vh, 0.4rem); padding-bottom: clamp(0.08rem, 0.9vh, 0.4rem); font-size: clamp(0.8rem, 2.2vh, 0.95rem); }
   .quick .q-verse { font-size: clamp(0.8rem, 2.5vh, 1.08rem); }
 }
+
+/* Pantalles grans: el menú sempre a l'esquerra, amb una mica de marge, al cel buit just sota el vers (obri'l des d'on s'obri) */
+@media (min-width: 48.01rem) and (min-height: 32.01rem) {
+  .quick .quick-stack, .quick.from-top .quick-stack { left: 3rem; right: auto; bottom: auto; top: max(10rem, calc(var(--verse-b, 6rem) + 2.5rem)); flex-direction: column-reverse; align-items: flex-start; }
+  .quick .quick-item, .quick.from-top .quick-item { transform-origin: left top; }
+}

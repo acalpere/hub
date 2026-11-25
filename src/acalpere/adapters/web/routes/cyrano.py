@@ -59,7 +59,8 @@ def video_file(c: Container = Depends(container)):
     path = c.cyrano.video_file()
     if path is None:
         raise HTTPException(status_code=404, detail="Vídeo no trobat")
-    return FileResponse(path, media_type="video/mp4")
+    # Mateixa adreça sempre: sense això el navegador pot ensenyar una còpia vella.
+    return FileResponse(path, media_type="video/mp4", headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/pdf")
